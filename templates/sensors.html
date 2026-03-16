@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSD System - Sensor Status</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .sensor-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .sensor-table th, .sensor-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .sensor-table th {
+            background: rgba(0,212,255,0.2);
+            color: #00d4ff;
+        }
+        .status-online {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        .status-offline {
+            color: #ff4444;
+            font-weight: bold;
+        }
+        .nav-bar {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .nav-bar a {
+            color: #00d4ff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+        }
+        .nav-bar a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-bar">
+            <a href="/">Dashboard</a>
+            <a href="/sensors">Sensors</a>
+        </div>
+        <h1>ESP32 Sensor Status</h1>
+        <table class="sensor-table" id="sensorTable">
+            <thead>
+                <tr>
+                    <th>Sensor ID</th>
+                    <th>Placement</th>
+                    <th>Last Data</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Populated by JS -->
+            </tbody>
+        </table>
+        <p>Last updated: <span id="updateTime"></span></p>
+    </div>
+    <script>
+        async function fetchSensorStatus() {
+            try {
+                const response = await fetch('/api/sensors');
+                const sensors = await response.json();
+                const tbody = document.querySelector('#sensorTable tbody');
+                tbody.innerHTML = '';
+                sensors.forEach(s => {
+                    const row = document.createElement('tr');
+                    const lastSeen = s.last_seen ? new Date(s.last_seen * 1000).toLocaleString() : 'Never';
+                    const statusClass = s.online ? 'status-online' : 'status-offline';
+                    const statusText = s.online ? 'Online' : 'Offline';
+                    row.innerHTML = `
+                        <td>${s.sensor_id}</td>
+                        <td>${s.sensor_id.replace('_', ' ')}</td>
+                        <td>${lastSeen}</td>
+                        <td class="${statusClass}">${statusText}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                document.getElementById('updateTime').innerText = new Date().toLocaleString();
+            } catch (error) {
+                console.error('Failed to fetch sensor status:', error);
+            }
+        }
+
+        // Fetch initially and then every 5 seconds
+        fetchSensorStatus();
+        setInterval(fetchSensorStatus, 5000);
+    </script>
+</body>
+</html>

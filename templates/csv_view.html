@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}CSV Data{% endblock %}
+{% block content %}
+<h1><i class="fas fa-file-csv"></i> CSV Data Files</h1>
+<ul id="csv-list"></ul>
+<button onclick="downloadLatestCSV()"><i class="fas fa-download"></i> Download Latest CSV</button>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function fetchCSVList() {
+    const response = await fetch('/api/csv/list');
+    const files = await response.json();
+    const ul = document.getElementById('csv-list');
+    ul.innerHTML = '';
+    files.forEach(f => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <a href="/api/csv/download/${f}" download>${f}</a>
+            <button onclick="deleteCSV('${f}')" class="delete-btn">X</button>
+        `;
+        ul.appendChild(li);
+    });
+}
+
+async function deleteCSV(filename) {
+    if (confirm(`Are you sure you want to delete ${filename}?`)) {
+        const response = await fetch('/api/csv/delete/' + encodeURIComponent(filename), { method: 'DELETE' });
+        if (response.ok) {
+            fetchCSVList(); // refresh the list
+        } else {
+            alert('Failed to delete file');
+        }
+    }
+}
+
+function downloadLatestCSV() {
+    let filename = prompt("Enter filename for the CSV (e.g., export.csv):", "export.csv");
+    if (filename) {
+        window.location.href = '/api/csv/latest/download?filename=' + encodeURIComponent(filename);
+    }
+}
+async function deleteCSV(filename) {
+    if (confirm(`Are you sure you want to delete ${filename}?`)) {
+        const response = await fetch('/api/csv/delete/' + encodeURIComponent(filename), { method: 'DELETE' });
+        if (response.ok) {
+            fetchCSVList(); // refresh the list
+        } else {
+            const error = await response.json();
+            alert('Failed to delete: ' + (error.error || 'Unknown error'));
+        }
+    }
+}
+// Initial fetch
+fetchCSVList();
+</script>
+{% endblock %}

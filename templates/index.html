@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1><i class="fas fa-chart-line"></i> Musculoskeletal Disorder Monitoring</h1>
+<div class="status">Status: <span id="conn-status">Disconnected</span></div>
+
+<!-- Top row: Global Risk & Risk Components -->
+<div class="cards">
+    <div class="card">
+        <h3>Global Risk</h3>
+        <div id="gauge" class="gauge">
+            <div id="gauge-pointer" style="left:0%;"></div>
+        </div>
+        <p id="risk-level">-</p>
+    </div>
+    <div class="card">
+        <h3>Risk Components</h3>
+        <canvas id="radarChart"></canvas>
+    </div>
+</div>
+
+<!-- Middle row: Joint Angles List -->
+<div class="cards">
+    <div class="card" style="flex: 1 1 100%;">
+        <h3>Joint Angles <span style="font-size:0.8rem; color:#aaa;">(red = above threshold)</span></h3>
+        <div id="angles" class="joint-list"></div>
+    </div>
+</div>
+
+<!-- Bottom row: All Joint Trends (clickable) -->
+<div class="trends-grid">
+    <div class="card trend-card" data-joint="Neck">
+        <h4>Neck Angle</h4>
+        <canvas id="trend-Neck"></canvas>
+    </div>
+    <div class="card trend-card" data-joint="Back">
+        <h4>Back Angle</h4>
+        <canvas id="trend-Back"></canvas>
+    </div>
+    <div class="card trend-card" data-joint="R_Shoulder">
+        <h4>R Shoulder</h4>
+        <canvas id="trend-R_Shoulder"></canvas>
+    </div>
+    <div class="card trend-card" data-joint="L_Shoulder">
+        <h4>L Shoulder</h4>
+        <canvas id="trend-L_Shoulder"></canvas>
+    </div>
+    <div class="card trend-card" data-joint="R_Elbow">
+        <h4>R Elbow</h4>
+        <canvas id="trend-R_Elbow"></canvas>
+    </div>
+    <div class="card trend-card" data-joint="L_Elbow">
+        <h4>L Elbow</h4>
+        <canvas id="trend-L_Elbow"></canvas>
+    </div>
+    <div class="card trend-card" data-joint="R_Wrist">
+        <h4>R Wrist</h4>
+        <canvas id="trend-R_Wrist"></canvas>
+    </div>
+    <div class="card trend-card" data-joint="L_Wrist">
+        <h4>L Wrist</h4>
+        <canvas id="trend-L_Wrist"></canvas>
+    </div>
+    <div class="card trend-card">
+        <h4>Trunk Angle</h4>
+        <canvas id="trend-trunk"></canvas>
+    </div>
+    <!-- New: Legs Score -->
+    <div class="card trend-card">
+        <h4>Legs Score</h4>
+        <canvas id="trend-legs"></canvas>
+    </div>
+</div>
+<!-- Risk Trend Chart -->
+<div class="cards">
+    <div class="card" data-joint="R_Wrist">
+        <h3>Global Risk Trend (last 60s)</h3>
+        <canvas id="riskTrendChart"></canvas>
+    </div>
+</div>
+
+<!-- RULA Scores Row -->
+<div class="cards">
+    <div class="card">
+        <h3>RULA Right</h3>
+        <div id="rula-right" class="rula-score">-</div>
+        <div id="rula-right-action" class="rula-action"></div>
+    </div>
+    <div class="card">
+        <h3>RULA Left</h3>
+        <div id="rula-left" class="rula-score">-</div>
+        <div id="rula-left-action" class="rula-action"></div>
+    </div>
+</div>
+<!-- REBA Scores Row -->
+<div class="cards">
+    <div class="card">
+        <h3>REBA Right</h3>
+        <div id="reba-right" class="reba-score">-</div>
+        <div id="reba-right-action" class="reba-action"></div>
+    </div>
+    <div class="card">
+        <h3>REBA Left</h3>
+        <div id="reba-left" class="reba-score">-</div>
+        <div id="reba-left-action" class="reba-action"></div>
+    </div>
+</div>
+<div class="controls">
+    <button onclick="downloadCSV()"><i class="fas fa-download"></i> Download CSV</button>
+    <button onclick="generateReport()"><i class="fas fa-file-pdf"></i> Generate PDF Report</button>
+</div>
+<!-- Modal for enlarged chart -->
+<div id="chartModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3 id="modal-title"></h3>
+        <canvas id="modal-canvas"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+{% endblock %}

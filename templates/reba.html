@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}REBA Assessment{% endblock %}
+{% block content %}
+<h1><i class="fas fa-child"></i> Rapid Entire Body Assessment (REBA)</h1>
+
+<!-- Sensor Placement Card -->
+<div class="card sensor-placement">
+    <h3>Sensor Placement Check</h3>
+    <p class="sensor-note">
+        Required for REBA (upper body): NECK, UPPER_BACK, R_BICEPS, L_BICEPS, R_FOREARM, L_FOREARM, R_HAND, L_HAND.<br>
+        <strong>Optional lower body sensors</strong> (thighs, shanks) improve leg posture measurement. If not present, leg score is taken from configuration (default: stable).<br>
+        Lower body sensor IDs must match ESP32 configuration (e.g., R_Thigh, L_Thigh, R_Shank, L_Shank).
+    </p>
+    <div class="sensor-map-container" style="height: 500px;">
+        <!-- Body outline (enlarged to accommodate leg markers) -->
+        <div class="body-outline" style="height: 500px;">
+            <div class="head"></div>
+            <div class="torso"></div>
+            <div class="arm left"></div>
+            <div class="arm right"></div>
+            <div class="leg left"></div>
+            <div class="leg right"></div>
+        </div>
+        <!-- Upper body sensor markers (all caps, as sent) -->
+        <div class="sensor-marker" style="top: 12%; left: 50%;"><div class="sensor-card"><div class="sensor-name">Neck</div><div class="sensor-status" id="status-NECK">...</div></div></div>
+        <div class="sensor-marker" style="top: 25%; left: 50%;"><div class="sensor-card"><div class="sensor-name">Upper Back</div><div class="sensor-status" id="status-UPPER_BACK">...</div></div></div>
+        <div class="sensor-marker" style="top: 30%; left: 65%;"><div class="sensor-card"><div class="sensor-name">R Biceps</div><div class="sensor-status" id="status-R_BICEPS">...</div></div></div>
+        <div class="sensor-marker" style="top: 30%; left: 35%;"><div class="sensor-card"><div class="sensor-name">L Biceps</div><div class="sensor-status" id="status-L_BICEPS">...</div></div></div>
+        <div class="sensor-marker" style="top: 40%; left: 70%;"><div class="sensor-card"><div class="sensor-name">R Forearm</div><div class="sensor-status" id="status-R_FOREARM">...</div></div></div>
+        <div class="sensor-marker" style="top: 40%; left: 30%;"><div class="sensor-card"><div class="sensor-name">L Forearm</div><div class="sensor-status" id="status-L_FOREARM">...</div></div></div>
+        <div class="sensor-marker" style="top: 50%; left: 75%;"><div class="sensor-card"><div class="sensor-name">R Hand</div><div class="sensor-status" id="status-R_HAND">...</div></div></div>
+        <div class="sensor-marker" style="top: 50%; left: 25%;"><div class="sensor-card"><div class="sensor-name">L Hand</div><div class="sensor-status" id="status-L_HAND">...</div></div></div>
+        
+        <!-- Lower body sensor markers – IDs match ESP32 format (e.g., L_Thigh) -->
+        <div class="sensor-marker" style="top: 60%; left: 60%;">
+            <div class="sensor-card">
+                <div class="sensor-name">R Thigh</div>
+                <div class="sensor-status" id="status-R_Thigh">...</div>
+            </div>
+        </div>
+        <div class="sensor-marker" style="top: 60%; left: 40%;">
+            <div class="sensor-card">
+                <div class="sensor-name">L Thigh</div>
+                <div class="sensor-status" id="status-L_Thigh">...</div>
+            </div>
+        </div>
+        <div class="sensor-marker" style="top: 75%; left: 65%;">
+            <div class="sensor-card">
+                <div class="sensor-name">R Shank</div>
+                <div class="sensor-status" id="status-R_Shank">...</div>
+            </div>
+        </div>
+        <div class="sensor-marker" style="top: 75%; left: 35%;">
+            <div class="sensor-card">
+                <div class="sensor-name">L Shank</div>
+                <div class="sensor-status" id="status-L_Shank">...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Live REBA Scores -->
+<div class="reba-scores-grid">
+    <div class="card reba-card">
+        <h3><i class="fas fa-hand-point-right"></i> Right REBA</h3>
+        <div class="reba-big" id="reba-right-final">-</div>
+        <div class="reba-action" id="reba-right-action"></div>
+        <div class="reba-details">
+            <div class="detail-item"><span>Trunk:</span> <span id="reba-right-trunk">-</span></div>
+            <div class="detail-item"><span>Neck:</span> <span id="reba-right-neck">-</span></div>
+            <div class="detail-item"><span>Legs:</span> <span id="reba-right-legs">-</span></div>
+            <div class="detail-item"><span>Upper Arm:</span> <span id="reba-right-ua">-</span></div>
+            <div class="detail-item"><span>Forearm:</span> <span id="reba-right-fa">-</span></div>
+            <div class="detail-item"><span>Wrist:</span> <span id="reba-right-w">-</span></div>
+            <div class="detail-item"><span>Score A:</span> <span id="reba-right-a">-</span></div>
+            <div class="detail-item"><span>Score B:</span> <span id="reba-right-b">-</span></div>
+        </div>
+    </div>
+    <div class="card reba-card">
+        <h3><i class="fas fa-hand-point-left"></i> Left REBA</h3>
+        <div class="reba-big" id="reba-left-final">-</div>
+        <div class="reba-action" id="reba-left-action"></div>
+        <div class="reba-details">
+            <div class="detail-item"><span>Trunk:</span> <span id="reba-left-trunk">-</span></div>
+            <div class="detail-item"><span>Neck:</span> <span id="reba-left-neck">-</span></div>
+            <div class="detail-item"><span>Legs:</span> <span id="reba-left-legs">-</span></div>
+            <div class="detail-item"><span>Upper Arm:</span> <span id="reba-left-ua">-</span></div>
+            <div class="detail-item"><span>Forearm:</span> <span id="reba-left-fa">-</span></div>
+            <div class="detail-item"><span>Wrist:</span> <span id="reba-left-w">-</span></div>
+            <div class="detail-item"><span>Score A:</span> <span id="reba-left-a">-</span></div>
+            <div class="detail-item"><span>Score B:</span> <span id="reba-left-b">-</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- REBA Trend Charts -->
+<div class="reba-charts-grid">
+    <div class="card chart-card">
+        <h4>Right REBA Final Score</h4>
+        <canvas id="trend-reba-right" width="300" height="150"></canvas>
+    </div>
+    <div class="card chart-card">
+        <h4>Left REBA Final Score</h4>
+        <canvas id="trend-reba-left" width="300" height="150"></canvas>
+    </div>
+    <div class="card chart-card full-width">
+        <h4>REBA Comparison</h4>
+        <canvas id="trend-reba-both" width="620" height="200"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='reba.js') }}"></script>
+{% endblock %}

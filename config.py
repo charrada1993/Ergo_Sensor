@@ -1,0 +1,54 @@
+import os
+
+class Config:
+    # Server settings
+    HOST = '0.0.0.0'
+    PORT = 5000
+    DEBUG = False
+
+    # Data ingestion – exact sensor IDs as sent by ESP32
+    EXPECTED_SENSORS = [
+        'NECK', 'UPPER_BACK',
+        'R_BICEPS', 'L_BICEPS',
+        'R_FOREARM', 'L_FOREARM',
+        'R_HAND', 'L_HAND',
+        'R_Thigh', 'L_Thigh',      # note capital T, lowercase rest
+        'R_Shank', 'L_Shank'        # if used
+    ]
+    POST_INTERVAL_MS = 100
+
+    # Paths
+    CSV_DIR = 'csv_data'
+    REPORTS_DIR = 'reports'
+    LOGS_DIR = 'logs'
+
+    # Risk model parameters
+    CWD = 3600
+    ET = 28800
+    CF = 15
+    PF = 5
+    MF = 25
+    MRQ = 60
+    MDR = 0
+    E = 90
+    CWL = 5
+    PWL = 2
+    MVC = 10
+    RR = 600
+    AR = 120
+    RISK_WEIGHTS = [0.2, 0.2, 0.2, 0.2, 0.2]
+
+    # RULA defaults
+    RULA_LOAD_SCORE = 0
+    RULA_MUSCLE_SCORE = 0
+    RULA_LEGS_SCORE = 1
+
+    # REBA defaults
+    REBA_LOAD_SCORE = 0
+    REBA_COUPLING_SCORE = 0
+    REBA_ACTIVITY_SCORE = 0
+    REBA_LEGS_SCORE = 1
+
+    # Ensure directories exist
+    for d in [CSV_DIR, REPORTS_DIR, LOGS_DIR]:
+        os.makedirs(d, exist_ok=True)

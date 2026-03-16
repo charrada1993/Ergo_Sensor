@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<h1>Generated Reports</h1>
+<ul id="reports-list">
+    <!-- populated by JS -->
+</ul>
+<button onclick="generateReport()">Generate New Report</button>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function fetchReportsList() {
+    try {
+        const response = await fetch('/api/reports/list');
+        const files = await response.json();
+        const ul = document.getElementById('reports-list');
+        ul.innerHTML = '';
+        files.forEach(f => {
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="/api/reports/download/${f}" download>${f}</a>`;
+            ul.appendChild(li);
+        });
+    } catch (error) {
+        console.error('Failed to fetch reports list:', error);
+    }
+}
+
+function generateReport() {
+    fetch('/api/report/generate', { method: 'POST' })
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'report.pdf';
+            a.click();
+            // Refresh list after a delay
+            setTimeout(fetchReportsList, 2000);
+        });
+}
+
+fetchReportsList();
+</script>
+{% endblock %}
