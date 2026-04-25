@@ -1,141 +1,192 @@
 {% extends "base.html" %}
 {% block title %}System Status - Graphical View{% endblock %}
 {% block content %}
-<h1><i class="fas fa-microchip"></i> Sensor Placement & Status</h1>
+<h1><i class="fas fa-microchip"></i> Sensor Placement &amp; Status</h1>
 
 <div class="sensor-map">
-    <!-- Human body outline -->
-    <div class="body-outline">
-        <div class="head"></div>
-        <div class="torso"></div>
-        <div class="arm left"></div>
-        <div class="arm right"></div>
-        <div class="leg left"></div>
-        <div class="leg right"></div>
-    </div>
 
-    <!-- Upper body sensor markers -->
-    <div class="sensor-marker" style="top: 12%; left: 50%;">
-        <div class="sensor-card">
-            <div class="sensor-name">Neck</div>
-            <div class="sensor-status" id="status-NECK">...</div>
-            <div class="sensor-values" id="vals-NECK">-</div>
-        </div>
-    </div>
-    <div class="sensor-marker" style="top: 25%; left: 50%;">
-        <div class="sensor-card">
-            <div class="sensor-name">Upper Back</div>
-            <div class="sensor-status" id="status-UPPER_BACK">...</div>
-            <div class="sensor-values" id="vals-UPPER_BACK">-</div>
-        </div>
-    </div>
-    <div class="sensor-marker" style="top: 30%; left: 65%;">
-        <div class="sensor-card">
-            <div class="sensor-name">R Biceps</div>
-            <div class="sensor-status" id="status-R_BICEPS">...</div>
-            <div class="sensor-values" id="vals-R_BICEPS">-</div>
-        </div>
-    </div>
-    <div class="sensor-marker" style="top: 30%; left: 35%;">
-        <div class="sensor-card">
-            <div class="sensor-name">L Biceps</div>
-            <div class="sensor-status" id="status-L_BICEPS">...</div>
-            <div class="sensor-values" id="vals-L_BICEPS">-</div>
-        </div>
-    </div>
-    <div class="sensor-marker" style="top: 40%; left: 70%;">
-        <div class="sensor-card">
-            <div class="sensor-name">R Forearm</div>
-            <div class="sensor-status" id="status-R_FOREARM">...</div>
-            <div class="sensor-values" id="vals-R_FOREARM">-</div>
-        </div>
-    </div>
-    <div class="sensor-marker" style="top: 40%; left: 30%;">
-        <div class="sensor-card">
-            <div class="sensor-name">L Forearm</div>
-            <div class="sensor-status" id="status-L_FOREARM">...</div>
-            <div class="sensor-values" id="vals-L_FOREARM">-</div>
-        </div>
-    </div>
-    <div class="sensor-marker" style="top: 50%; left: 75%;">
-        <div class="sensor-card">
-            <div class="sensor-name">R Hand</div>
-            <div class="sensor-status" id="status-R_HAND">...</div>
-            <div class="sensor-values" id="vals-R_HAND">-</div>
-        </div>
-    </div>
-    <div class="sensor-marker" style="top: 50%; left: 25%;">
-        <div class="sensor-card">
-            <div class="sensor-name">L Hand</div>
-            <div class="sensor-status" id="status-L_HAND">...</div>
-            <div class="sensor-values" id="vals-L_HAND">-</div>
-        </div>
-    </div>
+    <!-- 3D Man Model — sensor cards positioned directly on body parts -->
+    <div class="body-figure-wrap">
 
-    <!-- Lower body sensor markers (thighs and shanks) – IDs match ESP32 format -->
-    <div class="sensor-marker" style="top: 60%; left: 65%;">
-        <div class="sensor-card">
-            <div class="sensor-name">R Thigh</div>
-            <div class="sensor-status" id="status-R_Thigh">...</div>
-            <div class="sensor-values" id="vals-R_Thigh">-</div>
+        <!-- The man model image fills the wrap -->
+        <div class="body-figure-img"></div>
+
+        <!-- === SENSOR CARDS — positioned inside body-figure-wrap === -->
+        <!-- Neck — top center -->
+        <div class="sensor-pin" style="top:18%; left:58%;">
+            <div class="pin-dot"></div>
+            <div class="pin-line"></div>
+            <div class="sensor-card">
+                <div class="sensor-name">Neck</div>
+                <div class="sensor-status" id="status-NECK">...</div>
+                <div class="sensor-values" id="vals-NECK">-</div>
+            </div>
         </div>
-    </div>
-    <div class="sensor-marker" style="top: 60%; left: 35%;">
-        <div class="sensor-card">
-            <div class="sensor-name">L Thigh</div>
-            <div class="sensor-status" id="status-L_Thigh">...</div>
-            <div class="sensor-values" id="vals-L_Thigh">-</div>
+
+        <!-- Upper Back — center -->
+        <div class="sensor-pin pin-right" style="top:28%; left:57%;">
+            <div class="pin-dot"></div>
+            <div class="pin-line"></div>
+            <div class="sensor-card">
+                <div class="sensor-name">Upper Back</div>
+                <div class="sensor-status" id="status-UPPER_BACK">...</div>
+                <div class="sensor-values" id="vals-UPPER_BACK">-</div>
+            </div>
         </div>
-    </div>
-    <div class="sensor-marker" style="top: 75%; left: 70%;">
-        <div class="sensor-card">
-            <div class="sensor-name">R Shank</div>
-            <div class="sensor-status" id="status-R_Shank">...</div>
-            <div class="sensor-values" id="vals-R_Shank">-</div>
+
+        <!-- L Biceps — far left -->
+        <div class="sensor-pin pin-left" style="top:30%; left:32%;">
+            <div class="pin-dot"></div>
+            <div class="pin-line"></div>
+            <div class="sensor-card">
+                <div class="sensor-name">L Biceps</div>
+                <div class="sensor-status" id="status-L_BICEPS">...</div>
+                <div class="sensor-values" id="vals-L_BICEPS">-</div>
+            </div>
         </div>
-    </div>
-    <div class="sensor-marker" style="top: 75%; left: 30%;">
-        <div class="sensor-card">
-            <div class="sensor-name">L Shank</div>
-            <div class="sensor-status" id="status-L_Shank">...</div>
-            <div class="sensor-values" id="vals-L_Shank">-</div>
+
+        <!-- R Biceps — far right -->
+        <div class="sensor-pin pin-right" style="top:30%; left:68%;">
+            <div class="pin-dot"></div>
+            <div class="pin-line"></div>
+            <div class="sensor-card">
+                <div class="sensor-name">R Biceps</div>
+                <div class="sensor-status" id="status-R_BICEPS">...</div>
+                <div class="sensor-values" id="vals-R_BICEPS">-</div>
+            </div>
         </div>
-    </div>
+
+        <!-- L Forearm — left -->
+        <div class="sensor-pin pin-left" style="top:42%; left:30%;">
+            <div class="pin-dot"></div>
+            <div class="pin-line"></div>
+            <div class="sensor-card">
+                <div class="sensor-name">L Forearm</div>
+                <div class="sensor-status" id="status-L_FOREARM">...</div>
+                <div class="sensor-values" id="vals-L_FOREARM">-</div>
+            </div>
+        </div>
+
+        <!-- R Forearm — right -->
+        <div class="sensor-pin pin-right" style="top:42%; left:70%;">
+            <div class="pin-dot"></div>
+            <div class="pin-line"></div>
+            <div class="sensor-card">
+                <div class="sensor-name">R Forearm</div>
+                <div class="sensor-status" id="status-R_FOREARM">...</div>
+                <div class="sensor-values" id="vals-R_FOREARM">-</div>
+            </div>
+        </div>
+
+        <!-- L Hand — left low -->
+        <div class="sensor-pin pin-left" style="top:52%; left:27%;">
+            <div class="pin-dot"></div>
+            <div class="pin-line"></div>
+            <div class="sensor-card">
+                <div class="sensor-name">L Hand</div>
+                <div class="sensor-status" id="status-L_HAND">...</div>
+                <div class="sensor-values" id="vals-L_HAND">-</div>
+            </div>
+        </div>
+
+        <!-- R Hand — right low -->
+        <div class="sensor-pin pin-right" style="top:52%; left:73%;">
+            <div class="pin-dot"></div>
+            <div class="pin-line"></div>
+            <div class="sensor-card">
+                <div class="sensor-name">R Hand</div>
+                <div class="sensor-status" id="status-R_HAND">...</div>
+                <div class="sensor-values" id="vals-R_HAND">-</div>
+            </div>
+        </div>
+
+        <!-- L Thigh — left lower body -->
+        <div class="sensor-pin pin-left" style="top:61%; left:36%;">
+            <div class="pin-dot"></div>
+            <div class="pin-line"></div>
+            <div class="sensor-card">
+                <div class="sensor-name">L Thigh</div>
+                <div class="sensor-status" id="status-L_THIGH">...</div>
+                <div class="sensor-values" id="vals-L_THIGH">-</div>
+            </div>
+        </div>
+
+        <!-- R Thigh — right lower body -->
+        <div class="sensor-pin pin-right" style="top:61%; left:64%;">
+            <div class="pin-dot"></div>
+            <div class="pin-line"></div>
+            <div class="sensor-card">
+                <div class="sensor-name">R Thigh</div>
+                <div class="sensor-status" id="status-R_THIGH">...</div>
+                <div class="sensor-values" id="vals-R_THIGH">-</div>
+            </div>
+        </div>
+
+        <!-- L Shank — left shin -->
+        <div class="sensor-pin pin-left" style="top:79%; left:37%;">
+            <div class="pin-dot"></div>
+            <div class="pin-line"></div>
+            <div class="sensor-card">
+                <div class="sensor-name">L Shank</div>
+                <div class="sensor-status" id="status-L_SHANK">...</div>
+                <div class="sensor-values" id="vals-L_SHANK">-</div>
+            </div>
+        </div>
+
+        <!-- R Shank — right shin -->
+        <div class="sensor-pin pin-right" style="top:79%; left:63%;">
+            <div class="pin-dot"></div>
+            <div class="pin-line"></div>
+            <div class="sensor-card">
+                <div class="sensor-name">R Shank</div>
+                <div class="sensor-status" id="status-R_SHANK">...</div>
+                <div class="sensor-values" id="vals-R_SHANK">-</div>
+            </div>
+        </div>
+
+    </div><!-- / body-figure-wrap -->
+
+    <p class="text-center" style="margin-top:20px;">
+        Last updated: <span id="updateTime"></span>
+    </p>
 </div>
-
-<p class="text-center">Last updated: <span id="updateTime"></span></p>
 {% endblock %}
 
 {% block scripts %}
 <script>
-async function fetchSensorStatus() {
-    try {
-        const response = await fetch('/api/sensors');
-        const sensors = await response.json();
-        
-        sensors.forEach(s => {
-            const statusEl = document.getElementById(`status-${s.sensor_id}`);
-            const valsEl = document.getElementById(`vals-${s.sensor_id}`);
-            if (statusEl) {
-                if (s.online) {
-                    statusEl.innerHTML = '<span class="badge online"><i class="fas fa-circle"></i> Online</span>';
-                    if (s.last_seen) {
-                        const date = new Date(s.last_seen * 1000);
-                        statusEl.title = `Last data: ${date.toLocaleString()}`;
+    async function fetchSensorStatus() {
+        try {
+            const response = await fetch('/api/sensors');
+            const sensors = await response.json();
+
+            sensors.forEach(s => {
+                const statusEl = document.getElementById(`status-${s.sensor_id}`);
+                const valsEl = document.getElementById(`vals-${s.sensor_id}`);
+                if (statusEl) {
+                    const wrap = statusEl.closest('.sensor-card');
+                    if (s.online) {
+                        statusEl.innerHTML = '<span class="badge online"><i class="fas fa-circle"></i> Online</span>';
+                        if (wrap) wrap.classList.add('card-online');
+                        if (wrap) wrap.classList.remove('card-offline');
+                        if (s.last_seen) {
+                            const d = new Date(s.last_seen * 1000);
+                            statusEl.title = `Last data: ${d.toLocaleString()}`;
+                        }
+                    } else {
+                        statusEl.innerHTML = '<span class="badge offline"><i class="fas fa-circle"></i> Offline</span>';
+                        if (wrap) wrap.classList.add('card-offline');
+                        if (wrap) wrap.classList.remove('card-online');
                     }
-                } else {
-                    statusEl.innerHTML = '<span class="badge offline"><i class="fas fa-circle"></i> Offline</span>';
                 }
-            }
-        });
+            });
 
-        document.getElementById('updateTime').innerText = new Date().toLocaleString();
-    } catch (error) {
-        console.error('Failed to fetch sensor status:', error);
+            document.getElementById('updateTime').innerText = new Date().toLocaleString();
+        } catch (error) {
+            console.error('Failed to fetch sensor status:', error);
+        }
     }
-}
 
-fetchSensorStatus();
-setInterval(fetchSensorStatus, 3000);
+    fetchSensorStatus();
+    setInterval(fetchSensorStatus, 3000);
 </script>
 {% endblock %}

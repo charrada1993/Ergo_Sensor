@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block title %}AI Predictive Analytics{% endblock %}
+
+{% block content %}
+<style>
+  /* ── Typography & tokens ─────────────────────────────────────── */
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --accent:    #00e5ff;
+    --warn:      #ffaa00;
+    --danger:    #ff4d6d;
+    --ok:        #00e5a0;
+    --border:    rgba(255, 255, 255, 0.05);
+  }
+
+  .dash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 1.6rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  .dash-header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-family: 'Syne', sans-serif;
+    letter-spacing: .04em;
+    color: var(--accent);
+    margin: 0;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  
+  @media (max-width: 900px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: rgba(18, 20, 35, 0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    transition: all 0.3s ease;
+  }
+  .card:hover {
+      box-shadow: 0 20px 40px rgba(0, 229, 255, 0.1);
+      border-color: rgba(0, 229, 255, 0.15);
+  }
+
+  .card h3 {
+    color: var(--accent);
+    margin-bottom: 1rem;
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+  }
+  
+  .ai-big {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 3rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0.5rem 0;
+  }
+  
+  .desc {
+    color: #8890aa;
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .progress-bar-container {
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    height: 12px;
+    width: 100%;
+    margin-top: 1rem;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: width 0.5s ease;
+  }
+
+  /* Anomaly top-5 list */
+  .anomaly-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+  }
+</style>
+
+<div class="dash-header">
+  <h1><i class="fas fa-brain"></i> MSD Sentinel — Top-5 Machine Learning Model output</h1>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h3><i class="fas fa-calendar-alt"></i> 10-Day Risk Forecast</h3>
+    <div id="ai-risk-10d" class="ai-big">—</div>
+    <div id="ai-risk-level" style="font-weight:700; font-family:'Syne'; margin-bottom:0.5rem;">WAITING...</div>
+    <div class="desc">LightGBM Forecast model outputs the 10-day projected musculoskeletal risk probability (0.0 to 1.0) derived by comparing short-term kinetic behavior across historical 125-tick sliding aggregations.</div>
+    <div class="progress-bar-container">
+        <div id="ai-risk-bar" class="progress-fill" style="width:0%;"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><i class="fas fa-search"></i> SHAP Root Cause (Feature)</h3>
+    <div id="ai-critical-joint" class="ai-big" style="font-size: 1.5rem; margin: 1rem 0;">—</div>
+    <div class="desc">SHAP Explainer (TreeExplainer) evaluation over the most current posture frame. This reveals the specific physiological joint or constraint driving the LightGBM 10-day risk probability higher in real-time.</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h3><i class="fas fa-radar"></i> Isolation Forest Anomaly Score</h3>
+    <div id="ai-anomaly-score" class="ai-big">—</div>
+    <div class="desc">Detects anomalous postures and mechanical deviations relative to the pre-scaled Isolation Forest model trained continuously over 90,000 baseline frames. High score (>0.6) = Unusual kinematic action.</div>
+    <div class="progress-bar-container">
+        <div id="ai-anomaly-bar" class="progress-fill" style="width:0%; background: #ffaa00;"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><i class="fas fa-list"></i> Top-5 Anomaly Classification</h3>
+    <div class="desc" style="margin-bottom: 1rem;">Multi-class LightGBM classifiers rank specific patterns associated with the current frame's kinematics.</div>
+    <div id="ai-anomaly-top5">
+      <div style="color: #aaa; font-style: italic;">Awaiting network data...</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+<script>
+const socket = io();
+
+// ═══════════════════════════════════════════════════════
+// WebSocket handlers
+// ═══════════════════════════════════════════════════════
+socket.on('connect', () => console.log('WebSocket connected (AI page)'));
+
+socket.on('angles', (data) => {
+    if (!data.ai_predictions) return;
+    const ai = data.ai_predictions;
+    
+    // 10-Day Risk Forecast
+    const r10 = ai.risk_10d || 0;
+    let rColor = '#00e5a0';
+    if(r10 > 0.4) rColor = '#ffaa00';
+    if(r10 > 0.7) rColor = '#ff4d6d';
+    
+    document.getElementById('ai-risk-10d').innerText = r10.toFixed(3);
+    document.getElementById('ai-risk-10d').style.color = rColor;
+    document.getElementById('ai-risk-level').innerText = (ai.risk_level || 'UNKNOWN').toUpperCase();
+    document.getElementById('ai-risk-level').style.color = rColor;
+    document.getElementById('ai-risk-bar').style.width = `${r10 * 100}%`;
+    document.getElementById('ai-risk-bar').style.background = rColor;
+
+    // SHAP Root Cause
+    let crit = ai.critical_joint;
+    if(!crit) crit = "Normal";
+    document.getElementById('ai-critical-joint').innerText = crit.replace(/_/g, ' ');
+    
+    // Isolation Forest Anomaly Score
+    const anom = ai.anomaly_score || 0;
+    let aColor = '#00e5a0';
+    if(anom > 0.5) aColor = '#ffaa00';
+    if(anom > 0.7) aColor = '#ff4d6d';
+    
+    document.getElementById('ai-anomaly-score').innerText = anom.toFixed(3);
+    document.getElementById('ai-anomaly-score').style.color = aColor;
+    document.getElementById('ai-anomaly-bar').style.width = `${anom * 100}%`;
+    document.getElementById('ai-anomaly-bar').style.background = aColor;
+    
+    // Top-5 Classification
+    if(ai.anomaly_probs) {
+        // Sort by probability descending
+        const sorted = Object.entries(ai.anomaly_probs).sort((a,b) => b[1] - a[1]);
+        
+        const html = sorted.map(([name, prob]) => {
+            const pct = (prob * 100).toFixed(1);
+            let barC = '#00e5ff';
+            if(prob > 0.4) barC = '#ffaa00';
+            if(prob > 0.7) barC = '#ff4d6d';
+            
+            return `
+              <div style="margin-bottom:8px;">
+                <div class="anomaly-row">
+                  <span style="color:#e4e8f4;">${name}</span>
+                  <span style="color:${barC};">${pct}%</span>
+                </div>
+                <div style="height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;">
+                  <div style="height:100%;width:${pct}%;background:${barC};border-radius:3px;"></div>
+                </div>
+              </div>
+            `;
+        }).join('');
+        document.getElementById('ai-anomaly-top5').innerHTML = html;
+    }
+});
+</script>
+{% endblock %}

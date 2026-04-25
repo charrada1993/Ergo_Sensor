@@ -5,15 +5,17 @@ class Config:
     HOST = '0.0.0.0'
     PORT = 5000
     DEBUG = False
-
+    # Firebase
+    FIREBASE_DATABASE_URL = 'https://msd-monitor-system-default-rtdb.europe-west1.firebasedatabase.app/'
+    FIREBASE_CREDENTIALS_PATH = 'msd-monitor-system-firebase-adminsdk-fbsvc-57e212bc0a.json'
     # Data ingestion – exact sensor IDs as sent by ESP32
     EXPECTED_SENSORS = [
         'NECK', 'UPPER_BACK',
         'R_BICEPS', 'L_BICEPS',
         'R_FOREARM', 'L_FOREARM',
         'R_HAND', 'L_HAND',
-        'R_Thigh', 'L_Thigh',      # note capital T, lowercase rest
-        'R_Shank', 'L_Shank'        # if used
+        'R_THIGH', 'L_THIGH',      # note capital T, lowercase rest
+        'R_SHANK', 'L_SHANK'        # if used
     ]
     POST_INTERVAL_MS = 100
 

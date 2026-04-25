@@ -1,203 +1,202 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSD Sentinel - Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        body {
-            background: linear-gradient(135deg, #0b0b1f 0%, #1a1a2f 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .login-wrapper {
-            width: 100%;
-            max-width: 420px;
-            padding: 20px;
-        }
-        .login-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 40px 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 212, 255, 0.1) inset;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .login-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 30px 50px rgba(0, 212, 255, 0.2);
-        }
-        .login-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .login-header i {
-            font-size: 3rem;
-            color: #00d4ff;
-            background: rgba(0, 212, 255, 0.1);
-            padding: 20px;
-            border-radius: 50%;
-            margin-bottom: 15px;
-        }
-        .login-header h1 {
-            color: #fff;
-            font-size: 2rem;
-            font-weight: 300;
-            margin: 0;
-            letter-spacing: 1px;
-        }
-        .login-header p {
-            color: #aaa;
-            margin-top: 8px;
-            font-size: 0.9rem;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #ccc;
-            font-size: 0.9rem;
-            letter-spacing: 0.5px;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-size: 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #00d4ff;
-            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
-        }
-        .form-group select {
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300d4ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 15px center;
-            background-size: 15px;
-        }
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(45deg, #00d4ff, #7b2cbf);
-            border: none;
-            border-radius: 30px;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-top: 10px;
-            letter-spacing: 0.5px;
-        }
-        .btn-login:hover {
-            transform: scale(1.02);
-            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3);
-        }
-        .credentials-hint {
-            margin-top: 30px;
-            padding: 20px;
-            background: rgba(0, 212, 255, 0.05);
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            border-radius: 16px;
-            font-size: 0.9rem;
-            color: #ddd;
-        }
-        .credentials-hint p {
-            margin: 8px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .credentials-hint i {
-            color: #00d4ff;
-            width: 20px;
-            font-size: 1rem;
-        }
-        .credentials-hint strong {
-            color: #00d4ff;
-            font-weight: 500;
-        }
-        .error {
-            background: rgba(255, 75, 75, 0.1);
-            border: 1px solid #ff4b4b;
-            color: #ff8a8a;
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 0.95rem;
-        }
-        .footer-note {
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-            font-size: 0.8rem;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-wrapper">
-        <div class="login-card">
-            <div class="login-header">
-                <i class="fas fa-heartbeat"></i>
-                <h1>MSD Sentinel</h1>
-                <p>Login to access the monitoring system</p>
-            </div>
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
 
-            {% if error %}
-            <div class="error">
-                <i class="fas fa-exclamation-circle"></i> {{ error }}
-            </div>
-            {% endif %}
-
-            <form method="POST">
-                <div class="form-group">
-                    <label><i class="fas fa-envelope" style="margin-right: 8px;"></i>Email</label>
-                    <input type="email" name="email" placeholder="doctor@exemple.com" required>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-lock" style="margin-right: 8px;"></i>Password</label>
-                    <input type="password" name="password" placeholder="••••••••" required>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-user-tag" style="margin-right: 8px;"></i>Role</label>
-                    <select name="role">
-                        <option value="doctor">Doctor</option>
-                        <option value="patient">Patient</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn-login">
-                    <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i>Login
-                </button>
-            </form>
-
-            <div class="credentials-hint">
-                <p><i class="fas fa-info-circle"></i> <strong>Demo credentials:</strong></p>
-                <p><i class="fas fa-user-md"></i> Doctor: doctor@exemple.com / doctor123</p>
-                <p><i class="fas fa-user"></i> Patient: patient@exemple.com / patient123</p>
-            </div>
+{% block content %}
+<div class="login-wrapper">
+    <div class="card login-card">
+        <div class="login-header">
+            <i class="fas fa-heartbeat"></i>
+            <h1>MSD Sentinel</h1>
+            <p>Login to access the monitoring system</p>
         </div>
-        <div class="footer-note">
-            &copy; 2026 MSD Sentinel. All rights reserved.
+
+        {% if error %}
+        <div class="error-message">
+            <i class="fas fa-exclamation-circle"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label><i class="fas fa-envelope"></i> Email</label>
+                <input type="email" name="email" placeholder="doctor@exemple.com" required>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Password</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-user-tag"></i> Role</label>
+                <select name="role">
+                    <option value="doctor">Doctor</option>
+                    <option value="patient">Patient</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-login">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </form>
+
+        <div class="credentials-hint">
+            <p><i class="fas fa-info-circle"></i> <strong>Demo credentials:</strong></p>
+            <p><i class="fas fa-user-md"></i> Doctor: doctor@exemple.com / doctor123</p>
+            <p><i class="fas fa-user"></i> Patient: patient@exemple.com / patient123</p>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+    /* Login page specific styles */
+    .login-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 200px);
+        padding: 20px;
+    }
+    .login-card {
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+        margin: 0 auto;
+    }
+    .login-header {
+        margin-bottom: 30px;
+    }
+    .login-header i {
+        font-size: 3rem;
+        color: #00d4ff;
+        background: rgba(0, 212, 255, 0.1);
+        padding: 20px;
+        border-radius: 50%;
+        margin-bottom: 15px;
+    }
+    .login-header h1 {
+        font-size: 2rem;
+        font-weight: 300;
+        margin: 0;
+        letter-spacing: 1px;
+        border-left: none;
+        padding-left: 0;
+    }
+    .login-header p {
+        color: #aaa;
+        margin-top: 8px;
+        font-size: 0.9rem;
+    }
+    .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #ccc;
+        font-size: 0.9rem;
+    }
+    .form-group label i {
+        margin-right: 8px;
+        color: #00d4ff;
+    }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 12px 15px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #fff;
+        font-size: 1rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+        outline: none;
+        border-color: #00d4ff;
+        box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+    }
+    .form-group select {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300d4ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        background-size: 15px;
+    }
+    .btn-login {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(45deg, #00d4ff, #7b2cbf);
+        border: none;
+        border-radius: 30px;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 10px;
+    }
+    .btn-login:hover {
+        transform: scale(1.02);
+        box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3);
+    }
+    .error-message {
+        background: rgba(231, 76, 60, 0.2);
+        border: 1px solid #e74c3c;
+        color: #ff8a8a;
+        padding: 12px;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .credentials-hint {
+        margin-top: 30px;
+        padding: 20px;
+        background: rgba(0, 212, 255, 0.05);
+        border: 1px solid rgba(0, 212, 255, 0.2);
+        border-radius: 16px;
+        font-size: 0.9rem;
+        color: #ddd;
+        text-align: left;
+    }
+    .credentials-hint p {
+        margin: 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .credentials-hint i {
+        color: #00d4ff;
+        width: 20px;
+        font-size: 1rem;
+    }
+    .credentials-hint strong {
+        color: #00d4ff;
+        font-weight: 500;
+    }
+
+    /* Light mode overrides for login page */
+    body.light-mode .login-header p {
+        color: #5d6d7e;
+    }
+    body.light-mode .form-group label {
+        color: #5d6d7e;
+    }
+    body.light-mode .form-group input,
+    body.light-mode .form-group select {
+        background: rgba(0, 0, 0, 0.05);
+        border-color: rgba(0, 0, 0, 0.2);
+        color: #2c3e50;
+    }
+    body.light-mode .credentials-hint {
+        background: rgba(0, 0, 0, 0.05);
+        border-color: rgba(0, 0, 0, 0.2);
+        color: #2c3e50;
+    }
+    body.light-mode .error-message {
+        background: rgba(231, 76, 60, 0.1);
+        border-color: #e74c3c;
+        color: #c0392b;
+    }
+</style>
+{% endblock %}

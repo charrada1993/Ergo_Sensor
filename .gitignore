@@ -59,3 +59,9 @@ logs/
 # Reports and Data (optional - remove if you want these in git)
 reports/*.pdf
 csv_data/*.csv
+
+# Sensitive Data
+msd-monitor-system-firebase-adminsdk-fbsvc-*.json
+*.pdf
+*.txt
+

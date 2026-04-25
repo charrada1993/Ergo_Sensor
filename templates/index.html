@@ -1,126 +1,583 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<h1><i class="fas fa-chart-line"></i> Musculoskeletal Disorder Monitoring</h1>
-<div class="status">Status: <span id="conn-status">Disconnected</span></div>
 
-<!-- Top row: Global Risk & Risk Components -->
-<div class="cards">
-    <div class="card">
-        <h3>Global Risk</h3>
-        <div id="gauge" class="gauge">
-            <div id="gauge-pointer" style="left:0%;"></div>
-        </div>
-        <p id="risk-level">-</p>
-    </div>
-    <div class="card">
-        <h3>Risk Components</h3>
-        <canvas id="radarChart"></canvas>
-    </div>
+<style>
+  /* ── Typography & tokens ─────────────────────────────────────── */
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #05050f;
+    --surface: rgba(18, 20, 35, 0.4);
+    --border: rgba(255, 255, 255, 0.05);
+    --accent: #00e5ff;
+    --warn: #ffaa00;
+    --danger: #ff4d6d;
+    --ok: #00e5a0;
+    --muted: #5a6280;
+    --text: #e4e8f4;
+    --text-dim: #8890aa;
+    --radius: 10px;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+  }
+
+  /* page header */
+  .dash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 1.6rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dash-header h1 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .dash-header h1 i {
+    margin-right: .5rem;
+  }
+
+  .conn-badge {
+    font-family: var(--mono);
+    font-size: .72rem;
+    padding: .25rem .7rem;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    background: var(--surface);
+    transition: all .3s;
+  }
+
+  .conn-badge.live {
+    border-color: var(--ok);
+    color: var(--ok);
+    background: rgba(0, 229, 160, .08);
+    box-shadow: 0 0 10px rgba(0, 229, 160, .25);
+  }
+
+  /* ── Layout helpers ──────────────────────────────────────────── */
+  .section {
+    padding: 1rem 1.4rem;
+  }
+
+  .section-title {
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .8rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .grid-9 {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: .8rem;
+  }
+
+  @media (max-width: 900px) {
+
+    .grid-2,
+    .grid-3 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ── Card ─────────────────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+  }
+
+  .card:hover {
+    box-shadow: 0 20px 40px rgba(0, 229, 255, 0.1);
+    border-color: rgba(0, 229, 255, 0.15);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, .025) 0%, transparent 60%);
+  }
+
+  .card-title {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .7rem;
+  }
+
+  /* ── Joint angle list ─────────────────────────────────────────── */
+  .joint-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: .5rem;
+  }
+
+  .joint-item {
+    background: rgba(15, 17, 26, 0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: .6rem .8rem;
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    transition: all .3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .joint-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    border-color: rgba(0, 229, 255, 0.2);
+  }
+
+  .joint-item.risky {
+    border-color: var(--danger);
+    background: rgba(255, 77, 109, .06);
+  }
+
+  .joint-item .jname {
+    font-size: .65rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .joint-item .jval {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .joint-item.risky .jval {
+    color: var(--danger);
+  }
+
+  .joint-item .jwarn {
+    font-size: .6rem;
+    color: var(--warn);
+    display: none;
+  }
+
+  .joint-item.risky .jwarn {
+    display: block;
+  }
+
+  /* ── Trend charts ─────────────────────────────────────────────── */
+  .trend-card canvas {
+    height: 90px !important;
+  }
+
+  .trend-card .card-title {
+    margin-bottom: .4rem;
+  }
+
+  .full-width {
+    grid-column: span 2;
+  }
+
+  @media (max-width: 700px) {
+    .full-width {
+      grid-column: span 1;
+    }
+  }
+
+  /* ── Score panels (RULA / REBA) ───────────────────────────────── */
+  .score-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .score-side {
+    background: rgba(18, 20, 35, 0.4);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+  }
+
+  .score-side:hover {
+    border-color: rgba(0, 229, 255, 0.15);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .score-side-title {
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .8rem;
+  }
+
+  /* final score badge */
+  .final-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: .8rem;
+  }
+
+  .final-num {
+    font-family: var(--mono);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .action-label {
+    font-size: .72rem;
+    padding: .2rem .55rem;
+    border-radius: 4px;
+    font-weight: 600;
+    background: rgba(0, 212, 255, .12);
+    color: var(--accent);
+    border: 1px solid rgba(0, 212, 255, .3);
+  }
+
+  .action-label.warn {
+    background: rgba(255, 170, 0, .12);
+    color: var(--warn);
+    border-color: rgba(255, 170, 0, .3);
+  }
+
+  .action-label.bad {
+    background: rgba(255, 77, 109, .12);
+    color: var(--danger);
+    border-color: rgba(255, 77, 109, .3);
+  }
+
+  /* sub-score rows */
+  .score-rows {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+  }
+
+  .score-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: .78rem;
+    padding: .28rem .5rem;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, .025);
+  }
+
+  .score-row .label {
+    color: var(--text-dim);
+  }
+
+  .score-row .val {
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .score-row.highlight {
+    background: rgba(0, 212, 255, .07);
+  }
+
+  .score-row.highlight .val {
+    color: var(--accent);
+  }
+
+  /* divider */
+  .score-divider {
+    height: 1px;
+    background: var(--border);
+    margin: .5rem 0;
+  }
+
+  /* angle sub-rows (small) */
+  .angle-sub {
+    font-size: .7rem;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    display: flex;
+    justify-content: space-between;
+    padding: .18rem .5rem;
+    border-radius: 4px;
+  }
+
+  .angle-sub span:last-child {
+    color: var(--text);
+  }
+
+  /* ── Modal ────────────────────────────────────────────────────── */
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .75);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal.open {
+    display: flex;
+  }
+
+  .modal-content {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    width: min(700px, 94vw);
+    position: relative;
+  }
+
+  .modal-content h3 {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  .modal-content canvas {
+    height: 300px !important;
+  }
+
+  .close-modal {
+    position: absolute;
+    top: .8rem;
+    right: 1rem;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: var(--muted);
+    background: none;
+    border: none;
+  }
+
+  .close-modal:hover {
+    color: var(--text);
+  }
+</style>
+
+
+
+<!-- ── 1. Joint Angles ───────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Joint Angles <span style="color:var(--danger);font-size:.62rem;margin-left:.3rem;">● red =
+      above threshold</span></div>
+  <div id="angles" class="joint-grid"></div>
 </div>
 
-<!-- Middle row: Joint Angles List -->
-<div class="cards">
-    <div class="card" style="flex: 1 1 100%;">
-        <h3>Joint Angles <span style="font-size:0.8rem; color:#aaa;">(red = above threshold)</span></h3>
-        <div id="angles" class="joint-list"></div>
-    </div>
-</div>
-
-<!-- Bottom row: All Joint Trends (clickable) -->
-<div class="trends-grid">
+<!-- ── 2. Joint Trend Charts ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Joint Angle Trends</div>
+  <div class="grid-9">
     <div class="card trend-card" data-joint="Neck">
-        <h4>Neck Angle</h4>
-        <canvas id="trend-Neck"></canvas>
+      <div class="card-title">Neck</div>
+      <canvas id="trend-Neck"></canvas>
     </div>
     <div class="card trend-card" data-joint="Back">
-        <h4>Back Angle</h4>
-        <canvas id="trend-Back"></canvas>
+      <div class="card-title">Back / Trunk</div>
+      <canvas id="trend-Back"></canvas>
     </div>
     <div class="card trend-card" data-joint="R_Shoulder">
-        <h4>R Shoulder</h4>
-        <canvas id="trend-R_Shoulder"></canvas>
+      <div class="card-title">Right Shoulder</div>
+      <canvas id="trend-R_Shoulder"></canvas>
     </div>
     <div class="card trend-card" data-joint="L_Shoulder">
-        <h4>L Shoulder</h4>
-        <canvas id="trend-L_Shoulder"></canvas>
+      <div class="card-title">Left Shoulder</div>
+      <canvas id="trend-L_Shoulder"></canvas>
     </div>
     <div class="card trend-card" data-joint="R_Elbow">
-        <h4>R Elbow</h4>
-        <canvas id="trend-R_Elbow"></canvas>
+      <div class="card-title">Right Elbow</div>
+      <canvas id="trend-R_Elbow"></canvas>
     </div>
     <div class="card trend-card" data-joint="L_Elbow">
-        <h4>L Elbow</h4>
-        <canvas id="trend-L_Elbow"></canvas>
+      <div class="card-title">Left Elbow</div>
+      <canvas id="trend-L_Elbow"></canvas>
     </div>
     <div class="card trend-card" data-joint="R_Wrist">
-        <h4>R Wrist</h4>
-        <canvas id="trend-R_Wrist"></canvas>
+      <div class="card-title">Right Wrist</div>
+      <canvas id="trend-R_Wrist"></canvas>
     </div>
     <div class="card trend-card" data-joint="L_Wrist">
-        <h4>L Wrist</h4>
-        <canvas id="trend-L_Wrist"></canvas>
+      <div class="card-title">Left Wrist</div>
+      <canvas id="trend-L_Wrist"></canvas>
     </div>
-    <div class="card trend-card">
-        <h4>Trunk Angle</h4>
-        <canvas id="trend-trunk"></canvas>
+    <div class="card trend-card" data-joint="Legs">
+      <div class="card-title">Legs Score</div>
+      <canvas id="trend-Legs"></canvas>
     </div>
-    <!-- New: Legs Score -->
-    <div class="card trend-card">
-        <h4>Legs Score</h4>
-        <canvas id="trend-legs"></canvas>
-    </div>
-</div>
-<!-- Risk Trend Chart -->
-<div class="cards">
-    <div class="card" data-joint="R_Wrist">
-        <h3>Global Risk Trend (last 60s)</h3>
-        <canvas id="riskTrendChart"></canvas>
-    </div>
+  </div>
 </div>
 
-<!-- RULA Scores Row -->
-<div class="cards">
-    <div class="card">
-        <h3>RULA Right</h3>
-        <div id="rula-right" class="rula-score">-</div>
-        <div id="rula-right-action" class="rula-action"></div>
+
+
+
+<!-- ── 4. RULA Trend Charts ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">RULA Score Trends</div>
+  <div class="grid-9">
+    <div class="card trend-card">
+      <div class="card-title">Right RULA</div>
+      <canvas id="trend-rula-right"></canvas>
     </div>
-    <div class="card">
-        <h3>RULA Left</h3>
-        <div id="rula-left" class="rula-score">-</div>
-        <div id="rula-left-action" class="rula-action"></div>
+    <div class="card trend-card">
+      <div class="card-title">Left RULA</div>
+      <canvas id="trend-rula-left"></canvas>
     </div>
+    <div class="card trend-card full-width">
+      <div class="card-title">RULA Comparison (Right vs Left)</div>
+      <canvas id="trend-rula-both"></canvas>
+    </div>
+  </div>
 </div>
-<!-- REBA Scores Row -->
-<div class="cards">
-    <div class="card">
-        <h3>REBA Right</h3>
-        <div id="reba-right" class="reba-score">-</div>
-        <div id="reba-right-action" class="reba-action"></div>
+
+
+
+
+<!-- ── 6. REBA Trend Charts ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">REBA Score Trends</div>
+  <div class="grid-9">
+    <div class="card trend-card">
+      <div class="card-title">Right REBA</div>
+      <canvas id="trend-reba-right"></canvas>
     </div>
-    <div class="card">
-        <h3>REBA Left</h3>
-        <div id="reba-left" class="reba-score">-</div>
-        <div id="reba-left-action" class="reba-action"></div>
+    <div class="card trend-card">
+      <div class="card-title">Left REBA</div>
+      <canvas id="trend-reba-left"></canvas>
     </div>
+    <div class="card trend-card full-width">
+      <div class="card-title">REBA Comparison (Right vs Left)</div>
+      <canvas id="trend-reba-both"></canvas>
+    </div>
+  </div>
 </div>
-<div class="controls">
-    <button onclick="downloadCSV()"><i class="fas fa-download"></i> Download CSV</button>
-    <button onclick="generateReport()"><i class="fas fa-file-pdf"></i> Generate PDF Report</button>
-</div>
-<!-- Modal for enlarged chart -->
+
+<!-- ── Modal for enlarged chart ──────────────────────────────────── -->
 <div id="chartModal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <h3 id="modal-title"></h3>
-        <canvas id="modal-canvas"></canvas>
-    </div>
+  <div class="modal-content">
+    <button class="close-modal" id="modal-close">&times;</button>
+    <h3 id="modal-title"></h3>
+    <canvas id="modal-canvas"></canvas>
+  </div>
 </div>
+
+<div class="controls">
+  <button onclick="downloadCSV()"><i class="fas fa-download"></i> Download CSV</button>
+  <button onclick="generateReport()"><i class="fas fa-file-pdf"></i> Generate PDF Report</button>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+
+<script>
+  // Connection badge colouring
+  const statusEl = document.getElementById('conn-status');
+  if (typeof socket !== 'undefined') {
+    socket.on('connect', () => { statusEl.textContent = '⬤ Live'; statusEl.classList.add('live'); });
+    socket.on('disconnect', () => { statusEl.textContent = '⬤ Disconnected'; statusEl.classList.remove('live'); });
+  }
+  // Action label colouring
+  function recolourActions() {
+    document.querySelectorAll('.action-label').forEach(el => {
+      const t = (el.textContent || '').toLowerCase();
+      el.classList.remove('warn', 'bad');
+      if (t.includes('immediately') || t.includes('very high') || t.includes('high')) el.classList.add('bad');
+      else if (t.includes('soon') || t.includes('medium') || t.includes('investigate')) el.classList.add('warn');
+    });
+  }
+  setInterval(recolourActions, 1000);
+
+  // Modal logic
+  const modal = document.getElementById('chartModal');
+  const modalClose = document.getElementById('modal-close');
+  const modalTitle = document.getElementById('modal-title');
+  const modalCanvas = document.getElementById('modal-canvas');
+  let modalChart = null;
+
+  document.querySelectorAll('.trend-card').forEach(card => {
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', () => {
+      const joint = card.dataset.joint;
+      if (!joint || !window.trendCharts || !window.trendCharts[joint]) return;
+      modalTitle.textContent = card.querySelector('.card-title')?.textContent || joint;
+      modal.classList.add('open');
+      if (modalChart) modalChart.destroy();
+      const src = window.trendCharts[joint];
+      modalChart = new Chart(modalCanvas.getContext('2d'), {
+        type: 'line',
+        data: JSON.parse(JSON.stringify(src.data)),
+        options: {
+          ...JSON.parse(JSON.stringify(src.options)),
+          animation: false,
+          responsive: true,
+          maintainAspectRatio: false,
+        }
+      });
+    });
+  });
+  modalClose.addEventListener('click', () => modal.classList.remove('open'));
+  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+</script>
 {% endblock %}

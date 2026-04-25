@@ -1,177 +1,305 @@
 """
 RULA (Rapid Upper Limb Assessment) calculation module.
-Based on standard ergonomic guidelines and the provided PDF.
+Scores computed per the RULA PDF specification.
+
+Group A  →  Upper Arm + Forearm + Wrist  →  Score A  (+muscle +load)  →  Score C
+Group B  →  Neck + Trunk + Legs          →  Score B  (+muscle +load)  →  Score D
+Final    →  Table C lookup (Score C × Score D)
 """
+
 
 class RULAEngine:
     def __init__(self, config):
-        self.config = config
-        # Load scores from config (can be overridden per call)
-        self.load_score = getattr(config, 'RULA_LOAD_SCORE', 0)        # 0,1,2
-        self.muscle_score = getattr(config, 'RULA_MUSCLE_SCORE', 0)   # 0 or 1
-        self.legs_score = getattr(config, 'RULA_LEGS_SCORE', 1)       # 1 (supported) or 2
+        self.config       = config
+        self.load_score   = getattr(config, 'RULA_LOAD_SCORE',   0)   # 0-2
+        self.muscle_score = getattr(config, 'RULA_MUSCLE_SCORE', 0)   # 0-1
+        self.legs_score   = getattr(config, 'RULA_LEGS_SCORE',   1)   # 1=supported, 2=not
 
-    def upper_arm_score(self, angle):
-        """Score for upper arm elevation (shoulder flexion)."""
-        if angle < 20:
-            return 1
-        elif angle < 45:
-            return 2
-        elif angle < 90:
-            return 3
+    # ──────────────────────────────────────────────────────────────────────────
+    # Group A component scores
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def upper_arm_score(self, flexion, abduction=0.0, shoulder_raised=False, leaning=False):
+        """
+        Shoulder flexion score (Group A).
+        flexion: shoulder flexion angle (degrees). Negative = extension.
+        abduction: shoulder abduction angle (degrees).
+        """
+        a = abs(flexion)
+        if flexion < 0:          # any extension
+            s = 2
+        elif a < 20:
+            s = 1
+        elif a < 45:
+            s = 2
+        elif a < 90:
+            s = 3
         else:
-            return 4
+            s = 4
+        if abs(abduction) > 15:
+            s += 1
+        if shoulder_raised:
+            s += 1
+        if leaning:
+            s -= 1
+        return max(s, 1)
 
-    def forearm_score(self, angle):
-        """Score for elbow flexion."""
-        if 60 <= angle <= 100:
-            return 1
+    def forearm_score(self, flexion, working_across=False):
+        """
+        Elbow flexion score (Group A).
+        flexion: elbow flexion angle (degrees, always positive internal angle).
+        working_across: forearm working across midline or out to side.
+        """
+        if 60 <= flexion <= 100:
+            s = 1
         else:
-            return 2
+            s = 2
+        if working_across:
+            s += 1
+        return s
 
-    def wrist_score(self, angle):
-        """Score for wrist flexion/extension."""
-        if angle < 15:
-            return 1
-        elif angle < 30:
-            return 2
+    def wrist_score(self, flexion, deviation=0.0):
+        """
+        Wrist flexion/extension score (Group A).
+        flexion: wrist flexion angle in degrees (negative = extension).
+        deviation: radial/ulnar deviation (roll difference) in degrees.
+        """
+        a = abs(flexion)
+        if a < 15:
+            s = 1
+        elif a < 30:
+            s = 2
         else:
-            return 3
+            s = 3
+        if abs(deviation) > 15:
+            s += 1
+        return s
 
-    # Wrist twist is not measured; assume twist = 1 (neutral) for now.
-    # Combined wrist+twist table:
-    _wrist_twist_table = {
-        (1,1): 1, (1,2): 2,
-        (2,1): 2, (2,2): 3,
-        (3,1): 3, (3,2): 4
-    }
+    # ──────────────────────────────────────────────────────────────────────────
+    # Group B component scores
+    # ──────────────────────────────────────────────────────────────────────────
 
-    # Table A (upper arm & forearm vs wrist+twist)
-    # Indexed by (upper_arm, forearm) -> list of 4 scores (for wrist+twist 1..4)
-    _table_a = {
-        (1,1): [1,2,2,3],
-        (1,2): [2,3,3,4],
-        (2,1): [2,3,3,4],
-        (2,2): [3,4,4,5],
-        (3,1): [3,4,4,5],
-        (3,2): [4,5,5,6],
-        (4,1): [4,5,5,6],
-        (4,2): [5,6,6,7]
-    }
-
-    def neck_score(self, angle):
-        """Score for neck flexion."""
-        if angle < 10:
-            return 1
-        elif angle < 20:
-            return 2
-        elif angle < 60:
-            return 3
+    def neck_score(self, flexion, lateral=0.0, rotation=0.0):
+        """
+        Neck flexion score (Group B).
+        flexion: neck pitch difference (head pitch − trunk pitch).
+        """
+        if flexion < 0:
+            s = 4   # extension
+        elif flexion < 10:
+            s = 1
+        elif flexion < 20:
+            s = 2
         else:
-            return 4
+            s = 3
+        if abs(lateral) > 15 or abs(rotation) > 15:
+            s += 1
+        return s
 
-    def trunk_score(self, angle):
-        """Score for trunk flexion (from vertical)."""
-        if angle < 0:  # slight extension? treat as 0
-            angle = 0
-        if angle < 10:
-            return 1
-        elif angle < 20:
-            return 2
-        elif angle < 60:
-            return 3
+    def trunk_score(self, flexion, lateral=0.0, rotation=0.0):
+        """
+        Trunk flexion score (Group B).
+        flexion: trunk pitch (raw UPPER_BACK pitch).
+        """
+        if flexion < 0:
+            s = 1   # slight extension
+        elif flexion < 10:
+            s = 1
+        elif flexion < 20:
+            s = 2
+        elif flexion < 60:
+            s = 3
         else:
-            return 4
+            s = 4
+        if abs(lateral) > 15 or abs(rotation) > 15:
+            s += 1
+        return s
 
-    # Table B (neck & trunk) -> score B
-    _table_b = {
-        (1,1): 1, (1,2): 2, (1,3): 3, (1,4): 4,
-        (2,1): 2, (2,2): 2, (2,3): 3, (2,4): 4,
-        (3,1): 3, (3,2): 3, (3,3): 3, (3,4): 4,
-        (4,1): 4, (4,2): 4, (4,3): 4, (4,4): 4
-    }
+    # ──────────────────────────────────────────────────────────────────────────
+    # RULA lookup tables
+    # ──────────────────────────────────────────────────────────────────────────
 
-    # Table C (score A vs score B + muscle/force) -> final score (1-7)
-    # Indexed by (score_a, score_b) with muscle/force adjustments:
-    # muscle/force score 0..3 added to score_b before lookup? Actually standard:
-    # After obtaining score B, add muscle use score (0-1) and force/load score (0-3) to get score C.
-    # Then table C uses score A and score C to give final.
-    # We'll implement a direct mapping from (score_a, score_c) to final.
-    _table_c = {
-        (1,1):1, (1,2):2, (1,3):3, (1,4):3, (1,5):4, (1,6):4, (1,7):5,
-        (2,1):2, (2,2):2, (2,3):3, (2,4):4, (2,5):4, (2,6):5, (2,7):5,
-        (3,1):3, (3,2):3, (3,3):3, (3,4):4, (3,5):4, (3,6):5, (3,7):6,
-        (4,1):3, (4,2):3, (4,3):3, (4,4):4, (4,5):5, (4,6):6, (4,7):6,
-        (5,1):4, (5,2):4, (5,3):4, (5,4):5, (5,5):6, (5,6):6, (5,7):7,
-        (6,1):4, (6,2):4, (6,3):5, (6,4):5, (6,5):6, (6,6):7, (6,7):7,
-        (7,1):5, (7,2):5, (7,3):6, (7,4):6, (7,5):7, (7,6):7, (7,7):7
-    }
+    # Table A:  [upper_arm 1-6][forearm 1-3][wrist 1-4][wrist_twist 1-2]
+    _table_a = [
+        # Upper Arm = 1
+        [[[1, 2], [2, 2], [2, 3], [3, 3]],
+         [[2, 2], [2, 2], [3, 3], [3, 3]],
+         [[2, 3], [3, 3], [3, 3], [4, 4]]],
+        # Upper Arm = 2
+        [[[2, 2], [2, 2], [3, 3], [3, 3]],
+         [[3, 3], [3, 3], [3, 3], [4, 4]],
+         [[3, 4], [4, 4], [4, 4], [5, 5]]],
+        # Upper Arm = 3
+        [[[3, 3], [3, 3], [4, 4], [4, 4]],
+         [[4, 4], [4, 4], [4, 4], [5, 5]],
+         [[4, 4], [4, 4], [4, 5], [5, 5]]],
+        # Upper Arm = 4
+        [[[4, 4], [4, 4], [4, 4], [5, 5]],
+         [[5, 5], [5, 5], [5, 5], [6, 6]],
+         [[5, 5], [5, 5], [5, 6], [6, 6]]],
+        # Upper Arm = 5
+        [[[5, 5], [5, 5], [5, 5], [6, 6]],
+         [[6, 6], [6, 6], [6, 6], [7, 7]],
+         [[6, 6], [6, 6], [6, 7], [7, 7]]],
+        # Upper Arm = 6
+        [[[7, 7], [7, 7], [7, 7], [8, 8]],
+         [[8, 8], [8, 8], [8, 8], [9, 9]],
+         [[8, 8], [8, 8], [8, 9], [9, 9]]],
+    ]
 
-    def compute_side(self, shoulder_angle, elbow_angle, wrist_angle,
-                     neck_angle, trunk_angle,
-                     load_score=None, muscle_score=None, legs_score=None,
-                     wrist_twist=1):
+    # Table B:  [neck 1-6][trunk 1-6][legs 1-2]
+    _table_b = [
+        [[1, 3], [2, 3], [3, 4], [5, 5], [6, 6], [7, 7]],
+        [[2, 3], [2, 3], [4, 5], [5, 5], [6, 7], [7, 7]],
+        [[3, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 7]],
+        [[5, 5], [5, 6], [6, 7], [7, 7], [7, 7], [8, 8]],
+        [[7, 7], [7, 7], [7, 7], [7, 8], [8, 8], [8, 8]],
+        [[8, 8], [8, 8], [8, 8], [8, 9], [9, 9], [9, 9]],
+    ]
+
+    # Table C:  [score_c 1-8][score_d 1-8]
+    _table_c = [
+        [1, 2, 3, 3, 4, 5, 5, 5],
+        [2, 2, 3, 4, 4, 5, 5, 5],
+        [3, 3, 3, 4, 4, 5, 6, 6],
+        [3, 3, 3, 4, 5, 6, 6, 6],
+        [4, 4, 4, 5, 6, 7, 7, 7],
+        [4, 4, 5, 6, 6, 7, 7, 7],
+        [5, 5, 6, 6, 7, 7, 7, 7],
+        [5, 5, 6, 7, 7, 7, 7, 7],
+    ]
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Main entry point
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def compute_side(self,
+                     shoulder_flexion,
+                     elbow_flexion,
+                     wrist_flexion,
+                     neck_flexion,
+                     trunk_flexion,
+                     shoulder_abduction=0.0,
+                     elbow_working_across=False,
+                     wrist_deviation=0.0,
+                     wrist_pronation=0.0,
+                     neck_lateral=0.0,
+                     neck_rotation=0.0,
+                     trunk_lateral=0.0,
+                     trunk_rotation=0.0,
+                     shoulder_raised=False,
+                     arm_leaning=False,
+                     wrist_twist=1,
+                     load_score=None,
+                     muscle_score=None,
+                     legs_score=None):
         """
         Compute RULA score for one side.
-        shoulder_angle: upper arm elevation (deg)
-        elbow_angle: elbow flexion (deg)
-        wrist_angle: wrist flexion (deg)
-        neck_angle: neck flexion (deg)
-        trunk_angle: trunk flexion from vertical (deg)
-        load_score: 0,1,2 (force/load)
-        muscle_score: 0 or 1 (static/repeated)
-        legs_score: 1 (supported) or 2 (unsupported)
-        wrist_twist: 1 (neutral) or 2 (twisted)
-        Returns dict with intermediate and final scores.
+
+        Parameters
+        ----------
+        shoulder_flexion  : shoulder pitch diff (arm − trunk), degrees
+        elbow_flexion     : absolute elbow internal angle (|forearm − biceps pitch|), degrees
+        wrist_flexion     : wrist pitch diff (hand − forearm), degrees
+        neck_flexion      : neck pitch diff (head − trunk), degrees
+        trunk_flexion     : trunk pitch (raw UPPER_BACK), degrees
+        shoulder_abduction: shoulder roll diff (arm − trunk), degrees
+        elbow_working_across: bool – forearm crosses midline (roll diff > 15°)
+        wrist_deviation   : wrist roll diff (hand − forearm), degrees
+        wrist_pronation   : wrist yaw diff (hand − forearm), degrees  [informational]
+        neck_lateral      : neck roll diff, degrees
+        neck_rotation     : neck yaw diff, degrees
+        trunk_lateral     : trunk roll, degrees
+        trunk_rotation    : trunk yaw, degrees
+        shoulder_raised   : bool
+        arm_leaning       : bool – arm supported / leaning
+        wrist_twist       : 1 (mid-range) or 2 (near end of range)
+        load_score        : 0 (<2 kg intermittent), 1 (2-10 kg intermittent), 2 (≥10 kg or shock)
+        muscle_score      : 0 (dynamic), 1 (static/repeated)
+        legs_score        : 1 (both legs supported), 2 (unsupported/single leg)
+
+        Returns
+        -------
+        dict with all intermediate and final scores.
         """
-        # Use instance defaults if not provided
-        load = load_score if load_score is not None else self.load_score
+        load   = load_score   if load_score   is not None else self.load_score
         muscle = muscle_score if muscle_score is not None else self.muscle_score
-        legs = legs_score if legs_score is not None else self.legs_score
+        legs   = legs_score   if legs_score   is not None else self.legs_score
 
-        # Group A
-        ua = self.upper_arm_score(shoulder_angle)
-        fa = self.forearm_score(elbow_angle)
-        w = self.wrist_score(wrist_angle)
-        # Combine wrist and twist
-        wt = self._wrist_twist_table.get((w, wrist_twist), w)  # fallback
-        # Lookup table A
-        score_a = self._table_a.get((ua, fa), [1,1,1,1])[wt-1]  # wt is 1-4
+        # ── Group A ───────────────────────────────────────────────────────────
+        ua_raw = self.upper_arm_score(shoulder_flexion, shoulder_abduction,
+                                      shoulder_raised, arm_leaning)
+        fa_raw = self.forearm_score(elbow_flexion, elbow_working_across)
+        w_raw  = self.wrist_score(wrist_flexion, wrist_deviation)
+        tw     = max(1, min(wrist_twist, 2))
 
-        # Group B
-        n = self.neck_score(neck_angle)
-        t = self.trunk_score(trunk_angle)
-        # Table B
-        score_b = self._table_b.get((n, t), 1)
-        # Add muscle and load to score B
-        score_c = score_b + muscle + load
-        # Clamp score_c to 1-7 (though max 4+1+2=7)
-        score_c = min(max(score_c, 1), 7)
+        idx_ua = min(max(ua_raw, 1), 6) - 1
+        idx_fa = min(max(fa_raw, 1), 3) - 1
+        idx_w  = min(max(w_raw,  1), 4) - 1
+        idx_tw = tw - 1
 
-        # Table C
-        final_score = self._table_c.get((score_a, score_c), 1)
+        score_a = self._table_a[idx_ua][idx_fa][idx_w][idx_tw]
+        score_c = score_a + muscle + load
 
-        # Action level
-        if final_score <= 2:
+        # ── Group B ───────────────────────────────────────────────────────────
+        n_raw = self.neck_score(neck_flexion, neck_lateral, neck_rotation)
+        t_raw = self.trunk_score(trunk_flexion, trunk_lateral, trunk_rotation)
+        l     = max(1, min(legs, 2))
+
+        idx_n = min(max(n_raw, 1), 6) - 1
+        idx_t = min(max(t_raw, 1), 6) - 1
+        idx_l = l - 1
+
+        score_b = self._table_b[idx_n][idx_t][idx_l]
+        score_d = score_b + muscle + load
+
+        # ── Table C (Final) ───────────────────────────────────────────────────
+        idx_sc = min(max(score_c, 1), 8) - 1
+        idx_sd = min(max(score_d, 1), 8) - 1
+        final  = self._table_c[idx_sc][idx_sd]
+
+        # ── Action level ──────────────────────────────────────────────────────
+        if final <= 2:
             action = "Acceptable"
-        elif final_score <= 4:
+        elif final <= 4:
             action = "Investigate further"
-        elif final_score <= 6:
+        elif final <= 6:
             action = "Investigate and change soon"
         else:
             action = "Investigate and change immediately"
 
         return {
-            'upper_arm': ua,
-            'forearm': fa,
-            'wrist': w,
-            'wrist_twist': wrist_twist,
-            'score_a': score_a,
-            'neck': n,
-            'trunk': t,
-            'legs': legs,
-            'score_b': score_b,
-            'score_c': score_c,
-            'final': final_score,
-            'action': action
+            # Raw sub-scores
+            'upper_arm_score':  ua_raw,
+            'forearm_score':    fa_raw,
+            'wrist_score':      w_raw,
+            'wrist_twist':      tw,
+            'neck_score':       n_raw,
+            'trunk_score':      t_raw,
+            'legs_score':       legs,
+            # Intermediate totals
+            'score_a':  score_a,
+            'score_b':  score_b,
+            'score_c':  score_c,
+            'score_d':  score_d,
+            # Adjustments
+            'muscle':   muscle,
+            'load':     load,
+            # Input angles (for CSV logging)
+            'shoulder_flexion':    round(shoulder_flexion, 2),
+            'shoulder_abduction':  round(shoulder_abduction, 2),
+            'elbow_flexion':       round(elbow_flexion, 2),
+            'elbow_working_across': int(elbow_working_across),
+            'wrist_flexion':       round(wrist_flexion, 2),
+            'wrist_deviation':     round(wrist_deviation, 2),
+            'wrist_pronation':     round(wrist_pronation, 2),
+            'neck_flexion':        round(neck_flexion, 2),
+            'neck_lateral':        round(neck_lateral, 2),
+            'neck_rotation':       round(neck_rotation, 2),
+            'trunk_flexion':       round(trunk_flexion, 2),
+            'trunk_lateral':       round(trunk_lateral, 2),
+            'trunk_rotation':      round(trunk_rotation, 2),
+            # Final
+            'final':    final,
+            'action':   action,
         }
