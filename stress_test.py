@@ -132,7 +132,7 @@ def test_report_generation():
 
 if __name__ == "__main__":
     print("=====================================================")
-    print("   MSD Sentinel - System Performance & Load Tester   ")
+    print("   Ergo Sensor - System Performance & Load Tester   ")
     print("=====================================================\n")
     
     # Optional parameters based on CLI arguments

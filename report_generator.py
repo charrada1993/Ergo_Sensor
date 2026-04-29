@@ -1,7 +1,7 @@
 """
 report_generator.py
 ====================
-Professional medical-grade PDF report for MSD Sentinel.
+Professional medical-grade PDF report for Ergo Sensor.
 Uses ReportLab Platypus (flowable layout).
 """
 
@@ -94,7 +94,7 @@ def _draw_header_footer(canvas, doc, is_first):
     canvas.rect(0, h - 1.5 * cm, w, 1.5 * cm, fill=1, stroke=0)
     canvas.setFillColor(C_WHITE)
     canvas.setFont('Helvetica-Bold', 12)
-    canvas.drawString(1.5 * cm, h - 1.05 * cm, 'MSD SENTINEL')
+    canvas.drawString(1.5 * cm, h - 1.05 * cm, 'ERGO SENSOR')
     canvas.setFont('Helvetica', 9)
     canvas.setFillColor(C_TEAL)
     canvas.drawRightString(w - 1.5 * cm, h - 1.05 * cm,
@@ -410,8 +410,8 @@ class ReportGenerator:
             pagesize=A4,
             leftMargin=2 * cm, rightMargin=2 * cm,
             topMargin=2.2 * cm, bottomMargin=1.5 * cm,
-            title='MSD Sentinel Risk Report',
-            author='MSD Sentinel System',
+            title='Ergo Sensor Risk Report',
+            author='Ergo Sensor System',
         )
 
         story = []
@@ -442,7 +442,7 @@ class ReportGenerator:
         story = [Spacer(1, 4 * cm)]
         
         # Cyber title
-        story.append(Paragraph("<b>MSD SENTINEL</b>", ParagraphStyle(
+        story.append(Paragraph("<b>ERGO SENSOR</b>", ParagraphStyle(
             'CoverTitle', parent=self._styles['title'], fontSize=38, textColor=C_NAVY, spaceAfter=2, alignment=TA_LEFT
         )))
         story.append(Paragraph("Musculoskeletal Risk Assessment", ParagraphStyle(
@@ -960,7 +960,7 @@ class ReportGenerator:
         story.append(HRFlowable(width='100%', thickness=0.5, color=C_BORDER))
         story.append(Spacer(1, 0.2 * cm))
         story.append(Paragraph(
-            '<b>Disclaimer:</b> This report is generated automatically by the MSD Sentinel system '
+            '<b>Disclaimer:</b> This report is generated automatically by the Ergo Sensor system '
             'and is intended as a decision-support tool only. It does not replace professional '
             'medical or occupational health evaluation. All recommendations should be reviewed '
             'and validated by a qualified healthcare professional before implementation.',

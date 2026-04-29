@@ -335,7 +335,7 @@ if __name__ == '__main__':
     lan_ip = get_lan_ip()
 
     print("\n=======================================")
-    print("   MSD SENTINEL SERVER STARTED WITH AI")
+    print("   ERGO SENSOR SERVER STARTED WITH AI")
     print("=======================================")
     print(f"Local: http://127.0.0.1:5000")
     print(f"LAN:   http://{lan_ip}:5000")

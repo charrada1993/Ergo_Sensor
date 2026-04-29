@@ -42,7 +42,7 @@ class AIModels:
             else:
                 print(f"[WARN] Missing anomaly model: {col}")
 
-        print(f"[OK] MSD Sentinel AI Models loaded | Risk model: OK | Anomaly models: {len(self.anomaly_models)}/5")
+        print(f"[OK] Ergo Sensor AI Models loaded | Risk model: OK | Anomaly models: {len(self.anomaly_models)}/5")
 
     def predict(self, features_dict):
         """Main prediction function - expects a dict with all feature columns"""

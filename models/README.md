@@ -1,4 +1,4 @@
-# MSD Sentinel AI Models - Complete Package
+# Ergo Sensor AI Models - Complete Package
 
 All 5 anomaly models are included.
 Some anomaly classifiers may be dummy models (always return 0.0) due to insufficient positive samples in your dataset.
