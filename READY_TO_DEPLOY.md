@@ -1,97 +1,53 @@
-# ✅ Netlify Deployment-Ready!
+# Guide de Déploiement : Hébergement de Ergo Sensor
 
-## What's Been Prepared
+Ce document explique les étapes pour héberger l'application complète Ergo Sensor (Backend IA + Frontend Dashboard + Socket.IO) en production.
 
-### ✨ Static Frontend Files (in `/dist`)
-- ✅ index.html - Main dashboard
-- ✅ system.html - Sensor status view  
-- ✅ csv_view.html - CSV data management
-- ✅ reports.html -Report generation UI
-- ✅ reba.html - REBA assessment page
-- ✅ rula.html - RULA assessment page
-- ✅ style.css - All styles
-- ✅ dashboard.js - Dashboard logic
-- ✅ reba.js - REBA calculations
-- ✅ rula.js - RULA calculations
+> ⚠️ **Pourquoi pas Vercel ou Netlify ?**
+> Vercel et Netlify sont conçus pour des architectures *Serverless* (fonctions qui s'éteignent après quelques secondes). Or, Ergo Sensor nécessite une connexion continue via **WebSockets** (Socket.IO) pour envoyer le flux de données en direct, ainsi que la mémoire nécessaire pour charger les modèles d'Intelligence Artificielle (LightGBM). Le Serverless n'est pas du tout adapté pour cela car il coupe les connexions WebSocket et manque de RAM.
 
-### 📋 Configuration Files
-- ✅ netlify.toml - Build configuration
-- ✅ requirements.txt - Python dependencies (for backend)
-- ✅ DEPLOYMENT.md - Complete deployment guide
-- ✅ .gitignore - Updated for Python/Flask project
-
-## 🚀 Quick Deploy Commands
-
-### Option 1: Netlify CLI (Fastest)
-```bash
-# Install Netlify CLI (if not already installed)
-npm install -g netlify-cli
-
-# Login to Netlify
-netlify login
-
-# Deploy the frontend
-netlify deploy --prod --dir=dist
-```
-
-### Option 2: Manual Upload
-1. Go to https://app.netlify.com
-2. Click "Add new site" → "Deploy manually"
-3. Drag & drop the entire `dist` folder
-4. Done!
-
-### Option 3: Git Integration
-1. Push code to GitHub/GitLab
-2. Connect repo on Netlify
-3. Set publish directory to `dist`
-4. Auto-deploy on every push!
-
-## ⚠️ Important Notes
-
-### Backend API Required
-The frontend expects these API endpoints:
-- `/api/sensors` - Get sensor status
-- `/api/csv/*` - CSV file operations
-- `/api/reports/*` -Report operations  
-- `/api/data` -Real-time data
-- WebSocket for live updates
-
-### Next Steps
-1. **Deploy frontend** using one of the methods above
-2. **Deploy backend** to Railway, Render, or Heroku
-3. **Update API URLs** in frontend JS files to point to your backend
-4. **Test thoroughly**
-
-## 📦 File Structure
-```
-c:\MSD_System\
-├── dist/                    ← Deploy this folder to Netlify
-│   ├── index.html
-│   ├── system.html
-│   ├── csv_view.html
-│   ├── reports.html
-│   ├── reba.html
-│   ├── rula.html
-│   ├── style.css
-│   ├── dashboard.js
-│   ├── reba.js
-│   └── rula.js
-├── netlify.toml            ← Netlify config (already set up)
-├── requirements.txt        ← Python deps (for backend)
-├── DEPLOYMENT.md          ← Detailed guide
-└── app.py                 ← Flask backend (deploy separately)
-```
-
-## 🔧 Local Testing
-```bash
-cd dist
-python -m http.server 8000
-# Visit http://localhost:8000
-```
-
-## 📖 Full Documentation
-See `DEPLOYMENT.md` for complete deployment instructions, troubleshooting, and advanced configuration.
+> ✅ **La Solution : Render**
+> **Render.com** est la plateforme idéale pour ce projet. Elle supporte nativement Python, les WebSockets continus, et installe automatiquement les dépendances (`requirements.txt`).
 
 ---
 
-**Ready to deploy!** 🎉
+## Étapes de Déploiement sur Render.com
+
+### Étape 1 : Préparation du code (Déjà fait !)
+L'application est prête. Assurez-vous d'avoir poussé tout votre code sur GitHub, avec les fichiers indispensables à la racine :
+- `requirements.txt` (Contient Flask, Flask-SocketIO, lightgbm, etc.)
+- `app.py` (Le serveur principal)
+- `models/` (Le dossier contenant vos modèles IA entraînés)
+
+### Étape 2 : Créer le Web Service
+1. Allez sur [Render.com](https://render.com/) et créez un compte.
+2. Cliquez sur **New +** en haut à droite, puis sélectionnez **Web Service**.
+3. Connectez votre compte GitHub et sélectionnez le dépôt `Ergo_Sensor`.
+
+### Étape 3 : Configuration du Web Service
+Remplissez les champs de configuration avec ces valeurs :
+- **Name** : `ergo-sensor` (ou le nom de votre choix)
+- **Region** : Choisissez la région la plus proche de vous (ex: Frankfurt).
+- **Environment** : `Python 3`
+- **Build Command** : `pip install -r requirements.txt`
+- **Start Command** : `python app.py`
+
+> 💡 **Astuce Serveur**
+> Pour la production, on utilise généralement `gunicorn --worker-class eventlet -w 1 app:app`. Mais puisque le projet utilise la configuration standard Flask + Threading par défaut, la commande `python app.py` suffira pour faire tourner l'application et les WebSockets.
+
+### Étape 4 : Variables d'Environnement
+Toujours sur la page de configuration de Render, descendez jusqu'à la section **Environment Variables** et ajoutez :
+- `PYTHON_VERSION` : `3.10.0` (Ou la version exacte de Python que vous utilisez).
+
+### Étape 5 : Déployer
+1. Choisissez un plan tarifaire. (Le plan *Free* peut fonctionner pour tester, mais pour la production avec WebSockets et IA, le plan *Starter* avec plus de RAM est fortement recommandé).
+2. Cliquez sur **Create Web Service**.
+
+Render va télécharger le dépôt GitHub, installer les dépendances et lancer l'application. Une fois terminé, vous obtiendrez une URL publique (ex: `https://ergo-sensor.onrender.com`) que vous pourrez partager ou utiliser pour connecter vos capteurs ESP32 !
+
+---
+
+### Configuration finale des capteurs
+Une fois l'URL Render générée, vous devrez simplement mettre à jour le code de vos capteurs (ou votre testeur de charge) pour pointer vers l'URL en production plutôt que `localhost` :
+
+*Avant :* `http://127.0.0.1:5000/api/data`
+*Après :* `https://ergo-sensor.onrender.com/api/data`

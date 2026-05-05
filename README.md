@@ -543,9 +543,17 @@ The server binds to `0.0.0.0:5000` by default — accessible to all devices on t
 4. **Credentials**: Move all secrets to environment variables (`.env` + `python-dotenv`)
 5. **Authentication**: Replace demo credentials with a proper user database
 
-### Netlify (Frontend Only)
+### ☁️ Cloud Deployment (Render / Heroku)
 
-A `netlify.toml` is included for deploying the static frontend assets. Backend must be hosted separately (e.g., on a VPS or cloud VM).
+Due to the requirements of continuous WebSockets (Socket.IO) and AI model memory footprints, Serverless platforms (like Vercel or Netlify) are **not suitable**. 
+
+We recommend deploying the application on **Render**:
+1. Connect your GitHub repository on [Render.com](https://render.com/).
+2. Create a new **Web Service**.
+3. Build Command: `pip install -r requirements.txt`
+4. Start Command: `python app.py`
+
+See `READY_TO_DEPLOY.md` for full step-by-step instructions.
 
 ---
 
