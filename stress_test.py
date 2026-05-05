@@ -16,26 +16,50 @@ SENSORS = [
     'R_SHANK',    'L_SHANK',
 ]
 
-# Realistic angle ranges per sensor (roll, pitch, yaw) in degrees
+# Realistic angle ranges per sensor (roll, pitch, yaw) in degrees for NORMAL resting posture
 SENSOR_RANGES = {
-    'UPPER_BACK': ((-15, 15), (-30, 30), (-20, 20)),
-    'NECK':       ((-20, 20), (-40, 40), (-30, 30)),
-    'R_BICEPS':   ((-20, 20), (-90, 90), (-20, 20)),
-    'L_BICEPS':   ((-20, 20), (-90, 90), (-20, 20)),
-    'R_FOREARM':  ((-20, 20), (-130, 0),  (-20, 20)),
-    'L_FOREARM':  ((-20, 20), (-130, 0),  (-20, 20)),
-    'R_HAND':     ((-30, 30), (-45, 45), (-30, 30)),
-    'L_HAND':     ((-30, 30), (-45, 45), (-30, 30)),
-    'R_THIGH':    ((-10, 10), (-90, 10), (-15, 15)),
-    'L_THIGH':    ((-10, 10), (-90, 10), (-15, 15)),
-    'R_SHANK':    ((-10, 10), (-130, 0),  (-10, 10)),
-    'L_SHANK':    ((-10, 10), (-130, 0),  (-10, 10)),
+    'UPPER_BACK': ((-5, 5), (-5, 5), (-5, 5)),
+    'NECK':       ((-5, 5), (-5, 5), (-5, 5)),
+    'R_BICEPS':   ((-5, 5), (-5, 5), (-5, 5)),
+    'L_BICEPS':   ((-5, 5), (-5, 5), (-5, 5)),
+    'R_FOREARM':  ((-5, 5), (-5, 5), (-5, 5)),
+    'L_FOREARM':  ((-5, 5), (-5, 5), (-5, 5)),
+    'R_HAND':     ((-5, 5), (-5, 5), (-5, 5)),
+    'L_HAND':     ((-5, 5), (-5, 5), (-5, 5)),
+    'R_THIGH':    ((-5, 5), (-5, 5), (-5, 5)),
+    'L_THIGH':    ((-5, 5), (-5, 5), (-5, 5)),
+    'R_SHANK':    ((-5, 5), (-5, 5), (-5, 5)),
+    'L_SHANK':    ((-5, 5), (-5, 5), (-5, 5)),
 }
 
-def send_sensor_data(sensor_id):
-    """Send one IMU frame for the given sensor using anatomically realistic angle ranges."""
-    roll_r, pitch_r, yaw_r = SENSOR_RANGES.get(sensor_id,
-                                                ((-30, 30), (-45, 45), (-30, 30)))
+def send_sensor_data(args):
+    """Send one IMU frame for the given sensor, simulating anomalies based on elapsed time."""
+    sensor_id, elapsed_time = args
+    
+    roll_r, pitch_r, yaw_r = SENSOR_RANGES.get(sensor_id, ((-30, 30), (-45, 45), (-30, 30)))
+    
+    # Simulate Anomalies based on elapsed time
+    # 0-5s: Normal
+    # 5-20s: Neck Hyperflexion
+    # 20-35s: Trunk Torsion
+    # 35-50s: Shoulder Overextension
+    # 50-65s: Elbow Hyperextension
+    # 65-80s: Wrist Strain
+    # 80s+: Normal
+    
+    cycle_time = elapsed_time % 100 # Repeat every 100 seconds
+    
+    if 5 <= cycle_time < 20 and sensor_id == 'NECK':
+        pitch_r = (50, 70) # Extreme neck flexion
+    elif 20 <= cycle_time < 35 and sensor_id == 'UPPER_BACK':
+        yaw_r = (35, 55) # Extreme trunk torsion
+    elif 35 <= cycle_time < 50 and sensor_id == 'R_BICEPS':
+        pitch_r = (110, 140) # Shoulder overextension
+    elif 50 <= cycle_time < 65 and sensor_id == 'R_FOREARM':
+        pitch_r = (20, 40) # Elbow hyperextension (normally -130 to 0)
+    elif 65 <= cycle_time < 80 and sensor_id == 'R_HAND':
+        roll_r = (45, 65) # Severe wrist strain (deviation)
+        
     data = {
         "sensor_id": sensor_id,
         "roll":      round(random.uniform(*roll_r),  4),
@@ -61,9 +85,12 @@ def stress_test_data_collection(duration_seconds=15, frequency_hz=10):
     while time.time() - start_time < duration_seconds:
         loop_start = time.time()
         
+        elapsed = time.time() - start_time
+        
         # Send data for all sensors concurrently to maximize throughput
         with ThreadPoolExecutor(max_workers=len(SENSORS)) as executor:
-            results = executor.map(send_sensor_data, SENSORS)
+            args_list = [(sid, elapsed) for sid in SENSORS]
+            results = executor.map(send_sensor_data, args_list)
             
             for result in results:
                 total_requests += 1
