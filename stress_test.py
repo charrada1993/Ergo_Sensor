@@ -39,25 +39,25 @@ def send_sensor_data(args):
     roll_r, pitch_r, yaw_r = SENSOR_RANGES.get(sensor_id, ((-30, 30), (-45, 45), (-30, 30)))
     
     # Simulate Anomalies based on elapsed time
-    # 0-5s: Normal
-    # 5-20s: Neck Hyperflexion
-    # 20-35s: Trunk Torsion
-    # 35-50s: Shoulder Overextension
-    # 50-65s: Elbow Hyperextension
-    # 65-80s: Wrist Strain
-    # 80s+: Normal
+    # 0-60s: Normal
+    # 60-120s: Neck Hyperflexion
+    # 120-180s: Trunk Torsion
+    # 180-240s: Shoulder Overextension
+    # 240-300s: Elbow Hyperextension
+    # 300-360s: Wrist Strain
+    # 360s+: Normal
     
-    cycle_time = elapsed_time % 100 # Repeat every 100 seconds
+    cycle_time = elapsed_time % 420 # Repeat every 420 seconds (7 minutes)
     
-    if 5 <= cycle_time < 20 and sensor_id == 'NECK':
+    if 60 <= cycle_time < 120 and sensor_id == 'NECK':
         pitch_r = (50, 70) # Extreme neck flexion
-    elif 20 <= cycle_time < 35 and sensor_id == 'UPPER_BACK':
+    elif 120 <= cycle_time < 180 and sensor_id == 'UPPER_BACK':
         yaw_r = (35, 55) # Extreme trunk torsion
-    elif 35 <= cycle_time < 50 and sensor_id == 'R_BICEPS':
+    elif 180 <= cycle_time < 240 and sensor_id == 'R_BICEPS':
         pitch_r = (110, 140) # Shoulder overextension
-    elif 50 <= cycle_time < 65 and sensor_id == 'R_FOREARM':
+    elif 240 <= cycle_time < 300 and sensor_id == 'R_FOREARM':
         pitch_r = (20, 40) # Elbow hyperextension (normally -130 to 0)
-    elif 65 <= cycle_time < 80 and sensor_id == 'R_HAND':
+    elif 300 <= cycle_time < 360 and sensor_id == 'R_HAND':
         roll_r = (45, 65) # Severe wrist strain (deviation)
         
     data = {
