@@ -1,0 +1,35 @@
+{
+  "condition_to_code": {
+    "carpal_tunnel": 0,
+    "cervical_disc_risk": 1,
+    "cervicalgia": 2,
+    "de_quervain": 3,
+    "elbow_epicondylitis": 4,
+    "elbow_strain": 5,
+    "frozen_shoulder": 6,
+    "hip_bursitis": 7,
+    "hip_flexor_strain": 8,
+    "low_back_pain": 9,
+    "lumbar_disc_hernia_risk": 10,
+    "normal": 11,
+    "postural_kyphosis": 12,
+    "rotator_cuff_tendinitis": 13,
+    "shoulder_bursitis": 14,
+    "shoulder_impingement": 15,
+    "tech_neck": 16,
+    "wrist_tendinitis": 17
+  },
+  "location_to_code": {
+    "elbow": 0,
+    "hip": 1,
+    "knee": 2,
+    "neck": 3,
+    "shoulder": 4,
+    "trunk": 5
+  },
+  "severity_to_code": {
+    "low": 0,
+    "medium": 1,
+    "high": 2
+  }
+}

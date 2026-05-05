@@ -1,101 +1,178 @@
+"""
+feature_extractor.py — v2.0
+Maps real-time angle_window → 38 features expected by the new LightGBM models.
+
+Feature list (must match files/02_train_models.py FEATURES_BASIC):
+  Angles aggregated (max L/R): neck trunk shoulder elbow wrist hip knee
+  Bilateral angles: r_shoulder l_shoulder r_elbow l_elbow r_wrist l_wrist r_hip l_hip r_knee l_knee
+  Velocities: *_vel  (abs diff of last 2 frames)
+  Durations:  *_duration (frames in bad posture over last 30 frames)
+  Frequencies: *_freq (velocity peaks over last 30 frames)
+"""
+
 import numpy as np
+from collections import deque
+
+
+# Bad-posture thresholds (must match 01_generate_dataset.py THRESHOLDS)
+_THRESHOLDS = {
+    'neck':     20,
+    'trunk':    20,
+    'shoulder': 40,
+    'elbow':    80,
+    'wrist':    15,
+    'hip':      30,
+    'knee':     50,
+}
+
 
 class FeatureExtractor:
     def __init__(self, metadata):
         self.feature_cols = metadata.get('feature_cols', [])
-        
-    def extract(self, angle_window, risk_window, rula_l_window, rula_r_window, reba_l_window, reba_r_window, current_time):
-        """
-        Produce the feature dict matching self.feature_cols using the 60-element deques.
-        """
-        features = {}
-        
-        # Helper to safely extract series
-        def get_series_from_dicts(window, key):
-            # window contains dicts
-            return [frame.get(key, 0.0) for frame in window]
 
-        # Map base columns to series
-        series_map = {}
-        
-        # Angle series
-        # We assume angle_window contains dicts of joint angles
-        if len(angle_window) > 0:
-            for k in angle_window[0].keys():
-                series_map[k] = get_series_from_dicts(angle_window, k)
-                
-        # Risk series
-        series_map['global_risk_score'] = list(risk_window)
-        series_map['RULA_L_Final'] = list(rula_l_window)
-        series_map['RULA_R_Final'] = list(rula_r_window)
-        series_map['REBA_L_Final'] = list(reba_l_window)
-        series_map['REBA_R_Final'] = list(reba_r_window)
-        
-        # Need to parse other RULA/REBA subscores but we might not have historical tracking for them all.
-        # But wait! The metadata requires things like RULA_R_Upper_Arm_Score_mean...
-        # If we don't have them in the window, we'll extract them as 0 to avoid breaking.
-        
+    # ─────────────────────────────────────────────────────────────
+    def extract(self, angle_window, risk_window,
+                rula_l_window, rula_r_window,
+                reba_l_window, reba_r_window,
+                current_time):
+        """
+        Build the 38-feature dict from the last N frames of the angle_window.
+
+        angle_window  : deque of dicts like {'Neck': 18.5, 'R_Shoulder': 45.2, ...}
+        All other windows are kept for backward compat but not used here.
+        """
+
+        # ── Helper: extract time-series for one joint name ─────────
+        def series(key_candidates):
+            """Return list[float] from angle_window, trying keys in order."""
+            for k in key_candidates:
+                vals = [f.get(k, None) for f in angle_window]
+                vals = [v for v in vals if v is not None]
+                if vals:
+                    return vals
+            return [0.0]
+
+        # ── Latest frame bilateral values ─────────────────────────
+        last = angle_window[-1] if angle_window else {}
+
+        def lat(keys):
+            for k in keys:
+                v = last.get(k)
+                if v is not None:
+                    return abs(float(v))
+            return 0.0
+
+        # Map sensor angle names → bilateral features
+        r_shoulder = lat(['R_Shoulder', 'R_Shoulder_Flexion'])
+        l_shoulder = lat(['L_Shoulder', 'L_Shoulder_Flexion'])
+        r_elbow    = lat(['R_Elbow',    'R_Elbow_Flexion'])
+        l_elbow    = lat(['L_Elbow',    'L_Elbow_Flexion'])
+        r_wrist    = lat(['R_Wrist',    'R_Wrist_Deviation', 'R_Wrist_Flexion'])
+        l_wrist    = lat(['L_Wrist',    'L_Wrist_Deviation', 'L_Wrist_Flexion'])
+        r_hip      = lat(['R_Hip',      'R_Hip_Flexion'])
+        l_hip      = lat(['L_Hip',      'L_Hip_Flexion'])
+        r_knee     = lat(['R_Knee',     'R_Knee_Flexion'])
+        l_knee     = lat(['L_Knee',     'L_Knee_Flexion'])
+        neck       = lat(['Neck',       'Neck_Flexion'])
+        trunk      = lat(['Trunk',      'Trunk_Flexion'])
+
+        # Aggregated (max bilateral)
+        shoulder = max(r_shoulder, l_shoulder)
+        elbow    = max(r_elbow,    l_elbow)
+        wrist    = max(r_wrist,    l_wrist)
+        hip      = max(r_hip,      l_hip)
+        knee     = max(r_knee,     l_knee)
+
+        # Joint dict for velocity / duration / freq computation
+        joint_current = {
+            'neck':     neck,
+            'trunk':    trunk,
+            'shoulder': shoulder,
+            'elbow':    elbow,
+            'wrist':    wrist,
+            'hip':      hip,
+            'knee':     knee,
+        }
+
+        # ── Time-series per joint for vel/dur/freq ─────────────────
+        WINDOW = 30  # frames
+
+        def joint_series(joint):
+            """Pull the right series from angle_window for each joint."""
+            lookup = {
+                'neck':     ['Neck',      'Neck_Flexion'],
+                'trunk':    ['Trunk',     'Trunk_Flexion'],
+                'shoulder': ['R_Shoulder','L_Shoulder'],
+                'elbow':    ['R_Elbow',   'L_Elbow'],
+                'wrist':    ['R_Wrist',   'L_Wrist'],
+                'hip':      ['R_Hip',     'L_Hip'],
+                'knee':     ['R_Knee',    'L_Knee'],
+            }
+            keys = lookup.get(joint, [joint])
+            vals = []
+            for f in angle_window:
+                v = None
+                for k in keys:
+                    if k in f:
+                        v = abs(float(f[k]))
+                        break
+                vals.append(v if v is not None else 0.0)
+            return vals
+
+        features = {}
+
+        # ── Aggregated angles ──────────────────────────────────────
+        features['neck']     = neck
+        features['trunk']    = trunk
+        features['shoulder'] = shoulder
+        features['elbow']    = elbow
+        features['wrist']    = wrist
+        features['hip']      = hip
+        features['knee']     = knee
+
+        # ── Bilateral angles ───────────────────────────────────────
+        features['r_shoulder'] = r_shoulder
+        features['l_shoulder'] = l_shoulder
+        features['r_elbow']    = r_elbow
+        features['l_elbow']    = l_elbow
+        features['r_wrist']    = r_wrist
+        features['l_wrist']    = l_wrist
+        features['r_hip']      = r_hip
+        features['l_hip']      = l_hip
+        features['r_knee']     = r_knee
+        features['l_knee']     = l_knee
+
+        # ── Velocities, durations, frequencies ────────────────────
+        for j in ['neck', 'trunk', 'shoulder', 'elbow', 'wrist', 'hip', 'knee']:
+            s = joint_series(j)
+            thr = _THRESHOLDS.get(j, 20)
+
+            # velocity: abs diff between last two frames
+            if len(s) >= 2:
+                vel = abs(s[-1] - s[-2])
+            else:
+                vel = 0.0
+            features[f'{j}_vel'] = vel
+
+            # duration: # frames > threshold in last WINDOW frames
+            recent = s[-WINDOW:] if len(s) >= WINDOW else s
+            features[f'{j}_duration'] = float(sum(1 for v in recent if v > thr))
+
+            # frequency: # velocity peaks > 75th percentile in last WINDOW
+            if len(recent) >= 2:
+                vels   = [abs(recent[i] - recent[i-1]) for i in range(1, len(recent))]
+                q75    = float(np.percentile(vels, 75)) if vels else 0.0
+                freq   = sum(1 for v in vels if v > q75)
+            else:
+                freq = 0
+            features[f'{j}_freq'] = float(freq)
+
+        # ── Also pass global risk score for convenience ────────────
+        features['global_risk_score'] = list(risk_window)[-1] if risk_window else 0.0
+
+        # ── Fill missing expected features with 0 ─────────────────
         for col in self.feature_cols:
-            if col in ['hour_of_day', 'day_of_week']:
-                import datetime
-                dt = datetime.datetime.fromtimestamp(current_time)
-                features['hour_of_day'] = dt.hour
-                features['day_of_week'] = dt.weekday()
-                continue
-            
-            # Simple global risk
-            if col == 'global_risk_score':
-                features[col] = series_map['global_risk_score'][-1] if series_map['global_risk_score'] else 0.0
-                continue
-                
-            # Parse stat
-            for stat in ['_mean', '_std', '_max', '_p95']:
-                if col.endswith(stat):
-                    base = col[:-len(stat)]
-                    s = series_map.get(base, [0.0])
-                    if not s: s = [0.0]
-                    if stat == '_mean': features[col] = np.mean(s)
-                    elif stat == '_std': features[col] = np.std(s)
-                    elif stat == '_max': features[col] = np.max(s)
-                    elif stat == '_p95': features[col] = np.percentile(s, 95) if len(s) > 0 else 0.0
-                    break
-                    
-            # Parse lag
-            for lag in ['_lag1', '_lag3', '_lag6', '_lag12']:
-                if col.endswith(lag):
-                    base = col[:-len(lag)]
-                    if base.endswith('_mean'): base = base[:-5] # e.g. Neck_Flexion_deg_mean_lag1
-                    s = series_map.get(base, [0.0])
-                    lag_val = int(lag[4:])
-                    if len(s) >= lag_val + 1:
-                        features[col] = s[-(lag_val + 1)]
-                    else:
-                        features[col] = s[0] if s else 0.0
-                    break
-                    
-            # Parse rolling
-            for roll in ['_roll6', '_roll12', '_roll24']:
-                if roll in col:
-                    parts = col.split(roll)
-                    base = parts[0]
-                    if base.endswith('_mean'): base = base[:-5]
-                    stat2 = parts[1] # _mean or _std
-                    s = series_map.get(base, [0.0])
-                    roll_val = int(roll[5:])
-                    subset = s[-roll_val:] if len(s) >= roll_val else s
-                    if not subset: subset = [0.0]
-                    if stat2 == '_mean': features[col] = np.mean(subset)
-                    elif stat2 == '_std': features[col] = np.std(subset)
-                    break
-                    
-        # Ensure all required features are set (default to 0.0)
-        for req_col in self.feature_cols:
-            if req_col not in features:
-                features[req_col] = 0.0
-                
-        # Fill Anomaly Score input too if needed as feature
-        if 'anomaly_score' in features and features['anomaly_score'] == 0:
-            # We predict anomaly score inside ai_engine using if_features
-            features['anomaly_score'] = 0.0 
-                
+            if col not in features:
+                features[col] = 0.0
+
         return features

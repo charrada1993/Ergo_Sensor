@@ -126,6 +126,23 @@ def ai_page():
     return render_template('ai.html')
 
 
+@app.route('/plots/<path:filename>')
+@login_required(role='doctor')
+def serve_plot(filename):
+    return send_from_directory('plots', filename)
+
+
+@app.route('/api/ai-metrics')
+@login_required(role='doctor')
+def ai_metrics():
+    import json, os
+    path = 'plots/metrics_summary.json'
+    if os.path.exists(path):
+        with open(path) as f:
+            return jsonify(json.load(f))
+    return jsonify({'error': 'metrics not found'}), 404
+
+
 @app.route('/csv-view')
 @login_required(role='doctor')
 def csv_view():

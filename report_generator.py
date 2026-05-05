@@ -782,6 +782,34 @@ class ReportGenerator:
                 story.append(_fig_to_image(fig, height=6 * cm))
                 story.append(Spacer(1, 0.3 * cm))
 
+        # 1.5. Anomaly Probabilities
+        prob_cols = [
+            'Prob_Neck_Hyperflexion', 'Prob_Shoulder_Overextension', 
+            'Prob_Wrist_Strain', 'Prob_Trunk_Torsion', 'Prob_Elbow_Hyperextension'
+        ]
+        available_probs = [c for c in prob_cols if c in df.columns and df[c].notna().any()]
+        if available_probs and 'Timestamp' in df.columns:
+            fig, ax = plt.subplots(figsize=(9, 3.5))
+            colors = ['#1A3A5C', '#E84545', '#2980B9', '#0D7377', '#8E44AD']
+            
+            for col, color in zip(available_probs, colors):
+                label = col.replace('Prob_', '').replace('_', ' ')
+                ax.plot(df['Timestamp'], df[col], lw=1.2, color=color, label=label)
+            
+            ax.axhline(0.5, color='#FFAA00', ls='--', lw=1, alpha=0.5, label='Warning (0.5)')
+            ax.axhline(0.7, color='#E84545', ls=':', lw=1, alpha=0.5, label='Danger (0.7)')
+            
+            ax.set_title('Specific Joint Anomaly Probabilities')
+            ax.set_xlabel('Time')
+            ax.set_ylabel('Probability (0.0 to 1.0)')
+            ax.set_ylim(0, 1.05)
+            ax.legend(fontsize=7, loc='upper left', ncol=3)
+            _style_ax(ax)
+            fig.tight_layout()
+            story.append(Paragraph('<b>Anomaly Probabilities Over Time</b>', S['bold']))
+            story.append(_fig_to_image(fig, height=6 * cm))
+            story.append(Spacer(1, 0.3 * cm))
+
         # 2. Joint Angles
         available_joints = [name for name, c in self.JOINT_COLS.items() if c in df.columns]
         if available_joints and 'Timestamp' in df.columns:

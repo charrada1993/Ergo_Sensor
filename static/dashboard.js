@@ -10,6 +10,10 @@ const RISK_THRESHOLDS = {
     L_Elbow:    60,
     R_Wrist:    30,
     L_Wrist:    30,
+    R_Thigh:    45,
+    L_Thigh:    45,
+    R_Knee:     60,
+    L_Knee:     60,
 };
 
 const jointList = [
@@ -17,6 +21,8 @@ const jointList = [
     'R_Shoulder', 'L_Shoulder',
     'R_Elbow',    'L_Elbow',
     'R_Wrist',    'L_Wrist',
+    'R_Thigh',    'L_Thigh',
+    'R_Knee',     'L_Knee',
 ];
 
 const jointComponents = {
@@ -28,7 +34,10 @@ const jointComponents = {
     R_Wrist:    ['R_Wrist', 'R_Wrist_Roll', 'R_Wrist_Yaw'],
     L_Wrist:    ['L_Wrist', 'L_Wrist_Roll', 'L_Wrist_Yaw'],
     Back:       ['Trunk_Pitch', 'Trunk_Roll', 'Trunk_Yaw'],
-    Legs:       ['legs_score'],
+    R_Thigh:    ['R_Thigh', 'R_Thigh_Roll', 'R_Thigh_Yaw'],
+    L_Thigh:    ['L_Thigh', 'L_Thigh_Roll', 'L_Thigh_Yaw'],
+    R_Knee:     ['R_Knee'],
+    L_Knee:     ['L_Knee'],
 };
 
 const componentColors = {
@@ -39,7 +48,14 @@ const componentColors = {
     Trunk_Pitch:        '#00d4ff',
     Trunk_Roll:         '#ffaa00',
     Trunk_Yaw:          '#ff6b6b',
-    legs_score:         '#e67e22',
+    R_Thigh:            '#00d4ff',
+    L_Thigh:            '#00d4ff',
+    R_Knee:             '#00d4ff',
+    L_Knee:             '#00d4ff',
+    R_Thigh_Roll:       '#ffaa00',
+    L_Thigh_Roll:       '#ffaa00',
+    R_Thigh_Yaw:        '#ff6b6b',
+    L_Thigh_Yaw:        '#ff6b6b',
     R_Shoulder:         '#00d4ff',
     L_Shoulder:         '#00d4ff',
     R_Elbow:            '#00d4ff',

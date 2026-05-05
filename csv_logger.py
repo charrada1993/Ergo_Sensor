@@ -169,6 +169,21 @@ class CSVLogger:
             'REBA_L_Activity_Score',
             'REBA_L_Final',
             'REBA_L_Action',
+
+            # ── AI Features (38 dimensions) ───────────────────────────────────
+            'neck', 'trunk', 'shoulder', 'elbow', 'wrist', 'hip', 'knee',
+            'r_shoulder', 'l_shoulder', 'r_elbow', 'l_elbow', 'r_wrist', 'l_wrist', 'r_hip', 'l_hip', 'r_knee', 'l_knee',
+            'neck_vel', 'neck_duration', 'neck_freq',
+            'trunk_vel', 'trunk_duration', 'trunk_freq',
+            'shoulder_vel', 'shoulder_duration', 'shoulder_freq',
+            'elbow_vel', 'elbow_duration', 'elbow_freq',
+            'wrist_vel', 'wrist_duration', 'wrist_freq',
+            'hip_vel', 'hip_duration', 'hip_freq',
+            'knee_vel', 'knee_duration', 'knee_freq',
+            
+            # ── AI Predictions ────────────────────────────────────────────────
+            'AI_Risk_10d', 'AI_Anomaly_Score', 'AI_Condition', 'AI_Severity', 'AI_Critical_Joint',
+            'Prob_Neck_Hyperflexion', 'Prob_Shoulder_Overextension', 'Prob_Wrist_Strain', 'Prob_Trunk_Torsion', 'Prob_Elbow_Hyperextension'
         ]
 
         self.writer.writerow(header)
@@ -194,13 +209,15 @@ class CSVLogger:
 
     # ── Main log method ───────────────────────────────────────────────────────
 
-    def log(self, angles, rula=None, reba=None):
+    def log(self, angles, rula=None, reba=None, features=None, ai_pred=None):
         """
         Write one row.
 
-        angles : dict of joint angles from angle_math.compute_joint_angles()
-        rula   : {'right': dict|None, 'left': dict|None}
-        reba   : {'right': dict|None, 'left': dict|None}
+        angles   : dict of joint angles from angle_math.compute_joint_angles()
+        rula     : {'right': dict|None, 'left': dict|None}
+        reba     : {'right': dict|None, 'left': dict|None}
+        features : dict of 38 ML features (from feature_extractor)
+        ai_pred  : dict of AI predictions
         """
         if not self.writer:
             return
@@ -211,6 +228,10 @@ class CSVLogger:
         rl = rula.get('left')  if rula else None
         br = reba.get('right') if reba else None
         bl = reba.get('left')  if reba else None
+        
+        f  = features if features else {}
+        ap = ai_pred if ai_pred else {}
+        probs = ap.get('anomaly_probs', {})
 
         row = [
             datetime.now().isoformat(),
@@ -362,6 +383,29 @@ class CSVLogger:
             g(bl, 'activity'),
             g(bl, 'final'),
             g(bl, 'action'),
+
+            # ── AI Features ───────────────────────────────────────────────────
+            r(g(f, 'neck')), r(g(f, 'trunk')), r(g(f, 'shoulder')), r(g(f, 'elbow')), r(g(f, 'wrist')), r(g(f, 'hip')), r(g(f, 'knee')),
+            r(g(f, 'r_shoulder')), r(g(f, 'l_shoulder')), r(g(f, 'r_elbow')), r(g(f, 'l_elbow')), r(g(f, 'r_wrist')), r(g(f, 'l_wrist')), r(g(f, 'r_hip')), r(g(f, 'l_hip')), r(g(f, 'r_knee')), r(g(f, 'l_knee')),
+            r(g(f, 'neck_vel')), r(g(f, 'neck_duration')), r(g(f, 'neck_freq')),
+            r(g(f, 'trunk_vel')), r(g(f, 'trunk_duration')), r(g(f, 'trunk_freq')),
+            r(g(f, 'shoulder_vel')), r(g(f, 'shoulder_duration')), r(g(f, 'shoulder_freq')),
+            r(g(f, 'elbow_vel')), r(g(f, 'elbow_duration')), r(g(f, 'elbow_freq')),
+            r(g(f, 'wrist_vel')), r(g(f, 'wrist_duration')), r(g(f, 'wrist_freq')),
+            r(g(f, 'hip_vel')), r(g(f, 'hip_duration')), r(g(f, 'hip_freq')),
+            r(g(f, 'knee_vel')), r(g(f, 'knee_duration')), r(g(f, 'knee_freq')),
+
+            # ── AI Predictions ────────────────────────────────────────────────
+            r(g(ap, 'risk_10d')),
+            r(g(ap, 'anomaly_score')),
+            g(ap, 'condition'),
+            g(ap, 'severity'),
+            g(ap, 'critical_joint'),
+            r(g(probs, 'Neck Hyperflexion')),
+            r(g(probs, 'Shoulder Overextension')),
+            r(g(probs, 'Wrist Strain')),
+            r(g(probs, 'Trunk Torsion')),
+            r(g(probs, 'Elbow Hyperextension'))
         ]
 
         self.writer.writerow(row)

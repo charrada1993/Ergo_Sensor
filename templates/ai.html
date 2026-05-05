@@ -1,220 +1,440 @@
 {% extends "base.html" %}
-{% block title %}AI Predictive Analytics{% endblock %}
+{% block title %}AI Predictive Analytics — Ergo Sensor v2.0{% endblock %}
 
 {% block content %}
 <style>
-  /* ── Typography & tokens ─────────────────────────────────────── */
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
   :root {
-    --accent:    #00e5ff;
-    --warn:      #ffaa00;
-    --danger:    #ff4d6d;
-    --ok:        #00e5a0;
-    --border:    rgba(255, 255, 255, 0.05);
+    --accent:  #00e5ff;
+    --warn:    #ffaa00;
+    --danger:  #ff4d6d;
+    --ok:      #00e5a0;
+    --purple:  #c97fff;
+    --border:  rgba(255,255,255,0.06);
+    --card-bg: rgba(18,20,40,0.55);
   }
+
+  /* ── Layout ─────────────────────────────────────────────── */
+  .ai-wrap { padding: 0 1.2rem 2rem; }
 
   .dash-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between;
     padding: 1.2rem 1.6rem 0.8rem;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 2rem;
+    margin-bottom: 1.8rem;
   }
   .dash-header h1 {
-    font-size: 1.5rem;
-    font-weight: 800;
-    font-family: 'Syne', sans-serif;
-    letter-spacing: .04em;
-    color: var(--accent);
-    margin: 0;
+    font-size: 1.4rem; font-weight: 800; font-family: 'Syne', sans-serif;
+    letter-spacing: .05em; color: var(--accent); margin: 0;
   }
-
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-  
-  @media (max-width: 900px) {
-    .grid-2 { grid-template-columns: 1fr; }
+  .badge-version {
+    background: rgba(0,229,255,0.12); color: var(--accent);
+    border: 1px solid rgba(0,229,255,0.3);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    padding: 0.25rem 0.7rem; border-radius: 20px; margin-left: 1rem;
   }
+  .badge-live {
+    background: rgba(0,229,160,0.12); color: var(--ok);
+    border: 1px solid rgba(0,229,160,0.35);
+    font-size: 0.72rem; padding: 0.22rem 0.6rem; border-radius: 20px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
 
+  /* ── Card ─────────────────────────────────────────────────── */
   .card {
-    background: rgba(18, 20, 35, 0.4);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: var(--card-bg);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
     border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 1.5rem;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-    transition: all 0.3s ease;
+    border-radius: 20px; padding: 1.4rem;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+    transition: border-color .3s, box-shadow .3s;
   }
-  .card:hover {
-      box-shadow: 0 20px 40px rgba(0, 229, 255, 0.1);
-      border-color: rgba(0, 229, 255, 0.15);
+  .card:hover { border-color: rgba(0,229,255,0.18); box-shadow: 0 20px 48px rgba(0,229,255,0.08); }
+  .card h3 {
+    color: var(--accent); margin: 0 0 1rem; font-weight: 700;
+    font-family: 'Syne', sans-serif; font-size: 0.95rem;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.6rem;
+    display: flex; align-items: center; gap: 0.5rem;
   }
 
-  .card h3 {
-    color: var(--accent);
-    margin-bottom: 1rem;
-    font-weight: 700;
-    font-family: 'Syne', sans-serif;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 0.5rem;
-  }
-  
+  /* ── Grids ─────────────────────────────────────────────────── */
+  .g2 { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-bottom:1.2rem; }
+  .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.2rem; margin-bottom:1.2rem; }
+  .g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.2rem; }
+  @media(max-width:1100px){ .g3{grid-template-columns:1fr 1fr;} .g4{grid-template-columns:1fr 1fr;} }
+  @media(max-width:700px) { .g2,.g3,.g4{grid-template-columns:1fr;} }
+
+  /* ── Metric big ─────────────────────────────────────────────── */
   .ai-big {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 3rem;
-    font-weight: 700;
-    color: #fff;
-    margin: 0.5rem 0;
+    font-size: 2.6rem; font-weight: 700; color: #fff; margin: 0.4rem 0 0.2rem;
+    transition: color .4s;
   }
-  
-  .desc {
-    color: #8890aa;
-    font-size: 0.85rem;
-    line-height: 1.4;
-  }
+  .ai-label { font-size: 0.75rem; color: #8890aa; text-transform: uppercase; letter-spacing:.08em; }
+  .ai-sub   { color: #8890aa; font-size: 0.82rem; line-height: 1.45; margin-top:.5rem; }
 
-  .progress-bar-container {
-    background: rgba(0,0,0,0.3);
-    border-radius: 8px;
-    height: 12px;
-    width: 100%;
-    margin-top: 1rem;
-    overflow: hidden;
-    border: 1px solid var(--border);
-  }
-  .progress-fill {
-    height: 100%;
-    width: 0%;
-    background: var(--accent);
-    transition: width 0.5s ease;
-  }
+  /* ── Progress bar ───────────────────────────────────────────── */
+  .pbar { background:rgba(0,0,0,0.3); border-radius:8px; height:10px; margin-top:.9rem; overflow:hidden; border:1px solid var(--border); }
+  .pfill { height:100%; width:0%; transition:width .6s ease, background .4s; border-radius:8px; }
 
-  /* Anomaly top-5 list */
-  .anomaly-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.85rem;
+  /* ── Anomaly list ───────────────────────────────────────────── */
+  .anom-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:.55rem; font-family:'JetBrains Mono',monospace; font-size:.82rem; }
+  .anom-bar-wrap { height:5px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden; margin-top:2px; }
+
+  /* ── Model metrics table ────────────────────────────────────── */
+  .metrics-grid {
+    display: grid; grid-template-columns: repeat(4,1fr); gap:.7rem;
+    margin-top: .5rem;
   }
+  .metric-pill {
+    background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+    border-radius: 12px; padding: .55rem .8rem; text-align:center;
+  }
+  .metric-pill .mv { font-family:'JetBrains Mono',monospace; font-size:1.2rem; font-weight:700; }
+  .metric-pill .mk { font-size:.68rem; color:#8890aa; text-transform:uppercase; letter-spacing:.06em; margin-top:.2rem; }
+
+  /* ── Console ────────────────────────────────────────────────── */
+  .console {
+    background: #060810; border: 1px solid #1e2038; border-radius: 14px;
+    padding: 1rem 1.2rem; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; color: #00e5a0; height: 260px; overflow-y: auto;
+    line-height: 1.6;
+  }
+  .console::-webkit-scrollbar { width:5px; }
+  .console::-webkit-scrollbar-track { background:#060810; }
+  .console::-webkit-scrollbar-thumb { background:#2a2d4a; border-radius:4px; }
+  .c-time { color: #4a5275; }
+  .c-key  { color: var(--accent); }
+  .c-val  { color: #e4e8f4; }
+  .c-warn { color: var(--warn); }
+  .c-err  { color: var(--danger); }
+  .c-ok   { color: var(--ok); }
+
+  /* ── Architecture diagram ───────────────────────────────────── */
+  .arch-box {
+    display:flex; flex-direction:column; align-items:center; gap:.3rem;
+    background:rgba(0,0,0,0.25); border:1px solid var(--border);
+    border-radius:14px; padding:.8rem .6rem; text-align:center;
+    font-size:.75rem; transition: border-color .3s;
+  }
+  .arch-box:hover { border-color: var(--accent); }
+  .arch-icon { font-size:1.6rem; margin-bottom:.2rem; }
+  .arch-title { color: var(--accent); font-weight:700; font-family:'Syne',sans-serif; font-size:.8rem; }
+  .arch-sub   { color:#8890aa; font-size:.68rem; line-height:1.4; }
+  .arch-arrow { color:#4a5275; font-size:1.2rem; display:flex; align-items:center; }
+
+  /* ── Section titles ─────────────────────────────────────────── */
+  .sec-title {
+    font-family:'Syne',sans-serif; font-size:1rem; font-weight:700;
+    color: var(--accent); margin: 1.6rem 0 .8rem;
+    display:flex; align-items:center; gap:.5rem;
+  }
+  .sec-title::after { content:''; flex:1; height:1px; background:var(--border); }
 </style>
 
+<div class="ai-wrap">
+
+<!-- ══ HEADER ══════════════════════════════════════════════════════════════ -->
 <div class="dash-header">
-  <h1><i class="fas fa-brain"></i> Ergo Sensor — Top-5 Machine Learning Model output</h1>
+  <div style="display:flex;align-items:center;">
+    <h1><i class="fas fa-brain"></i>&nbsp; Ergo Sensor — AI Predictive Analytics</h1>
+    <span class="badge-version">v2.0 · 38 features · 12 joints</span>
+  </div>
+  <span id="live-badge" class="badge-live">● LIVE</span>
 </div>
 
-<div class="grid-2">
+<!-- ══ LIVE PREDICTIONS ════════════════════════════════════════════════════ -->
+<div class="sec-title"><i class="fas fa-satellite-dish"></i> Live AI Predictions</div>
+
+<div class="g4">
+  <!-- Risk Score -->
   <div class="card">
-    <h3><i class="fas fa-calendar-alt"></i> 10-Day Risk Forecast</h3>
+    <h3><i class="fas fa-exclamation-triangle"></i> Risk Score (10-day)</h3>
+    <div class="ai-label">Predicted probability</div>
     <div id="ai-risk-10d" class="ai-big">—</div>
-    <div id="ai-risk-level" style="font-weight:700; font-family:'Syne'; margin-bottom:0.5rem;">WAITING...</div>
-    <div class="desc">LightGBM Forecast model outputs the 10-day projected musculoskeletal risk probability (0.0 to 1.0) derived by comparing short-term kinetic behavior across historical 125-tick sliding aggregations.</div>
-    <div class="progress-bar-container">
-        <div id="ai-risk-bar" class="progress-fill" style="width:0%;"></div>
-    </div>
+    <div id="ai-risk-level" style="font-weight:700;font-family:'Syne';font-size:.95rem;">WAITING…</div>
+    <div class="pbar"><div id="ai-risk-bar" class="pfill" style="background:var(--accent)"></div></div>
   </div>
-
+  <!-- Condition -->
   <div class="card">
-    <h3><i class="fas fa-search"></i> SHAP Root Cause (Feature)</h3>
-    <div id="ai-critical-joint" class="ai-big" style="font-size: 1.5rem; margin: 1rem 0;">—</div>
-    <div class="desc">SHAP Explainer (TreeExplainer) evaluation over the most current posture frame. This reveals the specific physiological joint or constraint driving the LightGBM 10-day risk probability higher in real-time.</div>
+    <h3><i class="fas fa-stethoscope"></i> Diagnosed Condition</h3>
+    <div class="ai-label">Main condition</div>
+    <div id="ai-condition" class="ai-big" style="font-size:1.1rem;margin-top:.7rem;line-height:1.3;">—</div>
+    <div id="ai-severity" style="margin-top:.6rem;font-weight:700;font-family:'JetBrains Mono';font-size:.9rem;">—</div>
   </div>
-</div>
-
-<div class="grid-2">
+  <!-- Critical Joint (SHAP) -->
   <div class="card">
-    <h3><i class="fas fa-radar"></i> Isolation Forest Anomaly Score</h3>
+    <h3><i class="fas fa-search"></i> SHAP Critical Joint</h3>
+    <div class="ai-label">Root cause feature</div>
+    <div id="ai-critical-joint" class="ai-big" style="font-size:1.2rem;margin-top:.7rem;">—</div>
+    <div class="ai-sub">TreeExplainer identifies the joint driving the risk prediction.</div>
+  </div>
+  <!-- Anomaly Score -->
+  <div class="card">
+    <h3><i class="fas fa-radar"></i> IsolationForest Score</h3>
+    <div class="ai-label">Global anomaly index</div>
     <div id="ai-anomaly-score" class="ai-big">—</div>
-    <div class="desc">Detects anomalous postures and mechanical deviations relative to the pre-scaled Isolation Forest model trained continuously over 90,000 baseline frames. High score (>0.6) = Unusual kinematic action.</div>
-    <div class="progress-bar-container">
-        <div id="ai-anomaly-bar" class="progress-fill" style="width:0%; background: #ffaa00;"></div>
-    </div>
+    <div class="pbar"><div id="ai-anomaly-bar" class="pfill" style="background:var(--warn)"></div></div>
+  </div>
+</div>
+
+<!-- ══ ANOMALY CLASSIFICATION ═══════════════════════════════════════════ -->
+<div class="sec-title"><i class="fas fa-list-ul"></i> Per-Joint Anomaly Classification</div>
+
+<div class="g2">
+  <div class="card">
+    <h3><i class="fas fa-project-diagram"></i> Anomaly Probabilities</h3>
+    <div id="ai-anomaly-top5"><div style="color:#aaa;font-style:italic;">Awaiting data…</div></div>
   </div>
 
+  <!-- AI Console -->
   <div class="card">
-    <h3><i class="fas fa-list"></i> Top-5 Anomaly Classification</h3>
-    <div class="desc" style="margin-bottom: 1rem;">Multi-class LightGBM classifiers rank specific patterns associated with the current frame's kinematics.</div>
-    <div id="ai-anomaly-top5">
-      <div style="color: #aaa; font-style: italic;">Awaiting network data...</div>
+    <h3><i class="fas fa-terminal"></i> AI Console — Live Prediction Log</h3>
+    <div id="ai-console" class="console">
+      <span class="c-time">[boot]</span> <span class="c-ok">Ergo Sensor AI v2.0 initialized</span><br>
+      <span class="c-time">[boot]</span> <span class="c-key">Models:</span> <span class="c-val">LightGBM Regressor · Classifier · Severity · IsolationForest · 5× Anomaly</span><br>
+      <span class="c-time">[boot]</span> <span class="c-key">Features:</span> <span class="c-val">38 biomechanical (12 joints bilateral)</span><br>
+      <span class="c-time">[boot]</span> Waiting for sensor data…<br>
     </div>
   </div>
 </div>
 
+<!-- ══ MODEL PERFORMANCE METRICS ════════════════════════════════════════ -->
+<div class="sec-title"><i class="fas fa-chart-bar"></i> Model Performance Metrics</div>
+
+<div class="g3">
+  <!-- Regression -->
+  <div class="card">
+    <h3><i class="fas fa-wave-square"></i> LightGBM — Risk Regression</h3>
+    <div class="metrics-grid">
+      <div class="metric-pill"><div class="mv" style="color:var(--ok)" id="m-r2">—</div><div class="mk">R²</div></div>
+      <div class="metric-pill"><div class="mv" style="color:var(--accent)" id="m-mae">—</div><div class="mk">MAE</div></div>
+      <div class="metric-pill"><div class="mv" style="color:var(--warn)" id="m-rmse">—</div><div class="mk">RMSE</div></div>
+      <div class="metric-pill"><div class="mv" style="color:#c97fff">38</div><div class="mk">Features</div></div>
+    </div>
+    <div class="ai-sub" style="margin-top:.8rem;">Gradient boosting regressor trained on 16 000 temporal samples. Predicts musculoskeletal risk score [0–1] over all 12 body joints.</div>
+  </div>
+  <!-- Classifier -->
+  <div class="card">
+    <h3><i class="fas fa-tags"></i> LightGBM — Condition Classifier</h3>
+    <div class="metrics-grid">
+      <div class="metric-pill"><div class="mv" style="color:var(--ok)" id="m-acc-cls">—</div><div class="mk">Accuracy</div></div>
+      <div class="metric-pill"><div class="mv" style="color:var(--accent)" id="m-f1-cls">—</div><div class="mk">F1 Macro</div></div>
+      <div class="metric-pill"><div class="mv" style="color:#c97fff">18</div><div class="mk">Classes</div></div>
+      <div class="metric-pill"><div class="mv" style="color:var(--warn)">Multi</div><div class="mk">Output</div></div>
+    </div>
+    <div class="ai-sub" style="margin-top:.8rem;">Multiclass classifier predicting the dominant musculoskeletal condition from 18 pathological categories (lumbar disc, carpal tunnel, etc.).</div>
+  </div>
+  <!-- Severity + IF -->
+  <div class="card">
+    <h3><i class="fas fa-tachometer-alt"></i> Severity + IsolationForest</h3>
+    <div class="metrics-grid">
+      <div class="metric-pill"><div class="mv" style="color:var(--ok)" id="m-acc-sev">—</div><div class="mk">Sev. Acc.</div></div>
+      <div class="metric-pill"><div class="mv" style="color:var(--accent)" id="m-f1-sev">—</div><div class="mk">Sev. F1</div></div>
+      <div class="metric-pill"><div class="mv" style="color:var(--warn)">5%</div><div class="mk">IF Contam.</div></div>
+      <div class="metric-pill"><div class="mv" style="color:var(--danger)">5×</div><div class="mk">Anomaly Det.</div></div>
+    </div>
+    <div class="ai-sub" style="margin-top:.8rem;">Severity: low / medium / high. IsolationForest trained unsupervised (200 estimators, contamination=5%). 5 per-joint anomaly classifiers.</div>
+  </div>
+</div>
+
+<!-- ══ EVALUATION CHARTS ═══════════════════════════════════════════════ -->
+<div class="sec-title"><i class="fas fa-chart-line"></i> Evaluation Curves</div>
+
+<div class="card" style="margin-bottom:1.2rem;">
+  <h3><i class="fas fa-image"></i> Full Model Evaluation Dashboard</h3>
+  <p class="ai-sub" style="margin-bottom:1rem;">
+    Actual vs Predicted · Residuals · Confusion Matrices · Feature Importance · IsolationForest Distribution · ROC Curves (all 5 anomaly models)
+  </p>
+  <img id="eval-chart" src="/plots/model_evaluation.png"
+       style="width:100%;border-radius:12px;border:1px solid var(--border);display:block;"
+       alt="Model Evaluation Dashboard" onerror="this.style.display='none';document.getElementById('eval-chart-err').style.display='block'">
+  <div id="eval-chart-err" style="display:none;color:#8890aa;text-align:center;padding:2rem;">
+    ⚠ Evaluation chart not found. Run <code>python generate_eval_plots.py</code>
+  </div>
+</div>
+
+<div class="g2" style="margin-bottom:1.2rem;">
+  <div class="card">
+    <h3><i class="fas fa-lightbulb"></i> SHAP Feature Importance</h3>
+    <img src="/plots/shap_summary.png"
+         style="width:100%;border-radius:12px;border:1px solid var(--border);"
+         alt="SHAP Summary" onerror="this.style.display='none'">
+  </div>
+
+  <!-- ── ARCHITECTURE ───────────────────────────────────────── -->
+  <div class="card">
+    <h3><i class="fas fa-sitemap"></i> System Architecture</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:center;margin-top:.5rem;">
+
+      <div class="arch-box" style="width:100px;">
+        <div class="arch-icon">📡</div>
+        <div class="arch-title">Sensors</div>
+        <div class="arch-sub">IMU / ESP32<br>Firebase RTDB</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box" style="width:110px;">
+        <div class="arch-icon">⚙️</div>
+        <div class="arch-title">DataProcessor</div>
+        <div class="arch-sub">Angle calc<br>RULA / REBA</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box" style="width:110px; border-color:rgba(0,229,255,0.3);">
+        <div class="arch-icon">🤖</div>
+        <div class="arch-title">AI Engine</div>
+        <div class="arch-sub">LightGBM×3<br>IsoForest×1<br>Anomaly×5</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box" style="width:100px;">
+        <div class="arch-icon">🌐</div>
+        <div class="arch-title">Flask + WS</div>
+        <div class="arch-sub">SocketIO<br>REST API</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box" style="width:100px;">
+        <div class="arch-icon">📊</div>
+        <div class="arch-title">Dashboard</div>
+        <div class="arch-sub">Real-time<br>HTML/JS</div>
+      </div>
+
+      <div style="width:100%;margin-top:.8rem;border-top:1px solid var(--border);padding-top:.8rem;">
+        <div style="font-size:.72rem;color:#8890aa;line-height:1.8;">
+          <b style="color:var(--accent)">Dataset:</b> 20 000 samples · 38 features · 12 joints bilateral<br>
+          <b style="color:var(--accent)">Conditions:</b> 18 TMS pathologies · multi-label<br>
+          <b style="color:var(--accent)">Pipeline:</b> 01_generate → 02_train → ai_engine.py → app.py
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end ai-wrap -->
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 <script>
 const socket = io();
+const cons   = document.getElementById('ai-console');
 
-// ═══════════════════════════════════════════════════════
-// WebSocket handlers
-// ═══════════════════════════════════════════════════════
-socket.on('connect', () => console.log('WebSocket connected (AI page)'));
+// ── Console logger ──────────────────────────────────────────
+function ts() {
+  return new Date().toTimeString().slice(0,8);
+}
+function log(line) {
+  cons.innerHTML += line + '<br>';
+  cons.scrollTop  = cons.scrollHeight;
+}
+
+// ── Load static metrics on page load ───────────────────────
+fetch('/api/ai-metrics')
+  .then(r => r.json())
+  .then(m => {
+    if (m.error) return;
+    const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent = val; };
+    set('m-r2',      (m.regression?.r2 ?? '—'));
+    set('m-mae',     (m.regression?.mae ?? '—'));
+    set('m-rmse',    (m.regression?.rmse ?? '—'));
+    set('m-acc-cls', (m.condition?.accuracy ?? '—'));
+    set('m-f1-cls',  (m.condition?.f1_macro ?? '—'));
+    set('m-acc-sev', (m.severity?.accuracy ?? '—'));
+    set('m-f1-sev',  (m.severity?.f1_macro ?? '—'));
+    log(`<span class="c-time">[${ts()}]</span> <span class="c-ok">Metrics loaded</span> — R²=<span class="c-val">${m.regression?.r2}</span> | CondAcc=<span class="c-val">${m.condition?.accuracy}</span>`);
+  })
+  .catch(() => log(`<span class="c-time">[${ts()}]</span> <span class="c-warn">Could not load metrics JSON</span>`));
+
+// ── WebSocket ────────────────────────────────────────────────
+socket.on('connect', () => {
+  document.getElementById('live-badge').style.background = 'rgba(0,229,160,0.18)';
+  log(`<span class="c-time">[${ts()}]</span> <span class="c-ok">WebSocket connected</span>`);
+});
+
+socket.on('disconnect', () => {
+  document.getElementById('live-badge').style.background = 'rgba(255,77,109,0.18)';
+  document.getElementById('live-badge').style.color = 'var(--danger)';
+  document.getElementById('live-badge').textContent = '● OFFLINE';
+  log(`<span class="c-time">[${ts()}]</span> <span class="c-err">WebSocket disconnected</span>`);
+});
 
 socket.on('angles', (data) => {
-    if (!data.ai_predictions) return;
-    const ai = data.ai_predictions;
-    
-    // 10-Day Risk Forecast
-    const r10 = ai.risk_10d || 0;
-    let rColor = '#00e5a0';
-    if(r10 > 0.4) rColor = '#ffaa00';
-    if(r10 > 0.7) rColor = '#ff4d6d';
-    
-    document.getElementById('ai-risk-10d').innerText = r10.toFixed(3);
-    document.getElementById('ai-risk-10d').style.color = rColor;
-    document.getElementById('ai-risk-level').innerText = (ai.risk_level || 'UNKNOWN').toUpperCase();
-    document.getElementById('ai-risk-level').style.color = rColor;
-    document.getElementById('ai-risk-bar').style.width = `${r10 * 100}%`;
-    document.getElementById('ai-risk-bar').style.background = rColor;
+  if (!data.ai_predictions) return;
+  const ai = data.ai_predictions;
 
-    // SHAP Root Cause
-    let crit = ai.critical_joint;
-    if(!crit) crit = "Normal";
-    document.getElementById('ai-critical-joint').innerText = crit.replace(/_/g, ' ');
-    
-    // Isolation Forest Anomaly Score
-    const anom = ai.anomaly_score || 0;
-    let aColor = '#00e5a0';
-    if(anom > 0.5) aColor = '#ffaa00';
-    if(anom > 0.7) aColor = '#ff4d6d';
-    
-    document.getElementById('ai-anomaly-score').innerText = anom.toFixed(3);
-    document.getElementById('ai-anomaly-score').style.color = aColor;
-    document.getElementById('ai-anomaly-bar').style.width = `${anom * 100}%`;
-    document.getElementById('ai-anomaly-bar').style.background = aColor;
-    
-    // Top-5 Classification
-    if(ai.anomaly_probs) {
-        // Sort by probability descending
-        const sorted = Object.entries(ai.anomaly_probs).sort((a,b) => b[1] - a[1]);
-        
-        const html = sorted.map(([name, prob]) => {
-            const pct = (prob * 100).toFixed(1);
-            let barC = '#00e5ff';
-            if(prob > 0.4) barC = '#ffaa00';
-            if(prob > 0.7) barC = '#ff4d6d';
-            
-            return `
-              <div style="margin-bottom:8px;">
-                <div class="anomaly-row">
-                  <span style="color:#e4e8f4;">${name}</span>
-                  <span style="color:${barC};">${pct}%</span>
-                </div>
-                <div style="height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;">
-                  <div style="height:100%;width:${pct}%;background:${barC};border-radius:3px;"></div>
-                </div>
-              </div>
-            `;
-        }).join('');
-        document.getElementById('ai-anomaly-top5').innerHTML = html;
-    }
+  // ── Risk Score ──────────────────────────────────────────
+  const r10 = parseFloat(ai.risk_10d || 0);
+  let rColor = '#00e5a0';
+  if (r10 > 0.4) rColor = '#ffaa00';
+  if (r10 > 0.7) rColor = '#ff4d6d';
+
+  document.getElementById('ai-risk-10d').textContent   = r10.toFixed(3);
+  document.getElementById('ai-risk-10d').style.color   = rColor;
+  document.getElementById('ai-risk-level').textContent = (ai.risk_level || 'UNKNOWN');
+  document.getElementById('ai-risk-level').style.color = rColor;
+  document.getElementById('ai-risk-bar').style.width   = `${r10 * 100}%`;
+  document.getElementById('ai-risk-bar').style.background = rColor;
+
+  // ── Condition & Severity ────────────────────────────────
+  const cond = (ai.condition || '—').replace(/_/g,' ');
+  document.getElementById('ai-condition').textContent  = cond;
+  const sev  = (ai.severity   || '—').toUpperCase();
+  let sevColor = '#00e5a0';
+  if (sev === 'MEDIUM') sevColor = '#ffaa00';
+  if (sev === 'HIGH')   sevColor = '#ff4d6d';
+  document.getElementById('ai-severity').textContent   = `Severity: ${sev}`;
+  document.getElementById('ai-severity').style.color   = sevColor;
+
+  // ── SHAP Critical Joint ─────────────────────────────────
+  const crit = (ai.critical_joint || 'Normal').replace(/_/g,' ');
+  document.getElementById('ai-critical-joint').textContent = crit;
+
+  // ── Anomaly Score ───────────────────────────────────────
+  const anom = parseFloat(ai.anomaly_score || 0);
+  let aColor = '#00e5a0';
+  if (anom > 0.5) aColor = '#ffaa00';
+  if (anom > 0.7) aColor = '#ff4d6d';
+  document.getElementById('ai-anomaly-score').textContent = anom.toFixed(3);
+  document.getElementById('ai-anomaly-score').style.color = aColor;
+  document.getElementById('ai-anomaly-bar').style.width   = `${Math.min(anom*100,100)}%`;
+  document.getElementById('ai-anomaly-bar').style.background = aColor;
+
+  // ── Per-joint anomaly bars ──────────────────────────────
+  if (ai.anomaly_probs) {
+    const sorted = Object.entries(ai.anomaly_probs).sort((a,b) => b[1]-a[1]);
+    const html = sorted.map(([name,prob]) => {
+      const pct = (prob*100).toFixed(1);
+      let bc = '#00e5ff';
+      if (prob > 0.4) bc = '#ffaa00';
+      if (prob > 0.7) bc = '#ff4d6d';
+      return `
+        <div style="margin-bottom:7px;">
+          <div class="anom-row">
+            <span style="color:#e4e8f4;">${name}</span>
+            <span style="color:${bc};font-weight:700;">${pct}%</span>
+          </div>
+          <div class="anom-bar-wrap">
+            <div style="height:100%;width:${pct}%;background:${bc};border-radius:3px;transition:width .5s;"></div>
+          </div>
+        </div>`;
+    }).join('');
+    document.getElementById('ai-anomaly-top5').innerHTML = html;
+  }
+
+  // ── Console log ─────────────────────────────────────────
+  const condShort = (ai.condition||'—').replace(/_/g,' ').slice(0,22);
+  log(
+    `<span class="c-time">[${ts()}]</span> ` +
+    `risk=<span style="color:${rColor};font-weight:700;">${r10.toFixed(3)}</span> ` +
+    `level=<span class="c-key">${ai.risk_level||'?'}</span> ` +
+    `cond=<span class="c-val">${condShort}</span> ` +
+    `sev=<span style="color:${sevColor}">${sev}</span> ` +
+    `joint=<span class="c-warn">${crit}</span> ` +
+    `anom=<span class="c-err">${anom.toFixed(3)}</span>`
+  );
+  // Keep only last 80 lines
+  const lines = cons.innerHTML.split('<br>');
+  if (lines.length > 80) cons.innerHTML = lines.slice(-80).join('<br>');
 });
 </script>
 {% endblock %}
