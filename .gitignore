@@ -62,6 +62,16 @@ csv_data/*.csv
 
 # Sensitive Data
 msd-monitor-system-firebase-adminsdk-fbsvc-*.json
-*.pdf
-*.txt
+
+# Allow AI Models
+!models/*.txt
+!models/*.pkl
+!models/*.json
+
+# Keep logs and data ignored
+logs/
+reports/
+csv_data/
+.env
+.venv
 

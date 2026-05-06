@@ -1,5 +1,7 @@
 import threading
 import time
+import os
+import json
 import firebase_admin
 from firebase_admin import credentials, db
 
@@ -11,7 +13,24 @@ class FirebaseListener:
 
     def start(self, cred_path, database_url):
         """Initialize Firebase and start listening in a background thread."""
-        cred = credentials.Certificate(cred_path)
+        # --- Handle credentials from ENV or FILE ---
+        env_creds = os.environ.get("FIREBASE_CREDS_JSON")
+        if env_creds:
+            try:
+                # credentials.Certificate can take a dict
+                cred_dict = json.loads(env_creds)
+                cred = credentials.Certificate(cred_dict)
+                print("[OK] Firebase initialized using FIREBASE_CREDS_JSON")
+            except Exception as e:
+                print(f"[ERROR] Failed to parse FIREBASE_CREDS_JSON: {e}")
+                return
+        elif os.path.exists(cred_path):
+            cred = credentials.Certificate(cred_path)
+            print(f"[OK] Firebase initialized using {cred_path}")
+        else:
+            print(f"[ERROR] Firebase credentials not found at {cred_path} and FIREBASE_CREDS_JSON is missing.")
+            return
+
         firebase_admin.initialize_app(cred, {'databaseURL': database_url})
         self.running = True
         self.thread = threading.Thread(target=self._listen)
