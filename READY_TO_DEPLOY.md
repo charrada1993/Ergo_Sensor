@@ -33,7 +33,10 @@ Remplissez les champs de configuration avec ces valeurs :
 
 ### Étape 4 : Variables d'Environnement (CRUCIAL)
 Toujours sur la page de configuration de Render, descendez jusqu'à la section **Environment Variables** et ajoutez :
-- `PYTHON_VERSION` : `3.11.0` (C'est obligatoire car les bibliothèques WebSockets ne sont pas encore compatibles avec Python 3.14).
+1.  `PYTHON_VERSION` : `3.11.0` (C'est obligatoire car les bibliothèques WebSockets ne sont pas encore compatibles avec Python 3.14).
+2.  `FIREBASE_CREDS_JSON` : **Ouvrez votre fichier JSON Firebase** sur votre ordinateur, copiez tout son contenu (tout le texte entre `{` et `}`), et collez-le ici dans la valeur de la variable. 
+
+> 🔒 **Sécurité** : Cette méthode est beaucoup plus sûre que de mettre le fichier JSON sur GitHub, car seul vous et Render pouvez voir ces informations.
 
 ### Étape 5 : Déployer
 1. Choisissez un plan tarifaire. (Le plan *Starter* avec plus de RAM est fortement recommandé pour charger les modèles IA).
