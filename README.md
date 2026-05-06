@@ -50,15 +50,16 @@ Data is streamed from ESP32 devices → Firebase Realtime Database → Flask bac
 | Feature | Description |
 |---|---|
 | 🔴 **Real-Time Monitoring** | Live joint angle and risk data streamed via WebSocket (Socket.IO) |
+| 🦾 **38-Feature Model** | Advanced biomechanical vector including bilateral kinematics and temporal derivatives |
 | 🤖 **AI Risk Forecast** | LightGBM model predicts 10-day musculoskeletal disorder risk probability |
-| 🔍 **Anomaly Detection** | Isolation Forest + multi-class LightGBM anomaly classifiers |
-| 🧠 **SHAP Explainability** | TreeExplainer identifies which joints drive the risk prediction |
+| 🔍 **Anomaly Curves** | Granular probability tracking for 5 specific postural disorders (Neck, Shoulder, etc.) |
+| 🧠 **SHAP Explainability** | TreeExplainer identifies which joints drive the risk prediction in real-time |
 | 📐 **RULA / REBA Scoring** | Full bilateral (left/right) RULA and REBA ergonomic scoring engines |
-| 📊 **PDF Reports** | Medical-grade, auto-generated PDF reports with trend charts and AI insights |
+| 📊 **Advanced Reporting** | PDF reports with time-series anomaly probability curves and clinical insights |
 | 🔥 **Firebase Integration** | Dual ingestion: direct ESP32 HTTP POST + Firebase Realtime Database stream |
-| 📁 **CSV Logging** | Continuous session logging with per-frame joint angles and risk scores |
+| 📁 **Enriched CSV Logs** | Dataset-ready logs including all 38 features + AI predictions + RULA/REBA |
 | 🌐 **Role-Based Access** | Separate Doctor and Patient dashboards with session authentication |
-| 🌙 **Dark / Light Theme** | Glassmorphic UI with instant theme switching |
+| ☁️ **Render Cloud Ready** | Optimized for deployment on Render.com with Gunicorn and Gevent |
 
 ---
 
@@ -402,22 +403,27 @@ ESP32 can also write directly to Firebase RTDB at path `/sensor_data/<SENSOR_ID>
 
 ## 🤖 AI Models
 
-The AI engine (`ai_engine.py`) loads 3 types of models from the `models/` directory:
+The AI engine (`ai_engine.py`) uses a high-dimensional biomechanical model (38 features) to provide deep insights:
 
-### 1. LightGBM Risk Forecast (`lgbm_risk_10d.txt`)
-- **Input:** 60-frame sliding window of joint angle statistics
-- **Output:** Probability (0.0–1.0) of MSD risk exceedance over the next 10 days
+### 1. LightGBM Risk Forecast (`lgb_regressor.txt`)
+- **Input:** 60-frame sliding window of joint angle statistics (38 kinematics features).
+- **Output:** Probability (0.0–1.0) of MSD risk exceedance over the next 10 days.
 - **Risk Levels:** `SAFE` (<0.4) | `LOW` (<0.6) | `MODERATE` (<0.8) | `HIGH` (≥0.8)
 
 ### 2. Isolation Forest (`isolation_forest.pkl`)
-- **Input:** Current frame feature vector (scaled)
-- **Output:** Anomaly score (0.0–1.0). Values >0.6 indicate unusual kinematics.
+- **Input:** Scaled real-time feature vector.
+- **Output:** Global anomaly score. Values >0.6 indicate overall unusual or high-risk kinematics.
 
-### 3. Anomaly Classifiers (5× `lgbm_<name>.txt`)
-- **Input:** Same feature vector as risk model
-- **Output:** Per-class probability for 5 postural anomaly categories
-- Identified by SHAP TreeExplainer for root-cause joint analysis
+### 3. Anomaly Probability Curves (5× `lgbm_<name>.txt`)
+The system tracks 5 specific postural anomaly probabilities in real-time, displayed as **curves** in the PDF reports:
+- **Neck Hyperflexion**
+- **Shoulder Overextension**
+- **Wrist Strain/Deviation**
+- **Trunk Torsion/Flexion**
+- **Elbow Hyperextension**
 
+### SHAP Root Cause Analysis
+Integrated `shap.TreeExplainer` identifies which specific joint (e.g., *Left Shoulder Abduction*) is the primary driver of the current risk score, allowing for targeted corrective actions.
 ### Model Metadata (`model_metadata.json`)
 ```json
 {
@@ -543,17 +549,17 @@ The server binds to `0.0.0.0:5000` by default — accessible to all devices on t
 4. **Credentials**: Move all secrets to environment variables (`.env` + `python-dotenv`)
 5. **Authentication**: Replace demo credentials with a proper user database
 
-### ☁️ Cloud Deployment (Render / Heroku)
+### ☁️ Cloud Deployment (Render)
+The system is optimized for **Render.com**. Follow these critical steps:
 
-Due to the requirements of continuous WebSockets (Socket.IO) and AI model memory footprints, Serverless platforms (like Vercel or Netlify) are **not suitable**. 
+1.  **Repository**: Connect your GitHub repo to a new **Web Service**.
+2.  **Environment Variables**: 
+    - `PYTHON_VERSION`: `3.11.0` (Required for Socket.IO/Gevent compatibility).
+    - `FIREBASE_CREDS_JSON`: The full content of your Firebase service account JSON.
+3.  **Build Command**: `pip install -r requirements.txt`
+4.  **Start Command**: `gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 app:app` (or `python app.py`).
 
-We recommend deploying the application on **Render**:
-1. Connect your GitHub repository on [Render.com](https://render.com/).
-2. Create a new **Web Service**.
-3. Build Command: `pip install -r requirements.txt`
-4. Start Command: `python app.py`
-
-See `READY_TO_DEPLOY.md` for full step-by-step instructions.
+See `READY_TO_DEPLOY.md` for the full deployment walkthrough.
 
 ---
 
