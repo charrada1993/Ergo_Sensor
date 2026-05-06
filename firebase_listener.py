@@ -47,7 +47,7 @@ class FirebaseListener:
                 # New data added
                 path_parts = message.path.split('/')
                 if len(path_parts) >= 2:
-                    sensor_id = path_parts[1].upper()  # Convert to UPPERCASE to match config
+                    sensor_id = path_parts[1]  # e.g., /NECK/...
                     data = message.data
                     # The data is a dict with keys: roll, pitch, yaw, timestamp
                     roll = data.get('roll')
