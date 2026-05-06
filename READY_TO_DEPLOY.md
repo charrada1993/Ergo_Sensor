@@ -29,17 +29,14 @@ Remplissez les champs de configuration avec ces valeurs :
 - **Region** : Choisissez la région la plus proche de vous (ex: Frankfurt).
 - **Environment** : `Python 3`
 - **Build Command** : `pip install -r requirements.txt`
-- **Start Command** : `python app.py`
+- **Start Command** : `gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 app:app`
 
-> 💡 **Astuce Serveur**
-> Pour la production, on utilise généralement `gunicorn --worker-class eventlet -w 1 app:app`. Mais puisque le projet utilise la configuration standard Flask + Threading par défaut, la commande `python app.py` suffira pour faire tourner l'application et les WebSockets.
-
-### Étape 4 : Variables d'Environnement
+### Étape 4 : Variables d'Environnement (CRUCIAL)
 Toujours sur la page de configuration de Render, descendez jusqu'à la section **Environment Variables** et ajoutez :
-- `PYTHON_VERSION` : `3.10.0` (Ou la version exacte de Python que vous utilisez).
+- `PYTHON_VERSION` : `3.11.0` (C'est obligatoire car les bibliothèques WebSockets ne sont pas encore compatibles avec Python 3.14).
 
 ### Étape 5 : Déployer
-1. Choisissez un plan tarifaire. (Le plan *Free* peut fonctionner pour tester, mais pour la production avec WebSockets et IA, le plan *Starter* avec plus de RAM est fortement recommandé).
+1. Choisissez un plan tarifaire. (Le plan *Starter* avec plus de RAM est fortement recommandé pour charger les modèles IA).
 2. Cliquez sur **Create Web Service**.
 
 Render va télécharger le dépôt GitHub, installer les dépendances et lancer l'application. Une fois terminé, vous obtiendrez une URL publique (ex: `https://ergo-sensor.onrender.com`) que vous pourrez partager ou utiliser pour connecter vos capteurs ESP32 !

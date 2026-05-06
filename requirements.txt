@@ -4,4 +4,12 @@ python-socketio==5.10.0
 reportlab==4.0.7
 numpy==1.26.2
 gunicorn==21.2.0
-eventlet==0.34.3
+gevent==24.2.1
+gevent-websocket==0.10.1
+lightgbm
+pandas
+scikit-learn
+matplotlib
+joblib
+shap
+firebase-admin
