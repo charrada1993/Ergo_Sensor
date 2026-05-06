@@ -5,6 +5,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 from flask import (Flask, request, jsonify, render_template,
                    send_file, send_from_directory, abort, session, redirect, url_for)
 from flask_socketio import SocketIO
+import os
 from config import Config
 from data_processor import DataProcessor
 from socket_manager import socketio, register_socket_events
@@ -361,7 +362,7 @@ if __name__ == '__main__':
     socketio.run(
         app,
         host="0.0.0.0",
-        port=5000,
-        debug=True,
-        use_reloader=False      # Kept as you had – prevents double init
+        port=int(os.environ.get("PORT", 5000)),
+        debug=False,
+        use_reloader=False
     )
