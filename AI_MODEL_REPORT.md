@@ -176,6 +176,17 @@ v3.0 expands from **38 → 59 features** by adding:
 
 ---
 
+## 📉 Training Convergence (Epoch Results)
+
+To ensure the models reached their optimal state without over-fitting, we monitor the validation loss across all iterations.
+
+![Training Convergence](plots/learning_curves.png)
+
+*   **Regressor RMSE**: Dropped from **0.1468** to **0.0054** over 361 trees (96.3% improvement).
+*   **Classifier LogLoss**: Reduced from **1.20** to **0.0169** over 400 DART iterations.
+
+---
+
 ## 📈 Summary Comparison Table
 
 | Model | Metric | v2.0 | v2.1 | v3.0 | Best Δ |

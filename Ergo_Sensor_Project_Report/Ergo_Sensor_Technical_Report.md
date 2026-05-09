@@ -12,9 +12,10 @@ Ergo Sensor is built on a "Real-Time First" philosophy. Every technological choi
 
 The system provides:
 - Sub-50ms latency for dashboard telemetry.
-- 99.9% data persistence via hybrid CSV/Cloud logging.
+- 99.9% data persistence via hybrid CSV/Cloud/Firebase-Base64 logging.
 - Clinically verifiable RULA/REBA scores based on exact peer-reviewed lookup tables.
-- Predictive 10-day risk forecasting using Gradient Boosted Decision Trees.
+- Predictive 10-day risk forecasting using Gradient Boosted Decision Trees (v3.0).
+- Real-time 3D Digital Twin visualization for instantaneous clinical feedback.
 
 ---
 
@@ -147,9 +148,10 @@ The system uses a **LightGBM (Light Gradient Boosting Machine)** model for its s
 **Model Hyper-parameters:**
 - **Objective**: Binary (Risk / No Risk)
 - **Metric**: AUC (Area Under Curve)
-- **Boosting Type**: GBDT
-- **Num Leaves**: 31 (Balance between complexity and over-fitting)
+- **Boosting Type**: GBDT & DART (Dropout Additive Regression Trees)
+- **Num Leaves**: 127 (Richer trees for complex kinematics)
 - **Feature Window**: 60 frames (6 seconds of history)
+- **Feature Vector**: 59-dimensional (engineered for asymmetry, energy, and load)
 
 ### 6.2 Isolation Forest Anomaly Detection
 Used for unsupervised detection of "Jerky" or "Atypical" movements.
@@ -320,16 +322,15 @@ While CSV handles the local persistence, Firebase handles the **Real-Time Distri
 
 ---
 
-## 15. The AI Pipeline: Feature Engineering
+The `ai_engine.py` does not just pass raw angles to the model. It performs significant **Feature Engineering** on-the-fly, expanding the input space from 38 to **59 features**.
 
-The `ai_engine.py` does not just pass raw angles to the model. It performs significant **Feature Engineering** on-the-fly.
-
-### 15.1 Extracted Features (per joint)
-For every 6-second window, the system calculates:
-- **Mean Flexion**: The average posture.
-- **Volatility (Std Dev)**: How much the worker is shaking or adjusting.
-- **Peak (95th Percentile)**: The maximum strain reached.
-- **Velocity**: The rate of change of the angle (derived from frame differences).
+### 15.1 Extracted Features (v3.0)
+For every packet, the system calculates:
+- **Bilateral Asymmetry**: `|Right - Left|` for all major joints.
+- **Energy Proxies**: `Angular Velocity × Duration` to estimate cumulative joint fatigue.
+- **Composite Load**: Weighted sums of trunk/neck/extremity angles.
+- **Volatility (Std Dev)**: Stability index over sliding windows.
+- **Peak (95th Percentile)**: Maximum excursion reached.
 
 ### 15.2 The 10-Day Forecast
 By analyzing these features, the LightGBM model predicts the likelihood that the worker's cumulative strain will exceed safety thresholds within the next 10 days of work.

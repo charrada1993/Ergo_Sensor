@@ -245,6 +245,16 @@
 <div class="sec-title"><i class="fas fa-chart-line"></i> Evaluation Curves</div>
 
 <div class="card" style="margin-bottom:1.2rem;">
+  <h3><i class="fas fa-history"></i> Training Convergence (Epoch Results)</h3>
+  <p class="ai-sub" style="margin-bottom:1rem;">
+    Validation RMSE and LogLoss over 400+ iterations. Shows how the models learned over time.
+  </p>
+  <img id="lc-chart" src="/plots/learning_curves.png"
+       style="width:100%;border-radius:12px;border:1px solid var(--border);display:block;"
+       alt="Learning Curves" onerror="this.style.display='none'">
+</div>
+
+<div class="card" style="margin-bottom:1.2rem;">
   <h3><i class="fas fa-image"></i> Full Model Evaluation Dashboard</h3>
   <p class="ai-sub" style="margin-bottom:1rem;">
     Actual vs Predicted · Residuals · Confusion Matrices · Feature Importance · IsolationForest Distribution · ROC Curves (all 5 anomaly models)

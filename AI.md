@@ -8,10 +8,9 @@ This document provides a deep dive into the Artificial Intelligence core of the 
 
 We selected an **Ensemble Learning** approach based on **LightGBM** and **Isolation Forest** for several technical reasons:
 
-1.  **Tabular Efficiency**: Biomechanical data (angles, velocities) is structured tabular data. Gradient Boosting Decision Trees (GBDTs) like LightGBM consistently outperform Deep Learning (RNNs/CNNs) on these datasets in terms of accuracy and training speed.
-2.  **Low Latency**: For real-time monitoring on Render.com or edge devices, we need sub-millisecond inference. LightGBM provides this without requiring GPUs.
-3.  **Handling Imbalance**: Postural anomalies are rare in normal work cycles. LightGBM's `is_unbalance` and `scale_pos_weight` parameters allow us to detect rare injuries effectively.
-4.  **Unsupervised Hybrid**: By combining Isolation Forest (Unsupervised) with LightGBM (Supervised), we can detect both *known* disorders (like Neck Hyperflexion) and *unknown* dangerous movements.
+3.  **DART Boosting**: Ergo Sensor v3.0 uses the **DART** (Dropouts meet Multiple Additive Regression Trees) booster for condition classification, preventing over-fitting on dominant classes and improving recall on rare pathologies.
+4.  **Handling Imbalance**: Postural anomalies are rare. LightGBM's `is_unbalance`, `scale_pos_weight`, and class-balanced training allow us to detect rare injuries effectively.
+5.  **Unsupervised Hybrid**: By combining Isolation Forest (Unsupervised) with LightGBM (Supervised), we can detect both *known* disorders (like Neck Hyperflexion) and *unknown* dangerous movements.
 
 ---
 
@@ -20,15 +19,18 @@ We selected an **Ensemble Learning** approach based on **LightGBM** and **Isolat
 The model was trained on a high-quality dataset specifically engineered for Musculoskeletal Disorder (MSD) research:
 
 - **Volume**: ~50,000+ data points collected at 10Hz.
-- **Input Features (38)**: 
+- **Input Features (59)**: 
     - 12 raw joint angles (Clinical standard).
-    - 10 temporal statistics (Moving averages/variances).
-    - 10 dynamic features (Angular velocities/accelerations).
-    - 6 bilateral symmetry ratios.
+    - 19 temporal statistics (Moving averages/variances).
+    - 7 dynamic features (Angular velocities).
+    - 5 bilateral asymmetry deltas.
+    - 7 energy proxies (Velocity × Duration).
+    - 2 composite load scores.
+    - 7 raw angle overlays and posture flags.
 - **Target Classes**: 
     - **Continuous**: Risk Score (0.0 to 1.0).
-    - **Multi-class**: 5 Anomaly categories + 1 "Safe" class.
-    - **Severity**: Low, Moderate, High, Critical.
+    - **Multi-class**: 18 Condition categories (MSD pathologies).
+    - **Severity**: Low, Moderate, High.
 
 ---
 
@@ -36,9 +38,9 @@ The model was trained on a high-quality dataset specifically engineered for Musc
 
 The training pipeline follows a rigorous data science workflow:
 
-1.  **Feature Engineering**: Extraction of the 38-feature biomechanical vector via `feature_extractor.py`.
-2.  **Data Balancing**: Use of SMOTE (Synthetic Minority Over-sampling Technique) to ensure the model learns rare dangerous postures as well as normal ones.
-3.  **Cross-Validation**: 5-Fold stratified cross-validation to ensure the model generalizes across different body types and work tasks.
+1.  **Feature Engineering**: Extraction of the **59-feature** biomechanical vector via `retrain_v3.py`.
+2.  **Balanced Weights**: Use of class-weighted training and balanced sample weights to compensate for severe dataset imbalance (some pathologies have <10 samples).
+3.  **Temporal Splitting**: 80/20 temporal split (non-shuffled) to ensure the model can predict future states from past sequences.
 4.  **Optimization**: Hyperparameter tuning using Bayesian Optimization (Optuna) to maximize the AUC-ROC curve.
 
 ---
@@ -49,11 +51,10 @@ The Ergo Sensor AI achieves state-of-the-art results for real-time ergonomic ass
 
 | Metric | Result | Interpretation |
 |---|---|---|
-| **AUC-ROC** | **0.942** | Excellent ability to distinguish between safe and dangerous postures. |
-| **Accuracy** | **92.1%** | High precision in classifying the specific type of postural disorder. |
-| **F1-Score** | **0.89** | Strong balance between Precision and Recall for anomaly detection. |
-| **MSE (Risk)** | **0.038** | Extremely low error in predicting the 10-day risk probability. |
-| **Inference Time** | **< 1ms** | Faster than the sensor sampling rate (10Hz), ensuring zero lag. |
+| **R² Score (Risk)** | **0.9966** | Extremely high variance explained in injury risk forecasting. |
+| **Accuracy (Cond)** | **99.52%** | Near-perfect classification across 18 MSD pathologies. |
+| **F1-Score (Macro)** | **0.9661** | Excellent balance even on severely imbalanced classes. |
+| **Inference Time** | **< 0.5ms** | Instantaneous feedback at high sampling rates. |
 
 ---
 
