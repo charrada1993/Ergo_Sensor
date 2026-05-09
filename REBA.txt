@@ -1,0 +1,82 @@
+Description des mouvements corporels et calcul des angles 
+(REBA) 
+I. Mouvements anatomiques de chaque partie du corps (Groupe A) 
+1. Le Cou (Cervical) 
+Le capteur doit être placé sur le bras (entre l'épaule et le coude). 
+• Flexion / Extension : Inclinaison de la tête vers l'avant ou l'arrière. 
+o Calcul : Pitch  
+• Ajustement (Malus) : Présence d'une Torsion (Yaw) ou d'une Inclinaison latérale 
+(Roll). 
+ 2. Le Tronc (Dos)  
+Le capteur est placé sur l'avant-bras (entre le coude et le poignet). 
+• Flexion / Extension : Ramener la main vers l'épaule ou tendre le bras. 
+o Calcul : Pitch  
+• Ajustement (Malus) : Présence d'une Torsion (Yaw) ou d'une Inclinaison latérale 
+(Roll).  
+ 
+3. Les jambes  
+• Appui : Évalue si le poids est réparti sur les deux jambes ou une seule. 
+• Flexion des genoux : Mesure l'angle de flexion (squat ou fente). 
+o Calcul : Pitch d'un capteur placé sur la cuisse. 
+• Ajustement : Posture instable ou marche. 
+II.  Mouvements anatomiques de chaque partie du corps (Groupe B) 
+4. Le Bras (Épaule) 
+• Flexion / Extension : Élévation du bras vers l'avant ou vers l'arrière  
+o Calcul : Pitch  
+• Abduction : Bras écarté sur le côté du corps  
+o Calcul : Roll  
+• Épaule haussée : Haussement de l'épaule  
+5. L'Avant-bras (Coude) 
+• Flexion : Angle d'ouverture entre le bras et l'avant-bras  
+o Calcul : différence de Pitch  
+• Ajustement : Si l'avant-bras travaille en dehors de la ligne du corps  
+o Calcul : Roll  
+6. Le Poignet  
+• Flexion / Extension : Mouvement de "casser" le poignet vers le haut ou le bas 
+o Calcul : différence de Pitch  
+• Ajustement (Malus) : Présence d'une Torsion (Yaw) ou d'une Déviation latérale 
+(Roll). 
+III. Calcul des angles articulaires relatifs et attribution des scores REBA 
+Pour chaque capteur (ex: celui sur le bras), votre code doit faire ceci en boucle :  
+1. Formules de base (pour chaque capteur) 
+Avant de faire les différences, chaque capteur calcul ses propres angles : 
+Pitch (θ) = 𝑎𝑡𝑎𝑛2(𝑎𝑥, 𝑠𝑞𝑟𝑡(𝑎𝑦² +  𝑎𝑧²)) ∗  180 / 𝑃𝐼 
+Roll (ϕ) = atan2(ay, sqrt(ax² + az²)) * 180 / PI 
+Yaw (ψ) = atan2(my_compense, mx_compense) * 180 / PI (nécessite la compensation 
+d'inclinaison vue plus haut). 
+NB : Pour obtenir my_compense et mx_compense, on applique ces calculs aux données 
+brutes du magnétomètre (mx,my,mz) : 
+𝒎𝒙_𝒄𝒐𝒎𝒑𝒆𝒏𝒔𝒆 = 𝒎𝒙𝒄𝒐𝒔(𝜽) + 𝒎𝒚𝒔𝒊𝒏(ϕ) + 𝒎𝒛𝒄𝒐𝒔(ϕ)𝒔𝒊𝒏(𝜽) 
+𝒎𝒚_𝒄𝒐𝒎𝒑𝒆𝒏𝒔𝒆 = 𝒎𝒚𝒄𝒐𝒔(𝝓) − 𝒎𝒚𝒔𝒊𝒏(ϕ) 
+ 2. Calculs spécifiques par zone REBA 
+A. Le cou (Cervical) 
+On mesure la position de la tête par rapport au buste : 
+• Flexion (Pitch): ∆ 𝜽𝒄𝒐𝒖 = 𝜽𝒕𝒆𝒕𝒆 − 𝜽𝒕𝒓𝒐𝒏𝒄 
+• Inclinaison (Roll): ∆ 𝝓𝒄𝒐𝒖 = 𝝓𝒕𝒆𝒕𝒆 − 𝝓𝒕𝒓𝒐𝒏𝒄 
+• Torsion (Yaw): ∆ ψ𝒄𝒐𝒖 = ψ𝒕𝒆𝒕𝒆 − ψ𝒕𝒓𝒐𝒏𝒄 
+B. Le Dos (Tronc/Lombaire) 
+On mesure l'inclinaison du buste par rapport à la verticale (référence si debout droit).  
+• Flexion (Pitch):  𝜽𝒕𝒓𝒐𝒏𝒄 
+• Inclinaison (Roll): 𝝓𝒕𝒓𝒐𝒏𝒄 
+• Torsion (Yaw): ψ𝒕𝒓𝒐𝒏𝒄 
+C.  Les jambes (Flexion des genoux) 
+Pour REBA, on place un capteur sur la cuisse pour mesurer l'angle de flexion du 
+genou par rapport à la verticale 
+• Flexion (pitch): θ𝒄𝒖𝒊𝒔𝒔𝒆 
+ 
+D.  L'Épaule (Bras) 
+On mesure l'élévation du bras par rapport au buste : 
+• Flexion (Pitch) :  ∆𝜽𝒃𝒓𝒂𝒔 = 𝜽𝒃𝒓𝒂𝒔 − 𝜽𝒕𝒓𝒐𝒏𝒄 
+• Abduction (Roll) : ∆𝝓𝒃𝒓𝒂𝒔 = 𝝓𝒃𝒓𝒂𝒔 − 𝝓𝒕𝒓𝒐𝒏𝒄 
+E.  Le Coude (Avant-bras) 
+REBA demande l'angle interne formé entre le bras et l'avant-bras: 
+• Angle de flexion (Pitch): 𝛼𝑐𝑜𝑢𝑑𝑒 = |𝜽𝒂𝒗𝒂𝒏𝒕_𝒃𝒓𝒂𝒔 − 𝜽𝒃𝒓𝒂𝒔| 
+• Déviation latérale (Roll): ∆𝝓𝑐𝑜𝑢𝑑𝑒 = |𝝓𝒂𝒗𝒂𝒏𝒕_𝒃𝒓𝒂𝒔 − 𝝓𝒃𝒓𝒂𝒔| 
+Nb : Ce Roll permet de savoir si l'avant-bras travaille "en dehors" de l'axe du corps. 
+ 
+F. Le Poignet (Main) 
+On mesure la position de la main par rapport à l'avant-bras: 
+• Flexion/Extension (Pitch) : ∆ 𝜽𝒑𝒐𝒊𝒈𝒏𝒆𝒕 = 𝜽𝒎𝒂𝒊𝒏 − 𝜽𝒂𝒗𝒂𝒏𝒕_𝒃𝒓𝒂𝒔 
+• Déviation Radiale (Roll) : ∆ 𝝓𝒑𝒐𝒊𝒈𝒏𝒆𝒕 = 𝝓𝒎𝒂𝒊𝒏 − 𝝓𝒂𝒗𝒂𝒏𝒕_𝒃𝒓𝒂𝒔 
+• Pronosupination (Yaw) : ∆ ψ𝒑𝒐𝒊𝒈𝒏𝒆𝒕 = ψ𝒎𝒂𝒊𝒏 − ψ𝒂𝒗𝒂𝒏𝒕_𝒃𝒓𝒂𝒔 
+ 

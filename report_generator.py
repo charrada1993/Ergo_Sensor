@@ -284,6 +284,8 @@ class ReportGenerator:
         reba_l_w = deque(maxlen=60)
         reba_r_w = deque(maxlen=60)
 
+        condition_list, severity_list, risk_level_list = [], [], []
+
         for _, row in df.iterrows():
             angle_w.append({c: row[c] for c in df.columns if 'deg' in c or 'Pitch' in c or 'Roll' in c or 'Yaw' in c})
             
@@ -307,23 +309,35 @@ class ReportGenerator:
                     anomaly_score_list.append(round(float(result.get('anomaly_score', 0.0)), 4))
                     joint_list.append(result.get('critical_joint') or '')
                     anomaly_probs_list.append(result.get('anomaly_probs', {}))
+                    condition_list.append(result.get('condition', 'unknown'))
+                    severity_list.append(result.get('severity', 'low'))
+                    risk_level_list.append(result.get('risk_level', 'SAFE'))
                 except Exception as e:
                     print(f'[AI] prediction error: {e}')
                     risk_10d_list.append(np.nan)
                     anomaly_score_list.append(np.nan)
                     joint_list.append('')
                     anomaly_probs_list.append({})
+                    condition_list.append('unknown')
+                    severity_list.append('low')
+                    risk_level_list.append('SAFE')
             else:
                 risk_10d_list.append(np.nan)
                 anomaly_score_list.append(np.nan)
                 joint_list.append('')
                 anomaly_probs_list.append({})
+                condition_list.append('unknown')
+                severity_list.append('low')
+                risk_level_list.append('SAFE')
 
         return pd.DataFrame({
             'AI_Risk_10d': risk_10d_list,
             'AI_Anomaly_Score': anomaly_score_list,
             'AI_Critical_Joint': joint_list,
-            'AI_Anomaly_Probs': anomaly_probs_list
+            'AI_Anomaly_Probs': anomaly_probs_list,
+            'AI_Condition': condition_list,
+            'AI_Severity': severity_list,
+            'AI_Risk_Level': risk_level_list
         }, index=df.index)
 
     def _compute_statistics(self, df, ai_df):
@@ -378,6 +392,19 @@ class ReportGenerator:
             joints = ai_df['AI_Critical_Joint'].replace('', np.nan).dropna()
             if not joints.empty:
                 stats['ai_critical_joint'] = Counter(joints).most_common(5)
+                
+            # Aggregate condition, severity, risk level
+            conditions = ai_df['AI_Condition'].replace('unknown', np.nan).dropna()
+            if not conditions.empty:
+                stats['ai_condition'] = Counter(conditions).most_common(1)[0][0]
+                
+            severities = ai_df['AI_Severity'].replace('low', np.nan).dropna()
+            if not severities.empty:
+                stats['ai_severity'] = Counter(severities).most_common(1)[0][0]
+                
+            risk_levels = ai_df['AI_Risk_Level'].replace('SAFE', np.nan).dropna()
+            if not risk_levels.empty:
+                stats['ai_risk_level'] = Counter(risk_levels).most_common(1)[0][0]
                 
             # Aggregate anomaly probabilities
             top_anomalies = Counter()
@@ -535,6 +562,12 @@ class ReportGenerator:
             rows.append(('AI 10-day Risk Forecast — Mean', f"{p['mean']:.3f}", _rula_colour(p['mean'] * 10)))
             rows.append(('AI 10-day Risk Forecast — Peak', f"{p['max']:.3f}", _rula_colour(p['max'] * 10)))
             rows.append(('AI High-Risk Duration', f"{p['time_high']:.0f} s", C_ACCENT if p['time_high'] > 0 else C_OK))
+        if 'ai_condition' in stats and stats['ai_condition'] != 'normal':
+            rows.append(('AI Predicted Condition', str(stats['ai_condition']).replace('_', ' ').title(), C_WARN))
+        if 'ai_severity' in stats and stats['ai_severity'] != 'low':
+            sev = stats['ai_severity']
+            col = C_ACCENT if sev == 'high' else C_WARN
+            rows.append(('AI Predicted Severity', str(sev).upper(), col))
         if 'ai_anomaly' in stats:
             a = stats['ai_anomaly']
             rows.append(('AI Anomaly Score — Peak', f"{a['max']:.3f}", _rula_colour(a['max'] * 10)))
@@ -668,14 +701,20 @@ class ReportGenerator:
         if 'ai_risk_10d' in stats:
             p = stats['ai_risk_10d']
             a = stats.get('ai_anomaly', {})
-            story.append(Paragraph('<b>AI Risk & Anomaly Overview</b>', S['bold']))
+            story.append(Paragraph('<b>AI Risk, Condition & Anomaly Overview</b>', S['bold']))
             story.append(Spacer(1, 0.15 * cm))
 
-            rows = [['Metric', '10-day Risk (LightGBM)', 'Anomaly (IsoForest)']]
+            rows = [['Metric', '10-day Risk', 'Anomaly (IsoForest)']]
             rows.append(['Mean Score', f"{p['mean']:.3f}", f"{a.get('mean', 0.0):.3f}"])
             rows.append(['Peak Score', f"{p['max']:.3f}", f"{a.get('max', 0.0):.3f}"])
-            rows.append(['95th Percentile', f"{p['p95']:.3f}", f"{a.get('p95', 0.0):.3f}"])
-            rows.append(['Alert Duration', f"{p['time_high']:.0f} s", f"{a.get('time_high', 0.0):.0f} s"])
+            
+            if 'ai_condition' in stats:
+                rows.append(['Predicted Condition', str(stats['ai_condition']).replace('_', ' ').title(), ''])
+            if 'ai_severity' in stats:
+                rows.append(['Severity', str(stats['ai_severity']).upper(), ''])
+            if 'ai_risk_level' in stats:
+                rows.append(['Overall Risk Level', str(stats['ai_risk_level']).upper(), ''])
+
             t = _styled_table(rows, [4 * cm, 5 * cm, 5 * cm])
             story.append(t)
             story.append(Spacer(1, 0.3 * cm))
@@ -782,33 +821,6 @@ class ReportGenerator:
                 story.append(_fig_to_image(fig, height=6 * cm))
                 story.append(Spacer(1, 0.3 * cm))
 
-        # 1.5. Anomaly Probabilities
-        prob_cols = [
-            'Prob_Neck_Hyperflexion', 'Prob_Shoulder_Overextension', 
-            'Prob_Wrist_Strain', 'Prob_Trunk_Torsion', 'Prob_Elbow_Hyperextension'
-        ]
-        available_probs = [c for c in prob_cols if c in df.columns and df[c].notna().any()]
-        if available_probs and 'Timestamp' in df.columns:
-            fig, ax = plt.subplots(figsize=(9, 3.5))
-            colors = ['#1A3A5C', '#E84545', '#2980B9', '#0D7377', '#8E44AD']
-            
-            for col, color in zip(available_probs, colors):
-                label = col.replace('Prob_', '').replace('_', ' ')
-                ax.plot(df['Timestamp'], df[col], lw=1.2, color=color, label=label)
-            
-            ax.axhline(0.5, color='#FFAA00', ls='--', lw=1, alpha=0.5, label='Warning (0.5)')
-            ax.axhline(0.7, color='#E84545', ls=':', lw=1, alpha=0.5, label='Danger (0.7)')
-            
-            ax.set_title('Specific Joint Anomaly Probabilities')
-            ax.set_xlabel('Time')
-            ax.set_ylabel('Probability (0.0 to 1.0)')
-            ax.set_ylim(0, 1.05)
-            ax.legend(fontsize=7, loc='upper left', ncol=3)
-            _style_ax(ax)
-            fig.tight_layout()
-            story.append(Paragraph('<b>Anomaly Probabilities Over Time</b>', S['bold']))
-            story.append(_fig_to_image(fig, height=6 * cm))
-            story.append(Spacer(1, 0.3 * cm))
 
         # 2. Joint Angles
         available_joints = [name for name, c in self.JOINT_COLS.items() if c in df.columns]
@@ -937,6 +949,12 @@ class ReportGenerator:
                          f"LightGBM model forecasts elevated 10-day risk (average score "
                          f"{stats['ai_risk_10d']['mean']:.2f}). "
                          'Frequent posture corrections and mandatory micro-breaks every 20 minutes.'))
+        if 'ai_condition' in stats and stats['ai_condition'] != 'normal':
+            condition_str = str(stats['ai_condition']).replace('_', ' ').title()
+            severity_str = str(stats.get('ai_severity', 'low')).upper()
+            recs.append(('AI MEDICAL',
+                         f"AI model predicted a {severity_str} severity condition: {condition_str}. "
+                         'Recommend immediate medical review or ergonomic intervention.'))
         if 'ai_anomaly' in stats and stats['ai_anomaly']['max'] >= 0.7:
             recs.append(('AI ALERT',
                          f"Isolation Forest identified critical postural anomalies. "
@@ -953,6 +971,7 @@ class ReportGenerator:
         rows = [['Priority', 'Recommendation']]
         color_map = {
             'AI ALERT': C_ACCENT,
+            'AI MEDICAL': C_ACCENT,
             'RULA': C_WARN, 'REBA': C_WARN,
             'JOINT FOCUS': C_TEAL,
         }

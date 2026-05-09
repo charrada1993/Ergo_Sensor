@@ -1,8 +1,8 @@
 {
-  "version": "2.0",
-  "created": "2026-05-05T23:09:28.411556",
+  "version": "3.0",
+  "created": "2026-05-08T22:55:51.349454",
   "n_samples": 20000,
-  "n_features": 38,
+  "n_features": 59,
   "feature_cols": [
     "neck",
     "trunk",
@@ -41,7 +41,28 @@
     "elbow_freq",
     "wrist_freq",
     "hip_freq",
-    "knee_freq"
+    "knee_freq",
+    "asym_shoulder",
+    "asym_elbow",
+    "asym_wrist",
+    "asym_hip",
+    "asym_knee",
+    "upper_load",
+    "lower_load",
+    "neck_hflex",
+    "trunk_hflex",
+    "shoulder_hext",
+    "raw_neck",
+    "raw_trunk",
+    "raw_r_shoulder",
+    "raw_l_shoulder",
+    "neck_energy",
+    "trunk_energy",
+    "shoulder_energy",
+    "elbow_energy",
+    "wrist_energy",
+    "hip_energy",
+    "knee_energy"
   ],
   "if_features": [
     "neck",
@@ -81,7 +102,28 @@
     "elbow_freq",
     "wrist_freq",
     "hip_freq",
-    "knee_freq"
+    "knee_freq",
+    "asym_shoulder",
+    "asym_elbow",
+    "asym_wrist",
+    "asym_hip",
+    "asym_knee",
+    "upper_load",
+    "lower_load",
+    "neck_hflex",
+    "trunk_hflex",
+    "shoulder_hext",
+    "raw_neck",
+    "raw_trunk",
+    "raw_r_shoulder",
+    "raw_l_shoulder",
+    "neck_energy",
+    "trunk_energy",
+    "shoulder_energy",
+    "elbow_energy",
+    "wrist_energy",
+    "hip_energy",
+    "knee_energy"
   ],
   "seq_len": 60,
   "condition_to_code": {
@@ -147,19 +189,19 @@
   ],
   "metrics": {
     "LightGBM_Regression": {
-      "mae": 0.008631918610548845,
-      "rmse": 0.012204104207434337,
-      "r2": 0.9954900668761701
+      "mae": 0.007506,
+      "rmse": 0.010656,
+      "r2": 0.996561
     },
     "LightGBM_Classifier": {
-      "accuracy": 0.99475,
-      "precision": 0.9392115821637204,
-      "recall": 0.9018537121598295,
-      "f1": 0.9153929747858567
+      "accuracy": 0.99525,
+      "precision": 0.994811,
+      "recall": 0.95048,
+      "f1": 0.966149
     },
     "LightGBM_Severity": {
-      "accuracy": 0.96225,
-      "f1": 0.9121523711303668
+      "accuracy": 0.9805,
+      "f1": 0.959816
     },
     "IsolationForest": {
       "trained": 1.0

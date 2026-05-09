@@ -1,0 +1,77 @@
+Description des mouvements corporels et calcul des angles 
+I. Mouvements anatomiques de chaque partie du corps 
+1. Le Cou (Région cervicale) 
+Le score RULA évalue l'inclinaison de la tête par rapport au buste. 
+• Flexion / Extension : Pencher la tête en avant ou en arrière. 
+o Calcul : Pitch  
+• Inclinaison latérale : Pencher la tête vers l'épaule. 
+o Calcul : Roll  
+• Rotation (Torsion) : Tourner la tête à gauche ou à droite. 
+o Calcul : Yaw  
+2. Le Dos (Région lombaire / Tronc) 
+RULA mesure ici la posture du buste par rapport au bassin. 
+• Flexion / Extension : Se pencher en avant ou se cambrer en arrière. 
+o Calcul : Pitch  
+• Inclinaison latérale : Se pencher sur les côtés. 
+o Calcul : Roll  
+• Torsion : Pivoter le buste sans bouger les pieds. 
+o Calcul : Yaw  
+3. L'Épaule (Bras) 
+Le capteur doit être placé sur le bras (entre l'épaule et le coude). 
+• Flexion / Extension : Lever le bras devant soi ou le mettre en arrière. 
+o Calcul : Pitch  
+• Abduction / Adduction : Écarter le bras du corps sur le côté. 
+o Calcul : Roll  
+4. Le Coude (Avant-bras) 
+Le capteur est placé sur l'avant-bras (entre le coude et le poignet). 
+• Flexion / Extension : Ramener la main vers l'épaule ou tendre le bras. 
+o Calcul : Différence entre le Pitch du bras et celui de l'avant-bras. 
+5. Le Poignet 
+C'est la partie la plus détaillée dans RULA. 
+• Flexion / Extension : Casser le poignet vers le haut ou le bas. 
+o Calcul : Différence entre le Pitch de l'avant-bras et celui de la main. 
+• Déviation latérale : Déplacement vers le pouce (radiale) ou l'auriculaire (cubitale). 
+o Calcul : Roll  
+• Pronosupination (Torsion) : Tourner la paume de la main vers le ciel ou le sol. 
+o Calcul : Yaw  
+II. Calcul des angles articulaires relatifs et attribution des scores RULA 
+Pour chaque capteur (ex: celui sur le bras), votre code doit faire ceci en boucle : 
+  
+1. Formules de base (pour chaque capteur) 
+Avant de faire les différences, chaque capteur calcul ses propres angles : 
+Pitch (θ) = atan2(ax, sqrt(ay² + az²)) * 180 / PI 
+Roll (ϕ) = atan2(ay, sqrt(ax² + az²)) * 180 / PI 
+Yaw (ψ) = atan2(my_compense, mx_compense) * 180 / PI (nécessite la compensation 
+d'inclinaison vue plus haut). 
+NB : Pour obtenir my_compense et mx_compense, on applique ces calculs aux données 
+brutes du magnétomètre (mx,my,mz) : 
+𝒎𝒙_𝒄𝒐𝒎𝒑𝒆𝒏𝒔𝒆 = 𝒎𝒙𝒄𝒐𝒔(𝜽) + 𝒎𝒚𝒔𝒊𝒏(ϕ) + 𝒎𝒛𝒄𝒐𝒔(ϕ)𝒔𝒊𝒏(𝜽) 
+𝒎𝒚_𝒄𝒐𝒎𝒑𝒆𝒏𝒔𝒆 = 𝒎𝒚𝒄𝒐𝒔(𝝓) − 𝒎𝒚𝒔𝒊𝒏(ϕ) 
+ 2. Calculs spécifiques par zone RULA 
+A. Le cou (Cervical) 
+Il faut la différence entre le capteur Tête et le capteur Tronc : 
+• Flexion (Pitch): ∆ 𝜽𝒄𝒐𝒖 = 𝜽𝒕𝒆𝒕𝒆 − 𝜽𝒕𝒓𝒐𝒏𝒄 
+• Inclinaison (Roll): ∆ 𝝓𝒄𝒐𝒖 = 𝝓𝒕𝒆𝒕𝒆 − 𝝓𝒕𝒓𝒐𝒏𝒄 
+• Torsion (Yaw): ∆ ψ𝒄𝒐𝒖 = ψ𝒕𝒆𝒕𝒆 − ψ𝒕𝒓𝒐𝒏𝒄 
+B. Le Dos (Tronc/Lombaire) 
+Si le bassin est fixe (assis), on prend la valeur brute du capteur Tronc : 
+• Flexion (Pitch):  𝜽𝒕𝒓𝒐𝒏𝒄 
+• Inclinaison (Roll): 𝝓𝒕𝒓𝒐𝒏𝒄 
+• Torsion (Yaw): ψ𝒕𝒓𝒐𝒏𝒄 
+C.  L'Épaule (Bras) 
+On mesure la position du bras par rapport à la verticale (gravité) corrigée par 
+l'inclinaison du buste : 
+• Flexion (Pitch) :  𝜽𝒃𝒓𝒂𝒔 − 𝜽𝒕𝒓𝒐𝒏𝒄 
+• Abduction (Roll) : 𝝓𝒃𝒓𝒂𝒔 − 𝝓𝒕𝒓𝒐𝒏𝒄 
+
+D.  Le Coude (Avant-bras) 
+RULA demande l'angle d'ouverture du coude : 
+• Ouverture (Angle relatif): 𝛼𝑐𝑜𝑢𝑑𝑒 = |𝜽𝒂𝒗𝒂𝒏𝒕_𝒃𝒓𝒂𝒔 − 𝜽𝒃𝒓𝒂𝒔| 
+Nb : Si le bras est à 0° et l'avant-bras à90° , l'angle du coude est de 90°. 
+ 
+E. Le Poignet (Main) 
+On compare le capteur Main au capteur Avant-bras : 
+• Flexion/Extension (Pitch) : ∆ 𝜽𝒑𝒐𝒊𝒈𝒏𝒆𝒕 = 𝜽𝒎𝒂𝒊𝒏 − 𝜽𝒂𝒗𝒂𝒏𝒕_𝒃𝒓𝒂𝒔 
+• Déviation Radiale (Roll) : ∆ 𝝓𝒑𝒐𝒊𝒈𝒏𝒆𝒕 = 𝝓𝒎𝒂𝒊𝒏 − 𝝓𝒂𝒗𝒂𝒏𝒕_𝒃𝒓𝒂𝒔 
+• Pronosupination (Yaw) : ∆ ψ𝒑𝒐𝒊𝒈𝒏𝒆𝒕 = ψ𝒎𝒂𝒊𝒏 − ψ𝒂𝒗𝒂𝒏𝒕_𝒃𝒓𝒂𝒔 
+ 

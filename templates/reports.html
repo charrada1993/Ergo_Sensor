@@ -1,11 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Reports{% endblock %}
 {% block content %}
-<h1>Generated Reports</h1>
-<ul id="reports-list">
-    <!-- populated by JS -->
-</ul>
-<button onclick="generateReport()">Generate New Report</button>
+<h1><i class="fas fa-file-pdf"></i> Generated Reports</h1>
+
+<div class="card" style="margin-bottom: 20px;">
+    <div class="controls" style="margin-bottom: 20px;">
+        <button onclick="generateReport()"><i class="fas fa-plus"></i> Generate New Report</button>
+    </div>
+    <ul id="reports-list">
+        <!-- populated by JS -->
+    </ul>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -28,7 +33,14 @@ async function fetchReportsList() {
 
 function generateReport() {
     fetch('/api/report/generate', { method: 'POST' })
-        .then(response => response.blob())
+        .then(async response => {
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({error: 'Failed to generate report'}));
+                alert(err.error || 'Failed to generate report');
+                throw new Error('API Error');
+            }
+            return response.blob();
+        })
         .then(blob => {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -37,7 +49,8 @@ function generateReport() {
             a.click();
             // Refresh list after a delay
             setTimeout(fetchReportsList, 2000);
-        });
+        })
+        .catch(error => console.error('Error generating report:', error));
 }
 
 fetchReportsList();
