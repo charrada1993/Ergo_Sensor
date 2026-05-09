@@ -5,7 +5,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 from flask import (Flask, request, jsonify, render_template,
                    send_file, send_from_directory, abort, session, redirect, url_for)
 from flask_socketio import SocketIO
-import os
 from config import Config
 from data_processor import DataProcessor
 from socket_manager import socketio, register_socket_events
@@ -15,6 +14,8 @@ from ai_engine import AIModels
 import time
 import csv
 import socket
+import base64
+import io
 from functools import wraps
 
 # ===============================
@@ -252,9 +253,27 @@ def get_sensors_status():
 # CSV & REPORTS
 # ===============================
 
+def get_firebase_db_files(path):
+    try:
+        from firebase_admin import db
+        ref = db.reference(path)
+        data = ref.get()
+        if data:
+            files = [v['filename'] for v in data.values() if 'filename' in v]
+            files.sort(reverse=True)
+            return files
+    except Exception as e:
+        print(f"Error accessing Firebase RTDB: {e}")
+    return None
+
 @app.route('/api/csv/list', methods=['GET'])
 @login_required(role='doctor')
 def list_csv():
+    files = get_firebase_db_files('/files/csv')
+    if files is not None:
+        return jsonify(files)
+    
+    # Fallback to local
     files = [f for f in os.listdir(Config.CSV_DIR) if f.endswith('.csv')]
     files.sort(reverse=True)
     return jsonify(files)
@@ -267,12 +286,22 @@ def delete_csv(filename):
         abort(400)
 
     current_log = data_processor.get_current_log_filename()
-
     if current_log and filename == current_log:
         return jsonify({'error': 'Cannot delete active log file'}), 403
 
-    filepath = os.path.join(Config.CSV_DIR, filename)
+    # Delete from Firebase
+    deleted_from_firebase = False
+    try:
+        from firebase_admin import db
+        file_key = filename.replace('.', '_')
+        ref = db.reference(f'/files/csv/{file_key}')
+        if ref.get():
+            ref.delete()
+            deleted_from_firebase = True
+    except Exception:
+        pass
 
+    filepath = os.path.join(Config.CSV_DIR, filename)
     if os.path.exists(filepath):
         try:
             os.remove(filepath)
@@ -280,15 +309,20 @@ def delete_csv(filename):
         except PermissionError:
             return jsonify({'error': 'File in use'}), 409
 
+    if deleted_from_firebase:
+        return jsonify({'status': 'ok'}), 200
     abort(404)
 
 
 @app.route('/api/csv/latest', methods=['GET'])
 @login_required(role='doctor')
 def get_latest_csv():
+    files = get_firebase_db_files('/files/csv')
+    if files:
+        return download_csv(files[0])
+
     files = [f for f in os.listdir(Config.CSV_DIR) if f.endswith('.csv')]
     files.sort(reverse=True)
-
     if not files:
         return jsonify({'error': 'No CSV files'}), 404
 
@@ -298,12 +332,27 @@ def get_latest_csv():
 @app.route('/api/csv/download/<filename>', methods=['GET'])
 @login_required(role='doctor')
 def download_csv(filename):
+    try:
+        from firebase_admin import db
+        file_key = filename.replace('.', '_')
+        ref = db.reference(f'/files/csv/{file_key}')
+        data = ref.get()
+        if data and 'data' in data:
+            file_bytes = base64.b64decode(data['data'])
+            return send_file(io.BytesIO(file_bytes), download_name=filename, as_attachment=True)
+    except Exception as e:
+        print(f"Error fetching from RTDB: {e}")
+
     return send_from_directory(Config.CSV_DIR, filename, as_attachment=True)
 
 
 @app.route('/api/reports/list', methods=['GET'])
 @login_required(role='doctor')
 def list_reports():
+    files = get_firebase_db_files('/files/reports')
+    if files is not None:
+        return jsonify(files)
+
     files = [f for f in os.listdir(Config.REPORTS_DIR) if f.endswith('.pdf')]
     files.sort(reverse=True)
     return jsonify(files)
@@ -312,19 +361,48 @@ def list_reports():
 @app.route('/api/reports/download/<filename>', methods=['GET'])
 @login_required(role='doctor')
 def download_report(filename):
+    try:
+        from firebase_admin import db
+        file_key = filename.replace('.', '_')
+        ref = db.reference(f'/files/reports/{file_key}')
+        data = ref.get()
+        if data and 'data' in data:
+            file_bytes = base64.b64decode(data['data'])
+            return send_file(io.BytesIO(file_bytes), download_name=filename, as_attachment=True)
+    except Exception as e:
+        print(f"Error fetching from RTDB: {e}")
+
     return send_from_directory(Config.REPORTS_DIR, filename, as_attachment=True)
 
 
 @app.route('/api/report/generate', methods=['POST'])
 @login_required(role='doctor')
 def generate_report():
-    files = [f for f in os.listdir(Config.CSV_DIR) if f.endswith('.csv')]
-    files.sort(reverse=True)
+    csv_file = None
+    files = get_firebase_db_files('/files/csv')
+    
+    if files:
+        try:
+            from firebase_admin import db
+            file_key = files[0].replace('.', '_')
+            ref = db.reference(f'/files/csv/{file_key}')
+            data = ref.get()
+            if data and 'data' in data:
+                file_bytes = base64.b64decode(data['data'])
+                csv_file = os.path.join(Config.CSV_DIR, files[0])
+                with open(csv_file, 'wb') as f:
+                    f.write(file_bytes)
+        except Exception as e:
+            print(f"Error fetching CSV for report from RTDB: {e}")
+    
+    if not csv_file or not os.path.exists(csv_file):
+        local_files = [f for f in os.listdir(Config.CSV_DIR) if f.endswith('.csv')]
+        local_files.sort(reverse=True)
+        if not local_files:
+            return jsonify({'error': 'No data available'}), 404
+        csv_file = os.path.join(Config.CSV_DIR, local_files[0])
 
-    if not files:
-        return jsonify({'error': 'No data available'}), 404
-
-    pdf_file = report_gen.generate(os.path.join(Config.CSV_DIR, files[0]))
+    pdf_file = report_gen.generate(csv_file)
     return send_file(pdf_file, as_attachment=True)
 
 # ===============================

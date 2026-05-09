@@ -1,5 +1,8 @@
 import csv
 import os
+import threading
+import time
+import base64
 from datetime import datetime
 
 
@@ -9,7 +12,12 @@ class CSVLogger:
         self.filename = None
         self.file     = None
         self.writer   = None
+        self.running  = True
         self._open_file()
+
+        # Start periodic upload thread
+        self.upload_thread = threading.Thread(target=self._upload_periodically, daemon=True)
+        self.upload_thread.start()
 
     def _open_file(self):
         os.makedirs(self.config.CSV_DIR, exist_ok=True)
@@ -188,6 +196,32 @@ class CSVLogger:
 
         self.writer.writerow(header)
         self.file.flush()
+
+    def _upload_periodically(self):
+        """Upload to Firebase RTDB as Base64 every 60 seconds to prevent data loss on ephemeral filesystems."""
+        while self.running:
+            for _ in range(60):
+                if not self.running: return
+                time.sleep(1)
+            
+            if self.filename and os.path.exists(self.filename):
+                try:
+                    from firebase_admin import db
+                    with open(self.filename, 'rb') as f:
+                        file_data = f.read()
+                    
+                    if file_data:
+                        b64_string = base64.b64encode(file_data).decode('utf-8')
+                        file_key = os.path.basename(self.filename).replace('.', '_')
+                        ref = db.reference(f'/files/csv/{file_key}')
+                        ref.set({
+                            'filename': os.path.basename(self.filename),
+                            'data': b64_string,
+                            'timestamp': time.time()
+                        })
+                        print(f"[CSVLogger] Uploaded {os.path.basename(self.filename)} to Firebase RTDB")
+                except Exception as e:
+                    print(f"[CSVLogger] Warning: Could not upload to Firebase RTDB: {e}")
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -412,5 +446,6 @@ class CSVLogger:
         self.file.flush()
 
     def close(self):
+        self.running = False
         if self.file:
             self.file.close()

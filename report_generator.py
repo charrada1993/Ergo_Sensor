@@ -8,6 +8,7 @@ Uses ReportLab Platypus (flowable layout).
 import os
 import io
 import warnings
+import base64
 from datetime import datetime
 from collections import Counter
 
@@ -457,7 +458,27 @@ class ReportGenerator:
                   onFirstPage=_on_first_page,
                   onLaterPages=_on_later_pages)
 
-        print(f'[ReportGen] PDF saved -> {pdf_path}')
+        print(f'[ReportGen] PDF saved locally -> {pdf_path}')
+        
+        # Upload to Firebase RTDB as Base64
+        try:
+            from firebase_admin import db
+            with open(pdf_path, 'rb') as f:
+                pdf_data = f.read()
+            if pdf_data:
+                b64_string = base64.b64encode(pdf_data).decode('utf-8')
+                file_key = os.path.basename(pdf_path).replace('.', '_')
+                ref = db.reference(f'/files/reports/{file_key}')
+                import time
+                ref.set({
+                    'filename': os.path.basename(pdf_path),
+                    'data': b64_string,
+                    'timestamp': time.time()
+                })
+                print(f'[ReportGen] PDF uploaded to Firebase RTDB -> files/reports/{file_key}')
+        except Exception as e:
+            print(f'[ReportGen] Warning: Could not upload PDF to Firebase RTDB: {e}')
+
         return pdf_path
 
     # =========================================================================
