@@ -26,7 +26,7 @@ function initCharts() {
             type: 'line',
             data: { labels: [], datasets: [{ label: 'Left RULA', data: [], borderColor: '#2980B9', backgroundColor: 'rgba(41,128,185,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 1.5 }] },
             options: {
-                responsive: false,
+                responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
                 scales: { y: { min: 1, max: 7, ticks: { stepSize: 1 } }, x: { ticks: { display: false } } },

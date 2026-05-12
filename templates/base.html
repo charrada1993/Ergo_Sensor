@@ -48,9 +48,72 @@
                 <i class="fas fa-moon"></i>
             </button>
         </nav>
+
+        <!-- Mobile Header (Visible only on mobile) -->
+        <div class="mobile-header" style="display: none;">
+            <div class="nav-brand" style="font-size: 1.4rem;">
+                <i class="fas fa-heartbeat"></i> Ergo Sensor
+            </div>
+            <button id="theme-toggle-mobile" class="theme-toggle" style="margin-left: auto;">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+
+        <style>
+            @media (max-width: 768px) {
+                .mobile-header {
+                    display: flex !important;
+                    align-items: center;
+                    padding: 15px 20px;
+                    background: rgba(18, 20, 35, 0.4);
+                    backdrop-filter: blur(10px);
+                    margin-bottom: 20px;
+                    border-radius: 15px;
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                }
+            }
+        </style>
+
         <main>
             {% block content %}{% endblock %}
         </main>
+
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-nav">
+            <a href="{{ url_for('index') }}" class="mobile-nav-item {% if request.path == '/' %}active{% endif %}">
+                <i class="fas fa-chart-line"></i>
+                <span>Dash</span>
+            </a>
+            <a href="{{ url_for('system') }}" class="mobile-nav-item {% if request.path == '/system' %}active{% endif %}">
+                <i class="fas fa-microchip"></i>
+                <span>Map</span>
+            </a>
+            <a href="{{ url_for('sensors_page') }}" class="mobile-nav-item {% if request.path == '/sensors' %}active{% endif %}">
+                <i class="fas fa-satellite-dish"></i>
+                <span>Sensors</span>
+            </a>
+            {% if session.get('user_role') == 'doctor' %}
+            <a href="{{ url_for('ai_page') }}" class="mobile-nav-item {% if request.path == '/ai' %}active{% endif %}">
+                <i class="fas fa-brain"></i>
+                <span>AI</span>
+            </a>
+            <a href="{{ url_for('reports') }}" class="mobile-nav-item {% if request.path == '/reports' %}active{% endif %}">
+                <i class="fas fa-file-pdf"></i>
+                <span>Reports</span>
+            </a>
+            {% endif %}
+            {% if session.get('user_role') %}
+            <a href="{{ url_for('logout') }}" class="mobile-nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Out</span>
+            </a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="mobile-nav-item">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Login</span>
+            </a>
+            {% endif %}
+        </nav>
     </div>
 
     {% block scripts %}{% endblock %}
@@ -69,19 +132,24 @@
             }
 
             const btn = document.getElementById('theme-toggle');
-            if (btn) {
-                btn.addEventListener('click', function() {
-                    if (document.body.classList.contains('light-mode')) {
-                        document.body.classList.remove('light-mode');
-                        localStorage.setItem('theme', 'dark');
-                        this.querySelector('i').className = 'fas fa-moon';
-                    } else {
-                        document.body.classList.add('light-mode');
-                        localStorage.setItem('theme', 'light');
-                        this.querySelector('i').className = 'fas fa-sun';
-                    }
-                });
+            const btnMobile = document.getElementById('theme-toggle-mobile');
+
+            function toggleTheme() {
+                if (document.body.classList.contains('light-mode')) {
+                    document.body.classList.remove('light-mode');
+                    localStorage.setItem('theme', 'dark');
+                    const icons = document.querySelectorAll('.theme-toggle i');
+                    icons.forEach(i => i.className = 'fas fa-moon');
+                } else {
+                    document.body.classList.add('light-mode');
+                    localStorage.setItem('theme', 'light');
+                    const icons = document.querySelectorAll('.theme-toggle i');
+                    icons.forEach(i => i.className = 'fas fa-sun');
+                }
             }
+
+            if (btn) btn.addEventListener('click', toggleTheme);
+            if (btnMobile) btnMobile.addEventListener('click', toggleTheme);
         })();
     </script>
 </body>

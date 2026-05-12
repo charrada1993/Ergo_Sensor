@@ -117,6 +117,29 @@
     gap: .8rem;
   }
 
+  /* Mobile Quick Stats */
+  .mobile-stats {
+    display: none;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-stats {
+      display: grid;
+    }
+    .grid-9 {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .grid-9 {
+      grid-template-columns: 1fr;
+    }
+  }
+
   @media (max-width: 900px) {
 
     .grid-2,
@@ -416,7 +439,17 @@
 
 
 
-<!-- ── 1. Joint Angles ───────────────────────────────────────────── -->
+<!-- Mobile Quick Stats -->
+<div class="section mobile-stats">
+  <div class="card" style="padding: 0.8rem;">
+    <div class="card-title" style="margin-bottom: 0.3rem; font-size: 0.6rem;">Status</div>
+    <div id="conn-status-mobile" class="conn-badge" style="display: block; text-align: center;">Connecting...</div>
+  </div>
+  <div class="card" style="padding: 0.8rem;">
+    <div class="card-title" style="margin-bottom: 0.3rem; font-size: 0.6rem;">Active Sensors</div>
+    <div id="active-sensors-count" class="final-num" style="font-size: 1.2rem; text-align: center;">0</div>
+  </div>
+</div>
 <div class="section">
   <div class="section-title">Joint Angles <span style="color:var(--danger);font-size:.62rem;margin-left:.3rem;">● red =
       above threshold</span></div>
@@ -546,9 +579,16 @@
 <script>
   // Connection badge colouring
   const statusEl = document.getElementById('conn-status');
+  const statusElMobile = document.getElementById('conn-status-mobile');
   if (typeof socket !== 'undefined') {
-    socket.on('connect', () => { statusEl.textContent = '⬤ Live'; statusEl.classList.add('live'); });
-    socket.on('disconnect', () => { statusEl.textContent = '⬤ Disconnected'; statusEl.classList.remove('live'); });
+    socket.on('connect', () => { 
+        if(statusEl) { statusEl.textContent = '⬤ Live'; statusEl.classList.add('live'); }
+        if(statusElMobile) { statusElMobile.textContent = '⬤ Live'; statusElMobile.classList.add('live'); }
+    });
+    socket.on('disconnect', () => { 
+        if(statusEl) { statusEl.textContent = '⬤ Disconnected'; statusEl.classList.remove('live'); }
+        if(statusElMobile) { statusElMobile.textContent = '⬤ Disconnected'; statusElMobile.classList.remove('live'); }
+    });
   }
   // Action label colouring
   function recolourActions() {

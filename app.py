@@ -122,6 +122,12 @@ def system():
     return render_template('system.html')
 
 
+@app.route('/sensors')
+@login_required()
+def sensors_page():
+    return render_template('sensors.html')
+
+
 @app.route('/ai')
 @login_required(role='doctor')
 def ai_page():

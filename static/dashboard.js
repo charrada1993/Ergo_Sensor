@@ -123,7 +123,7 @@ function initTrendCharts() {
                     y: { min: -180, max: 180, ticks: { stepSize: 45 }, title: { display: true, text: 'Degrees' } },
                     x: { type: 'linear', ticks: { display: false } },
                 },
-                plugins: { legend: { display: true, position: 'top', labels: { font: { size: 8 } } } },
+                plugins: { legend: { display: true, position: 'top', labels: { font: { size: window.innerWidth < 768 ? 6 : 8 } } } },
             },
         });
     }
@@ -213,12 +213,16 @@ if (!statusEl) {
 
 socket.on('connect', () => {
     const el = document.getElementById('conn-status');
-    if (el) el.innerText = '⬤ Connected';
+    const elMob = document.getElementById('conn-status-mobile');
+    if (el) { el.innerText = '⬤ Connected'; el.classList.add('live'); }
+    if (elMob) { elMob.innerText = '⬤ Live'; elMob.classList.add('live'); }
     console.log('Socket connected');
 });
 socket.on('disconnect', () => {
     const el = document.getElementById('conn-status');
-    if (el) el.innerText = '⬤ Disconnected';
+    const elMob = document.getElementById('conn-status-mobile');
+    if (el) { el.innerText = '⬤ Disconnected'; el.classList.remove('live'); }
+    if (elMob) { elMob.innerText = '⬤ Disconnected'; elMob.classList.remove('live'); }
     console.log('Socket disconnected');
 });
 
@@ -252,6 +256,12 @@ createRawDebugPanel();
 // Listen for raw sensor data (emitted by fixed data_processor.py)
 socket.on('raw_sensors', (data) => {
     console.log('[RAW]', data);
+    
+    // Update active sensor count for mobile
+    const sensorCount = Object.keys(data).length;
+    const countEl = document.getElementById('active-sensors-count');
+    if (countEl) countEl.innerText = sensorCount;
+
     if (rawDebugDiv) {
         let html = '<strong>📡 Raw sensors</strong><br>';
         for (const [sid, vals] of Object.entries(data)) {

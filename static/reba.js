@@ -12,7 +12,7 @@ function initCharts() {
             type: 'line',
             data: { labels: [], datasets: [{ label: 'Right REBA', data: [], borderColor: '#E84545', backgroundColor: 'rgba(232,69,69,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 1.5 }] },
             options: {
-                responsive: false,
+                responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
                 scales: { y: { min: 1, max: 15, ticks: { stepSize: 2 } }, x: { ticks: { display: false } } },
@@ -26,7 +26,7 @@ function initCharts() {
             type: 'line',
             data: { labels: [], datasets: [{ label: 'Left REBA', data: [], borderColor: '#2980B9', backgroundColor: 'rgba(41,128,185,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 1.5 }] },
             options: {
-                responsive: false,
+                responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
                 scales: { y: { min: 1, max: 15, ticks: { stepSize: 2 } }, x: { ticks: { display: false } } },

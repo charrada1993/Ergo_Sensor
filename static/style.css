@@ -1,4 +1,9 @@
 /* === Global Styles === */
+:root {
+    --mobile-nav-height: 70px;
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -112,22 +117,61 @@ body {
 /* Responsive navbar on small screens */
 @media (max-width: 768px) {
     .navbar {
-        flex-direction: column;
-        align-items: stretch;
-        border-radius: 20px;
+        display: none; /* Hide top navbar on mobile, replaced by bottom-nav */
+    }
+}
+
+/* === Mobile Bottom Navigation === */
+.mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(var(--mobile-nav-height) + var(--safe-area-inset-bottom));
+    background: rgba(18, 20, 35, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    padding-bottom: var(--safe-area-inset-bottom);
+    justify-content: space-around;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .mobile-nav {
+        display: flex;
     }
 
-    .nav-brand {
-        text-align: center;
+    body {
+        padding-bottom: calc(var(--mobile-nav-height) + 20px);
     }
+}
 
-    .nav-links {
-        justify-content: center;
-    }
+.mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #8890aa;
+    text-decoration: none;
+    font-size: 0.7rem;
+    gap: 4px;
+    transition: all 0.3s ease;
+    flex: 1;
+}
 
-    .theme-toggle {
-        margin: 5px auto 0 auto;
-    }
+.mobile-nav-item i {
+    font-size: 1.3rem;
+}
+
+.mobile-nav-item.active {
+    color: #00e5ff;
+}
+
+.mobile-nav-item.active i {
+    filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.5));
 }
 
 /* === Headings === */
@@ -164,10 +208,18 @@ h1 i {
 /* Wrap that holds the image + all sensor pins */
 .body-figure-wrap {
     position: relative;
-    width: 1000px;
-    height: 1000px;
+    width: 100%;
+    aspect-ratio: 1/1;
+    max-width: 1000px;
     margin: 0 auto;
     overflow: visible;
+}
+
+@media (max-width: 768px) {
+    .sensor-map {
+        padding: 30px 15px;
+        margin: 20px auto;
+    }
 }
 
 /* The actual man model image */
@@ -266,6 +318,27 @@ h1 i {
 .sensor-card.card-online {
     border-color: rgba(0, 255, 128, 0.4);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 14px rgba(0, 255, 128, 0.25);
+}
+
+@media (max-width: 768px) {
+    .sensor-card {
+        min-width: 70px;
+        padding: 4px 8px;
+        border-radius: 8px;
+    }
+    .sensor-name {
+        font-size: 0.6rem;
+    }
+    .sensor-status {
+        font-size: 0.55rem;
+    }
+    .pin-dot {
+        width: 6px;
+        height: 6px;
+    }
+    .pin-line {
+        width: 15px;
+    }
 }
 
 /* Offline dim state */
