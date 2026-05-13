@@ -144,11 +144,36 @@ def serve_plot(filename):
 @login_required(role='doctor')
 def ai_metrics():
     import json, os
-    path = 'plots/metrics_summary.json'
-    if os.path.exists(path):
-        with open(path) as f:
-            return jsonify(json.load(f))
-    return jsonify({'error': 'metrics not found'}), 404
+    meta_path = 'models/model_metadata.json'
+    if not os.path.exists(meta_path):
+        return jsonify({'error': 'metrics not found'}), 404
+    with open(meta_path) as f:
+        meta = json.load(f)
+    m = meta.get('metrics', {})
+    reg = m.get('LightGBM_Regression', {})
+    cls = m.get('LightGBM_Classifier', {})
+    sev = m.get('LightGBM_Severity',   {})
+    return jsonify({
+        'version':    meta.get('version', '3.0-Production'),
+        'n_features': meta.get('n_features', 75),
+        'n_samples':  meta.get('n_samples', 20000),
+        'created':    meta.get('created', ''),
+        'regression': {
+            'r2':   reg.get('r2',   0),
+            'mae':  reg.get('mae',  0),
+            'rmse': reg.get('rmse', 0),
+        },
+        'condition': {
+            'accuracy':  cls.get('accuracy',  0),
+            'precision': cls.get('precision', 0),
+            'recall':    cls.get('recall',    0),
+            'f1_macro':  cls.get('f1',        0),
+        },
+        'severity': {
+            'accuracy': sev.get('accuracy', 0),
+            'f1_macro': sev.get('f1',       0),
+        },
+    })
 
 
 @app.route('/csv-view')

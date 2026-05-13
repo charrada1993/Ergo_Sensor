@@ -1,8 +1,8 @@
 {
-  "version": "3.0",
-  "created": "2026-05-08T22:55:51.349454",
+  "version": "3.0-Production",
+  "created": "2026-05-12T23:40:26.243375",
   "n_samples": 20000,
-  "n_features": 59,
+  "n_features": 75,
   "feature_cols": [
     "neck",
     "trunk",
@@ -52,17 +52,33 @@
     "neck_hflex",
     "trunk_hflex",
     "shoulder_hext",
-    "raw_neck",
-    "raw_trunk",
-    "raw_r_shoulder",
-    "raw_l_shoulder",
     "neck_energy",
     "trunk_energy",
     "shoulder_energy",
     "elbow_energy",
     "wrist_energy",
     "hip_energy",
-    "knee_energy"
+    "knee_energy",
+    "neck_roll_mean",
+    "neck_roll_std",
+    "neck_lag_15",
+    "neck_acc",
+    "trunk_roll_mean",
+    "trunk_roll_std",
+    "trunk_lag_15",
+    "trunk_acc",
+    "shoulder_roll_mean",
+    "shoulder_roll_std",
+    "shoulder_lag_15",
+    "shoulder_acc",
+    "elbow_roll_mean",
+    "elbow_roll_std",
+    "elbow_lag_15",
+    "elbow_acc",
+    "wrist_roll_mean",
+    "wrist_roll_std",
+    "wrist_lag_15",
+    "wrist_acc"
   ],
   "if_features": [
     "neck",
@@ -113,17 +129,33 @@
     "neck_hflex",
     "trunk_hflex",
     "shoulder_hext",
-    "raw_neck",
-    "raw_trunk",
-    "raw_r_shoulder",
-    "raw_l_shoulder",
     "neck_energy",
     "trunk_energy",
     "shoulder_energy",
     "elbow_energy",
     "wrist_energy",
     "hip_energy",
-    "knee_energy"
+    "knee_energy",
+    "neck_roll_mean",
+    "neck_roll_std",
+    "neck_lag_15",
+    "neck_acc",
+    "trunk_roll_mean",
+    "trunk_roll_std",
+    "trunk_lag_15",
+    "trunk_acc",
+    "shoulder_roll_mean",
+    "shoulder_roll_std",
+    "shoulder_lag_15",
+    "shoulder_acc",
+    "elbow_roll_mean",
+    "elbow_roll_std",
+    "elbow_lag_15",
+    "elbow_acc",
+    "wrist_roll_mean",
+    "wrist_roll_std",
+    "wrist_lag_15",
+    "wrist_acc"
   ],
   "seq_len": 60,
   "condition_to_code": {
@@ -189,19 +221,19 @@
   ],
   "metrics": {
     "LightGBM_Regression": {
-      "mae": 0.007506,
-      "rmse": 0.010656,
-      "r2": 0.996561
+      "mae": 0.005643,
+      "rmse": 0.007908,
+      "r2": 0.998106
     },
     "LightGBM_Classifier": {
-      "accuracy": 0.99525,
-      "precision": 0.994811,
-      "recall": 0.95048,
-      "f1": 0.966149
+      "accuracy": 0.996,
+      "precision": 0.995182,
+      "recall": 0.951261,
+      "f1": 0.966727
     },
     "LightGBM_Severity": {
-      "accuracy": 0.9805,
-      "f1": 0.959816
+      "accuracy": 0.9695,
+      "f1": 0.941126
     },
     "IsolationForest": {
       "trained": 1.0

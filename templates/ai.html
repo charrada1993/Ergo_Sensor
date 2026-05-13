@@ -140,7 +140,7 @@
 <div class="dash-header">
   <div style="display:flex;align-items:center;">
     <h1><i class="fas fa-brain"></i>&nbsp; Ergo Sensor — AI Predictive Analytics</h1>
-    <span class="badge-version">v3.0 · 59 features · 12 joints · DART</span>
+    <span class="badge-version">v3.0-Production · 75 features · Optuna · SHAP · TimeSeriesSplit</span>
   </div>
   <span id="live-badge" class="badge-live">● LIVE</span>
 </div>
@@ -193,9 +193,11 @@
   <div class="card">
     <h3><i class="fas fa-terminal"></i> AI Console — Live Prediction Log</h3>
     <div id="ai-console" class="console">
-      <span class="c-time">[boot]</span> <span class="c-ok">Ergo Sensor AI v3.0 initialized</span><br>
-      <span class="c-time">[boot]</span> <span class="c-key">Models:</span> <span class="c-val">LightGBM Regressor · DART Classifier · Severity · IsolationForest(300) · 5× Anomaly</span><br>
-      <span class="c-time">[boot]</span> <span class="c-key">Features:</span> <span class="c-val">59 total (38 base + 21 engineered: asymmetry · energy · load · posture flags)</span><br>
+      <span class="c-time">[boot]</span> <span class="c-ok">Ergo Sensor AI v3.0-Production initialized</span><br>
+      <span class="c-time">[boot]</span> <span class="c-key">Optuna HPO:</span> <span class="c-val">10 trials × TimeSeriesSplit(3-fold) — Model 1 &amp; 2 tuned</span><br>
+      <span class="c-time">[boot]</span> <span class="c-key">Models:</span> <span class="c-val">LightGBM Regressor · GBDT Classifier · Severity · IsolationForest(300) · 5× Anomaly</span><br>
+      <span class="c-time">[boot]</span> <span class="c-key">Features:</span> <span class="c-val">75 total (38 base + 37 engineered: asymmetry · energy · rolling · lag · acceleration)</span><br>
+      <span class="c-time">[boot]</span> <span class="c-key">SHAP:</span> <span class="c-ok">TreeExplainer active — shap_regressor.png + shap_classifier.png ✓</span><br>
       <span class="c-time">[boot]</span> <span class="c-key">Anomaly models:</span> <span class="c-ok">5/5 operational ✓</span><br>
       <span class="c-time">[boot]</span> Waiting for sensor data…<br>
     </div>
@@ -213,9 +215,9 @@
       <div class="metric-pill"><div class="mv" style="color:var(--ok)" id="m-r2">—</div><div class="mk">R²</div></div>
       <div class="metric-pill"><div class="mv" style="color:var(--accent)" id="m-mae">—</div><div class="mk">MAE</div></div>
       <div class="metric-pill"><div class="mv" style="color:var(--warn)" id="m-rmse">—</div><div class="mk">RMSE</div></div>
-      <div class="metric-pill"><div class="mv" style="color:#c97fff">59</div><div class="mk">Features</div></div>
+      <div class="metric-pill"><div class="mv" style="color:#c97fff">75</div><div class="mk">Features</div></div>
     </div>
-    <div class="ai-sub" style="margin-top:.8rem;">Gradient boosting regressor · 59 features · best iter 361 · R²=0.9966 · RMSE=0.01066. Feature-engineered with bilateral asymmetry, joint energy, and composite load scores.</div>
+    <div class="ai-sub" style="margin-top:.8rem;">Optuna-tuned gradient boosting regressor · 75 features · <b>R²=0.9981</b> · <b>RMSE=0.0079</b> · <b>MAE=0.0056</b>. Time-series features: rolling mean/std (0.5s), lag-15 frames, joint acceleration added to 38 base biomechanical signals.</div>
   </div>
   <!-- Classifier -->
   <div class="card">
@@ -224,9 +226,9 @@
       <div class="metric-pill"><div class="mv" style="color:var(--ok)" id="m-acc-cls">—</div><div class="mk">Accuracy</div></div>
       <div class="metric-pill"><div class="mv" style="color:var(--accent)" id="m-f1-cls">—</div><div class="mk">F1 Macro</div></div>
       <div class="metric-pill"><div class="mv" style="color:#c97fff">18</div><div class="mk">Classes</div></div>
-      <div class="metric-pill"><div class="mv" style="color:var(--warn)">DART</div><div class="mk">Booster</div></div>
+      <div class="metric-pill"><div class="mv" style="color:var(--warn)">GBDT</div><div class="mk">Booster</div></div>
     </div>
-    <div class="ai-sub" style="margin-top:.8rem;">DART booster + balanced class weights · 400 trees · F1=0.966 · Precision=0.995. Predicts 18 TMS pathologies (lumbar disc, carpal tunnel, cervicalgia, etc.).</div>
+    <div class="ai-sub" style="margin-top:.8rem;">Optuna CV tuned · balanced class weights · <b>Accuracy=99.60%</b> · <b>Recall=95.13%</b> · <b>F1=96.67%</b>. Predicts 18 TMS pathologies including lumbar disc, carpal tunnel, cervicalgia, tech neck, and rotator cuff tendinitis.</div>
   </div>
   <!-- Severity + IF -->
   <div class="card">
@@ -237,92 +239,122 @@
       <div class="metric-pill"><div class="mv" style="color:var(--warn)">300</div><div class="mk">IF Trees</div></div>
       <div class="metric-pill"><div class="mv" style="color:var(--ok)">5/5</div><div class="mk">Anomaly ✓</div></div>
     </div>
-    <div class="ai-sub" style="margin-top:.8rem;">Severity Acc=98.1% F1=0.960 · IsolationForest 300 estimators · All 5 per-joint anomaly classifiers active (Neck/Shoulder/Wrist/Trunk/Elbow · avg F1=0.991).</div>
+    <div class="ai-sub" style="margin-top:.8rem;">Severity <b>Acc=96.95%</b> F1=<b>0.9411</b> · IsolationForest 300 estimators (max_samples=256) · All 5 per-joint anomaly classifiers active (Neck/Shoulder/Wrist/Trunk/Elbow) · Trunk F1=<b>1.000</b> · avg F1=<b>0.9906</b>.</div>
   </div>
 </div>
 
 <!-- ══ EVALUATION CHARTS ═══════════════════════════════════════════════ -->
-<div class="sec-title"><i class="fas fa-chart-line"></i> Evaluation Curves</div>
+<div class="sec-title"><i class="fas fa-chart-line"></i> Full Evaluation Suite — All 10 Plots</div>
 
+<!-- Model 1 -->
 <div class="card" style="margin-bottom:1.2rem;">
-  <h3><i class="fas fa-history"></i> Training Convergence (Epoch Results)</h3>
-  <p class="ai-sub" style="margin-bottom:1rem;">
-    Validation RMSE and LogLoss over 400+ iterations. Shows how the models learned over time.
-  </p>
-  <img id="lc-chart" src="/plots/learning_curves.png"
+  <h3><i class="fas fa-wave-square"></i> Model 1 — Regressor: Learning · Predicted vs Actual · Residuals</h3>
+  <p class="ai-sub" style="margin-bottom:1rem;">Optuna-optimized. R²=<b>0.9981</b> · RMSE=<b>0.0079</b> · MAE=<b>0.0056</b>. Residuals centered at zero confirm low bias.</p>
+  <img src="/plots/eval_model1_regressor.png"
        style="width:100%;border-radius:12px;border:1px solid var(--border);display:block;"
-       alt="Learning Curves" onerror="this.style.display='none'">
+       alt="Model 1 Evaluation" onerror="this.style.display='none'">
 </div>
 
-<div class="card" style="margin-bottom:1.2rem;">
-  <h3><i class="fas fa-image"></i> Full Model Evaluation Dashboard</h3>
-  <p class="ai-sub" style="margin-bottom:1rem;">
-    Actual vs Predicted · Residuals · Confusion Matrices · Feature Importance · IsolationForest Distribution · ROC Curves (all 5 anomaly models)
-  </p>
-  <img id="eval-chart" src="/plots/model_evaluation.png"
-       style="width:100%;border-radius:12px;border:1px solid var(--border);display:block;"
-       alt="Model Evaluation Dashboard" onerror="this.style.display='none';document.getElementById('eval-chart-err').style.display='block'">
-  <div id="eval-chart-err" style="display:none;color:#8890aa;text-align:center;padding:2rem;">
-    ⚠ Evaluation chart not found. Run <code>python generate_eval_plots.py</code>
-  </div>
-</div>
-
+<!-- Model 2 -->
+<div class="sec-title" style="font-size:.88rem;"><i class="fas fa-tags"></i> Model 2 — Condition Classifier (18 Classes)</div>
 <div class="g2" style="margin-bottom:1.2rem;">
   <div class="card">
-    <h3><i class="fas fa-lightbulb"></i> SHAP Feature Importance</h3>
-    <img src="/plots/shap_summary.png"
-         style="width:100%;border-radius:12px;border:1px solid var(--border);"
-         alt="SHAP Summary" onerror="this.style.display='none'">
+    <h3><i class="fas fa-history"></i> Learning Curve (LogLoss)</h3>
+    <img src="/plots/eval_model2_learning.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="M2 Learning" onerror="this.style.display='none'">
   </div>
-
-  <!-- ── ARCHITECTURE ───────────────────────────────────────── -->
   <div class="card">
-    <h3><i class="fas fa-sitemap"></i> System Architecture</h3>
-    <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:center;margin-top:.5rem;">
+    <h3><i class="fas fa-th"></i> Confusion Matrix</h3>
+    <img src="/plots/eval_model2_confusion.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="M2 Confusion" onerror="this.style.display='none'">
+  </div>
+</div>
+<div class="g2" style="margin-bottom:1.2rem;">
+  <div class="card">
+    <h3><i class="fas fa-chart-area"></i> ROC Curves (One-vs-Rest · AUC per class)</h3>
+    <img src="/plots/eval_model2_roc.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="M2 ROC" onerror="this.style.display='none'">
+  </div>
+  <div class="card">
+    <h3><i class="fas fa-bullseye"></i> Precision-Recall Curves</h3>
+    <img src="/plots/eval_model2_pr.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="M2 PR" onerror="this.style.display='none'">
+  </div>
+</div>
 
-      <div class="arch-box" style="width:100px;">
-        <div class="arch-icon">📡</div>
-        <div class="arch-title">Sensors</div>
-        <div class="arch-sub">IMU / ESP32<br>Firebase RTDB</div>
-      </div>
-      <div class="arch-arrow">→</div>
-      <div class="arch-box" style="width:110px;">
-        <div class="arch-icon">⚙️</div>
-        <div class="arch-title">DataProcessor</div>
-        <div class="arch-sub">Angle calc<br>RULA / REBA</div>
-      </div>
-      <div class="arch-arrow">→</div>
-      <div class="arch-box" style="width:110px; border-color:rgba(0,229,255,0.3);">
-        <div class="arch-icon">🤖</div>
-        <div class="arch-title">AI Engine</div>
-        <div class="arch-sub">LightGBM×3<br>IsoForest×1<br>Anomaly×5</div>
-      </div>
-      <div class="arch-arrow">→</div>
-      <div class="arch-box" style="width:100px;">
-        <div class="arch-icon">🌐</div>
-        <div class="arch-title">Flask + WS</div>
-        <div class="arch-sub">SocketIO<br>REST API</div>
-      </div>
-      <div class="arch-arrow">→</div>
-      <div class="arch-box" style="width:100px;">
-        <div class="arch-icon">📊</div>
-        <div class="arch-title">Dashboard</div>
-        <div class="arch-sub">Real-time<br>HTML/JS</div>
-      </div>
+<!-- Model 3 -->
+<div class="card" style="margin-bottom:1.2rem;">
+  <h3><i class="fas fa-tachometer-alt"></i> Model 3 — Severity: Learning Curve + Confusion Matrix</h3>
+  <p class="ai-sub" style="margin-bottom:1rem;">Robust params (LR=0.03, leaves=128, depth=8). Accuracy=<b>96.95%</b> · Macro-F1=<b>0.9411</b>.</p>
+  <img src="/plots/eval_model3_severity.png"
+       style="width:100%;border-radius:12px;border:1px solid var(--border);display:block;"
+       alt="Model 3 Evaluation" onerror="this.style.display='none'">
+</div>
 
-      <div style="width:100%;margin-top:.8rem;border-top:1px solid var(--border);padding-top:.8rem;">
-        <div style="font-size:.72rem;color:#8890aa;line-height:1.8;">
-          <b style="color:var(--accent)">Dataset:</b> 20 000 samples · <b style="color:#c97fff">59 features</b> (38 base + 21 engineered) · 12 joints bilateral<br>
-          <b style="color:var(--accent)">Conditions:</b> 18 TMS pathologies · balanced class weights · DART booster<br>
-          <b style="color:var(--accent)">Anomalies:</b> 5/5 joint detectors active · avg F1 = 0.991<br>
-          <b style="color:var(--accent)">Pipeline:</b> retrain_v3.py → ai_engine.py → app.py
-        </div>
+<!-- Model 4 -->
+<div class="sec-title" style="font-size:.88rem;"><i class="fas fa-project-diagram"></i> Model 4 — Per-Joint Anomaly Classifiers (5 Joints)</div>
+<div class="card" style="margin-bottom:1rem;">
+  <h3><i class="fas fa-bar-chart"></i> F1 &amp; Accuracy by Joint</h3>
+  <p class="ai-sub" style="margin-bottom:.8rem;">Neck F1=0.9846 · Shoulder F1=0.9826 · Wrist F1=0.9926 · Trunk F1=<b>1.000</b> · Elbow F1=0.9932 · avg=<b>0.9906</b></p>
+  <img src="/plots/eval_model4_bars.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="M4 Bars" onerror="this.style.display='none'">
+</div>
+<div class="g2" style="margin-bottom:1.2rem;">
+  <div class="card">
+    <h3><i class="fas fa-history"></i> Per-Joint Learning Curves</h3>
+    <img src="/plots/eval_model4_learning.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="M4 Learning" onerror="this.style.display='none'">
+  </div>
+  <div class="card">
+    <h3><i class="fas fa-chart-area"></i> Per-Joint ROC Curves</h3>
+    <img src="/plots/eval_model4_roc.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="M4 ROC" onerror="this.style.display='none'">
+  </div>
+</div>
+
+<!-- Model 5 -->
+<div class="card" style="margin-bottom:1.2rem;">
+  <h3><i class="fas fa-radar"></i> Model 5 — IsolationForest: Score Distribution + Sorted Anomaly Scores</h3>
+  <p class="ai-sub" style="margin-bottom:1rem;">300 trees · contamination=5% · max_samples=256. Scores below 0 = anomaly. <b>5.00%</b> flagged in test set.</p>
+  <img src="/plots/eval_model5_isoforest.png"
+       style="width:100%;border-radius:12px;border:1px solid var(--border);display:block;"
+       alt="Model 5 IsoForest" onerror="this.style.display='none'">
+</div>
+
+<!-- SHAP -->
+<div class="g2" style="margin-bottom:1.2rem;">
+  <div class="card">
+    <h3><i class="fas fa-lightbulb"></i> SHAP — Risk Score Feature Importance</h3>
+    <p class="ai-sub" style="margin-bottom:.8rem;">TreeExplainer on 500 test samples. Shows which of 75 features most impact risk score.</p>
+    <img src="/plots/shap_regressor.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="SHAP Regressor" onerror="this.style.display='none'">
+  </div>
+  <div class="card">
+    <h3><i class="fas fa-lightbulb"></i> SHAP — Condition Classifier Feature Importance</h3>
+    <p class="ai-sub" style="margin-bottom:.8rem;">TreeExplainer identifies which joints drive the 18-class condition classification.</p>
+    <img src="/plots/shap_classifier.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="SHAP Classifier" onerror="this.style.display='none'">
+  </div>
+</div>
+
+<!-- Architecture -->
+<div class="card" style="margin-bottom:1.2rem;">
+  <h3><i class="fas fa-sitemap"></i> System Architecture — v3.0-Production</h3>
+  <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:center;margin-top:.5rem;">
+    <div class="arch-box" style="width:100px;"><div class="arch-icon">📡</div><div class="arch-title">Sensors</div><div class="arch-sub">IMU / ESP32<br>Firebase RTDB</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box" style="width:110px;"><div class="arch-icon">⚙️</div><div class="arch-title">DataProcessor</div><div class="arch-sub">Angle calc<br>RULA / REBA</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box" style="width:130px;border-color:rgba(0,229,255,0.35);"><div class="arch-icon">🤖</div><div class="arch-title">AI Engine v3.0</div><div class="arch-sub">LightGBM×3<br>IsoForest×1<br>Anomaly×5<br><b>Optuna+SHAP</b></div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box" style="width:100px;"><div class="arch-icon">🌐</div><div class="arch-title">Flask + WS</div><div class="arch-sub">SocketIO<br>REST API</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box" style="width:100px;"><div class="arch-icon">📊</div><div class="arch-title">Dashboard</div><div class="arch-sub">Real-time<br>HTML/JS</div></div>
+    <div style="width:100%;margin-top:.8rem;border-top:1px solid var(--border);padding-top:.8rem;">
+      <div style="font-size:.72rem;color:#8890aa;line-height:1.9;">
+        <b style="color:var(--accent)">Dataset:</b> 20 000 samples · <b style="color:#c97fff">75 features</b> (38 base + 37 engineered: rolling, lag, accel, asymmetry, energy, load) · 12 joints bilateral<br>
+        <b style="color:var(--accent)">HPO:</b> Optuna (10 trials) + TimeSeriesSplit(3-fold) — prevents temporal data leakage in CV<br>
+        <b style="color:var(--accent)">Conditions:</b> 18 TMS pathologies · balanced class weights · GBDT booster<br>
+        <b style="color:var(--accent)">Anomalies:</b> 5/5 joint detectors · avg F1=<b style="color:var(--ok)">0.9906</b> · Trunk F1=<b style="color:var(--ok)">1.000</b><br>
+        <b style="color:var(--accent)">Pipeline:</b> retrain_v3.py → ai_engine.py → app.py · Render.com deployment
       </div>
     </div>
   </div>
 </div>
 
 </div><!-- end ai-wrap -->
+
 {% endblock %}
 
 {% block scripts %}
@@ -354,9 +386,14 @@ fetch('/api/ai-metrics')
     set('m-f1-cls',  fmt(m.condition?.f1_macro, 4));
     set('m-acc-sev', fmt(m.severity?.accuracy,  4));
     set('m-f1-sev',  fmt(m.severity?.f1_macro,  4));
-    const ver = m.version ?? '?';
-    const nf  = m.n_features ?? '?';
-    log(`<span class="c-time">[${ts()}]</span> <span class="c-ok">Metrics loaded (v${ver})</span> — features=<span class="c-val">${nf}</span> R²=<span class="c-val">${fmt(m.regression?.r2,4)}</span> F1=<span class="c-val">${fmt(m.condition?.f1_macro,4)}</span> SevAcc=<span class="c-val">${fmt(m.severity?.accuracy,4)}</span>`);
+    const ver  = m.version    ?? '?';
+    const nf   = m.n_features ?? '?';
+    const ns   = m.n_samples  ?? '?';
+    const date = m.created    ? new Date(m.created).toLocaleString() : '?';
+    log(`<span class="c-time">[${ts()}]</span> <span class="c-ok">Metrics loaded — v${ver}</span>`);
+    log(`<span class="c-time">[${ts()}]</span> <span class="c-key">Features:</span> <span class="c-val">${nf}</span>  <span class="c-key">Samples:</span> <span class="c-val">${ns}</span>  <span class="c-key">Trained:</span> <span class="c-val">${date}</span>`);
+    log(`<span class="c-time">[${ts()}]</span> <span class="c-key">R²=</span><span class="c-val">${fmt(m.regression?.r2,4)}</span>  <span class="c-key">RMSE=</span><span class="c-val">${fmt(m.regression?.rmse,4)}</span>  <span class="c-key">MAE=</span><span class="c-val">${fmt(m.regression?.mae,4)}</span>`);
+    log(`<span class="c-time">[${ts()}]</span> <span class="c-key">CondAcc=</span><span class="c-val">${fmt(m.condition?.accuracy,4)}</span>  <span class="c-key">Recall=</span><span class="c-val">${fmt(m.condition?.recall,4)}</span>  <span class="c-key">F1=</span><span class="c-val">${fmt(m.condition?.f1_macro,4)}</span>  <span class="c-key">SevAcc=</span><span class="c-val">${fmt(m.severity?.accuracy,4)}</span>`);
   })
   .catch(() => log(`<span class="c-time">[${ts()}]</span> <span class="c-warn">Could not load metrics JSON</span>`));
 

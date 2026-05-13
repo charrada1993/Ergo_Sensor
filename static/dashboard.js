@@ -228,6 +228,9 @@ socket.on('disconnect', () => {
 
 // ── Debug panel for raw sensor data ──
 let rawDebugDiv = null;
+let rawDebugBody = null;
+let rawDebugMinimized = false;
+
 function createRawDebugPanel() {
     if (rawDebugDiv) return;
     const div = document.createElement('div');
@@ -246,8 +249,26 @@ function createRawDebugPanel() {
     div.style.backgroundColor = 'rgba(0,0,0,0.8)';
     div.style.backdropFilter = 'blur(4px)';
     div.style.zIndex = '9998';
-    div.style.pointerEvents = 'none';
-    div.innerHTML = '<strong>📡 Raw sensors</strong><br>Waiting for data...';
+
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    header.style.cursor = 'pointer';
+    header.innerHTML = '<strong>📡 Raw sensors</strong><span id="raw-minimize" style="margin-left:10px; font-weight:bold;">−</span>';
+    
+    header.addEventListener('click', () => {
+        rawDebugMinimized = !rawDebugMinimized;
+        rawDebugBody.style.display = rawDebugMinimized ? 'none' : 'block';
+        document.getElementById('raw-minimize').innerText = rawDebugMinimized ? '+' : '−';
+    });
+
+    rawDebugBody = document.createElement('div');
+    rawDebugBody.innerHTML = 'Waiting for data...';
+    rawDebugBody.style.marginTop = '5px';
+
+    div.appendChild(header);
+    div.appendChild(rawDebugBody);
     document.body.appendChild(div);
     rawDebugDiv = div;
 }
@@ -262,12 +283,12 @@ socket.on('raw_sensors', (data) => {
     const countEl = document.getElementById('active-sensors-count');
     if (countEl) countEl.innerText = sensorCount;
 
-    if (rawDebugDiv) {
-        let html = '<strong>📡 Raw sensors</strong><br>';
+    if (rawDebugDiv && rawDebugBody && !rawDebugMinimized) {
+        let html = '';
         for (const [sid, vals] of Object.entries(data)) {
             html += `${sid}: r=${vals.roll.toFixed(1)}° p=${vals.pitch.toFixed(1)}° y=${vals.yaw.toFixed(1)}°<br>`;
         }
-        rawDebugDiv.innerHTML = html;
+        rawDebugBody.innerHTML = html;
         rawDebugDiv.style.opacity = '0.9';
         setTimeout(() => { if (rawDebugDiv) rawDebugDiv.style.opacity = '0.6'; }, 2000);
     }

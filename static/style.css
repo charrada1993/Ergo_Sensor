@@ -147,6 +147,11 @@ body {
     body {
         padding-bottom: calc(var(--mobile-nav-height) + 20px);
     }
+    
+    #raw-debug-panel {
+        bottom: 90px !important;
+        z-index: 1001 !important;
+    }
 }
 
 .mobile-nav-item {
@@ -156,14 +161,15 @@ body {
     justify-content: center;
     color: #8890aa;
     text-decoration: none;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     gap: 4px;
     transition: all 0.3s ease;
     flex: 1;
+    min-width: 55px;
 }
 
 .mobile-nav-item i {
-    font-size: 1.3rem;
+    font-size: 1.15rem;
 }
 
 .mobile-nav-item.active {
@@ -219,6 +225,42 @@ h1 i {
     .sensor-map {
         padding: 30px 15px;
         margin: 20px auto;
+    }
+    
+    .body-figure-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        aspect-ratio: auto;
+        height: auto;
+    }
+    
+    .body-figure-img {
+        display: none;
+    }
+    
+    .sensor-pin {
+        position: static !important;
+        transform: none !important;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .sensor-pin .pin-line, .sensor-pin .pin-dot {
+        display: none !important;
+    }
+    
+    .sensor-card {
+        width: 100%;
+        max-width: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+    }
+
+    .sensor-name {
+        margin-bottom: 0;
     }
 }
 
@@ -1132,6 +1174,34 @@ body.light-mode .sensor-map {
 
 /* Add to the end of your existing style.css */
 
+body.light-mode .mobile-header {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+body.light-mode .mobile-nav {
+    background: rgba(255, 255, 255, 0.95);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .mobile-nav-item {
+    color: #5d6d7e;
+}
+
+body.light-mode .mobile-nav-item.active {
+    color: #0d7377;
+}
+
+body.light-mode .mobile-nav-item.active i {
+    filter: drop-shadow(0 0 8px rgba(13, 115, 119, 0.3));
+}
+
+body.light-mode #raw-debug-panel {
+    background: #f0f4f8 !important;
+    border-color: #0d7377 !important;
+    color: #1a3a5c !important;
+}
+
 /* Ensure full‑width comparison charts span both columns */
 .full-width {
     grid-column: span 2;
@@ -1151,7 +1221,7 @@ body.light-mode .sensor-map {
 
 /* Keep existing .trend-card canvas height */
 .trend-card canvas {
-    height: 90px !important;
+    height: 140px !important;
 }
 
 /* Fixed size for RULA/REBA trend charts */

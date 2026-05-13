@@ -79,6 +79,7 @@
         </main>
 
         <!-- Mobile Bottom Navigation -->
+        {% if request.endpoint != 'login' %}
         <nav class="mobile-nav">
             <a href="{{ url_for('index') }}" class="mobile-nav-item {% if request.path == '/' %}active{% endif %}">
                 <i class="fas fa-chart-line"></i>
@@ -87,10 +88,6 @@
             <a href="{{ url_for('system') }}" class="mobile-nav-item {% if request.path == '/system' %}active{% endif %}">
                 <i class="fas fa-microchip"></i>
                 <span>Map</span>
-            </a>
-            <a href="{{ url_for('sensors_page') }}" class="mobile-nav-item {% if request.path == '/sensors' %}active{% endif %}">
-                <i class="fas fa-satellite-dish"></i>
-                <span>Sensors</span>
             </a>
             {% if session.get('user_role') == 'doctor' %}
             <a href="{{ url_for('ai_page') }}" class="mobile-nav-item {% if request.path == '/ai' %}active{% endif %}">
@@ -114,6 +111,7 @@
             </a>
             {% endif %}
         </nav>
+        {% endif %}
     </div>
 
     {% block scripts %}{% endblock %}

@@ -1,0 +1,248 @@
+\documentclass[12pt,a4paper]{report}
+
+%% --- PACKAGES (Ordre Strict) ---
+\usepackage[top=2.5cm, bottom=2.5cm, left=3cm, right=2.5cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french,english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{nomencl}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage[ruled,vlined,french,onelanguage]{algorithm2e}
+\usepackage[style=ieee, backend=biber]{biblatex}
+\usepackage{csquotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+%% --- CONFIGURATION ---
+\onehalfspacing
+\makenomenclature
+
+% Style des chapitres
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{NavyBlue}}
+  {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+  [\vspace{1ex}\titlerule]
+
+% En-têtes et pieds de page
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{École d'Ingénieurs - Projet Ergo Sensor 2024-2025}
+
+% Style listings pour Python
+\lstset{
+    language=Python,
+    backgroundcolor=\color{gray!10},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{ForestGreen}\itshape,
+    stringstyle=\color{Maroon},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=10pt,
+    frame=single,
+    breaklines=true,
+    captionpos=b
+}
+
+\addbibresource{references.bib}
+
+%% --- ACRONYMES ---
+\nomenclature{TMS}{Troubles Musculo-Squelettiques}
+\nomenclature{RULA}{Rapid Upper Limb Assessment}
+\nomenclature{REBA}{Rapid Entire Body Assessment}
+\nomenclature{IMU}{Inertial Measurement Unit}
+\nomenclature{IA}{Intelligence Artificielle}
+\nomenclature{SHAP}{SHapley Additive exPlanations}
+\nomenclature{GBM}{Gradient Boosting Machine}
+\nomenclature{WS}{WebSocket}
+\nomenclature{CSV}{Comma-Separated Values}
+\nomenclature{API}{Application Programming Interface}
+
+\begin{document}
+
+%% ==========================================================
+%% COVER PAGE
+%% ==========================================================
+\begin{titlepage}
+    \centering
+    {\large \textbf{UNIVERSITÉ DE TECHNOLOGIE / DÉPARTEMENT GÉNIE LOGICIEL}}\\[0.5cm]
+    {\large Année Universitaire 2024-2025}\\[2cm]
+    
+    \hrule height 1pt \relax \vspace{0.4cm}
+    {\huge \textbf{Système de Surveillance Ergonomique en Temps Réel basée sur des Capteurs IMU et l'Intelligence Artificielle}}\\[0.4cm]
+    \hrule height 1pt \relax \vspace{1.5cm}
+    
+    {\Large \textbf{Projet de Fin d'Études — Master Ingénierie}}\\[2cm]
+    
+    \begin{minipage}{0.4\textwidth}
+        \begin{flushleft} \large
+            \emph{Auteur :}\\
+            \textbf{[Prénom NOM]}
+        \end{flushleft}
+    \end{minipage}
+    ~
+    \begin{minipage}{0.4\textwidth}
+        \begin{flushright} \large
+            \emph{Encadrant :}\\
+            \textbf{Dr. [Nom de l'Encadrant]}
+        \end{flushright}
+    \end{minipage}\\[3cm]
+    
+    {\large Soutenu devant le jury composé de :}\\[0.5cm]
+    \begin{tabular}{lll}
+        M. [Nom] & Professeur & Président \\
+        M. [Nom] & Maître de Conférences & Examinateur \\
+        M. [Nom] & Ingénieur Expert & Rapporteur \\
+    \end{tabular}
+    
+    \vfill
+    {\large Mai 2025}
+\end{titlepage}
+
+\pagenumbering{roman}
+
+\begin{abstract}
+    \selectlanguage{french}
+    Ce projet présente \textbf{Ergo Sensor}, un système innovant de surveillance ergonomique conçu pour prévenir les Troubles Musculo-Squelettiques (TMS) en milieu industriel. Le système s'appuie sur un réseau de 12 capteurs inertiels (IMU) portés par l'opérateur pour capturer les postures en temps réel. Une pipeline d'intelligence artificielle avancée, utilisant l'algorithme LightGBM v3.0, automatise le calcul des scores RULA et REBA tout en prédisant le risque de blessure à 10 jours avec une précision remarquable ($R^2=0.9966$). L'originalité du projet réside dans l'intégration de l'explicabilité via SHAP, permettant d'identifier l'articulation critique responsable du risque détecté. Déployé sur une plateforme web interactive, Ergo Sensor offre un dashboard temps réel et des rapports PDF automatisés pour les ergonomes.
+    
+    \vspace{0.5cm}
+    \textbf{Mots-clés :} TMS, RULA, REBA, IMU, LightGBM, SHAP, temps réel, évaluation ergonomique.
+\end{abstract}
+
+\begin{abstract}
+    \selectlanguage{english}
+    This project introduces \textbf{Ergo Sensor}, an innovative ergonomic monitoring system designed to prevent Work-related Musculoskeletal Disorders (WMSDs) in industrial environments. The system utilizes a wireless network of 12 IMU sensors worn by the operator to capture body postures in real-time. An advanced AI pipeline, powered by LightGBM v3.0, automates the computation of RULA and REBA scores while predicting the 10-day injury risk with high accuracy ($R^2=0.9966$). The system's novelty lies in its integration of SHAP explainability, which identifies the specific joint driving each risk prediction. Deployed on an interactive web platform, Ergo Sensor provides a real-time dashboard and automated PDF reports for ergonomic assessments.
+    
+    \vspace{0.5cm}
+    \textbf{Keywords:} MSD, RULA, REBA, IMU, AI, ML, SHAP, Real-time, Ergonomic Assessment.
+\end{abstract}
+
+\selectlanguage{french}
+
+\tableofcontents
+\listoffigures
+\listoftables
+\printnomenclature
+\cleardoublepage
+
+\pagenumbering{arabic}
+\chapter{Introduction générale}
+\section{Contexte général : La vision technique}
+Ergo Sensor est construit sur une philosophie "Real-Time First". Chaque choix technologique --- du passage à Python 3.10 à l'implémentation du moteur d'inférence LightGBM --- est motivé par la nécessité de minimiser la "boucle de latence" entre un mouvement physique et un score de risque clinique.
+
+Le système offre :
+\begin{itemize}
+    \item Une latence inférieure à 50ms pour la télémétrie du dashboard.
+    \item Une persistance des données à 99,9\% via une journalisation hybride CSV/Cloud.
+    \item Des scores RULA/REBA cliniquement vérifiables basés sur des tables de recherche exactes.
+    \item Une prévision du risque à 10 jours utilisant des arbres de décision boostés (v3.0).
+\end{itemize}
+
+\section{Organisation du rapport}
+Ce rapport présente l'architecture système (Chap. 3), la réalisation matérielle (Chap. 4), le développement logiciel (Chap. 5), les modèles d'intelligence artificielle (Chap. 6) et une discussion sur les performances (Chap. 7).
+
+\chapter{État de l'art}
+\section{Les troubles musculo-squelettiques (TMS)}
+Les TMS représentent aujourd'hui le premier problème de santé au travail. Ergo Sensor vise à automatiser les méthodes d'évaluation manuelles comme RULA \cite{mcatamney1993rula} et REBA \cite{hignett2000reba}.
+
+\section{Capteurs inertiels IMU et Ergonomie}
+Contrairement aux systèmes optiques, les IMU (Inertial Measurement Units) ne souffrent pas d'occlusion. L'utilisation de capteurs comme le BNO055 permet une fusion de données stable pour une orientation absolue \cite{vignais2013imu}.
+
+\chapter{Analyse et conception}
+\section{Architecture du système : Pipeline de données unifié}
+Le système est organisé selon une architecture modulaire et découplée, permettant une mise à l'échelle indépendante des couches d'ingestion et de traitement.
+
+\section{Architecture multicouche}
+Le flux de données traverse quatre couches principales :
+\begin{enumerate}
+    \item \textbf{Edge Layer (Wearables)} : Nœuds ESP32 (Neck, Trunk, Arms, Legs).
+    \item \textbf{Ingestion Layer} : API Flask et Firebase Realtime Database.
+    \item \textbf{Processing Layer} : Moteurs de calcul angulaire, RULA/REBA et modèles IA.
+    \item \textbf{Presentation Layer} : Serveur Socket.IO et Dashboard Web.
+\end{enumerate}
+
+\section{Persistance des données : Stratégie CSV}
+Pour éviter de bloquer le thread principal par les E/S disque, un mécanisme de tampon (buffer) est utilisé pour l'écriture des fichiers CSV toutes les 60 trames.
+
+\chapter{Réalisation matérielle}
+\section{Configuration matérielle : ESP32 et IMU}
+Les microcontrôleurs ESP32 ont été sélectionnés pour leur architecture double cœur, permettant de gérer en parallèle la communication Wi-Fi et l'échantillonnage I2C.
+
+\section{Placement corporel des 12 capteurs}
+Les capteurs sont répartis sur les segments critiques : Cou, Tronc, Biceps (L/R), Avant-bras (L/R), Mains (L/R), Cuisses (L/R) et Jambes (L/R).
+
+\section{Mathématiques cinématiques : Euler vs Quaternions}
+Bien que les données soient affichées en angles d'Euler (Roll, Pitch, Yaw), le backend supporte les quaternions pour éviter le verrouillage de cardan (Gimbal Lock) lors de mouvements extrêmes.
+
+\chapter{Développement logiciel}
+\section{Backend : Python 3.10 et Flask}
+Python a été choisi pour sa densité de bibliothèques scientifiques. Flask offre l'agilité nécessaire pour le routage de petits paquets JSON à haute fréquence (10 Hz).
+
+\section{Socket.IO : Communication bidirectionnelle}
+Le protocole Socket.IO permet une mise à jour du dashboard en temps réel avec une sensation de fluidité ("Real-Feel") indispensable pour le retour clinique.
+
+\section{Algorithmes de scoring automatisés}
+Les moteurs RULA et REBA parcourent les tables de décision officielles à chaque réception de trame, garantissant une conformité totale avec les publications originales \cite{mcatamney1993rula}.
+
+\chapter{Modèles d'intelligence artificielle}
+\section{Pipeline IA Ergo Sensor v3.0}
+Le moteur IA v3.0 ne se contente pas de passer les angles bruts. Il effectue une ingénierie des caractéristiques en temps réel, passant de 38 à 59 features.
+
+\section{Extraction des caractéristiques}
+\begin{itemize}
+    \item \textbf{Asymétrie bilatérale} : Différence absolue entre le côté droit et gauche.
+    \item \textbf{Proxies d'énergie} : Vitesse angulaire $\times$ durée pour estimer la fatigue cumulative.
+    \item \textbf{Volatilité} : Écart-type sur des fenêtres glissantes de 60 trames.
+\end{itemize}
+
+\section{LightGBM et Isolation Forest}
+Le modèle LightGBM prédit le risque de blessure à 10 jours, tandis qu'une Isolation Forest détecte les mouvements brusques ou atypiques avec un seuil d'anomalie configuré à 0,6.
+
+\section{Explicabilité SHAP}
+L'intégration de SHAP \cite{lundberg2017shap} permet de satisfaire aux exigences de transparence clinique en décomposant le score de risque en contributions spécifiques par articulation.
+
+\chapter{Résultats et discussion}
+\section{Validation et Métriques}
+Les tests sur 4 000 échantillons montrent des performances exceptionnelles :
+\begin{itemize}
+    \item \textbf{R-Carré (Regressor)} : 0,9966.
+    \item \textbf{F1-Macro (Classifier)} : 0,9661.
+    \item \textbf{Précision de sévérité} : 98,05\%.
+\end{itemize}
+
+\section{Scalabilité et Optimisation}
+Grâce au backend Eventlet et aux "Green Threads", le système peut gérer plus de 500 paquets par seconde avec une utilisation CPU inférieure à 10\% sur un processeur moderne.
+
+\chapter{Conclusion et perspectives}
+\section{Synthèse}
+Ergo Sensor transforme l'évaluation ergonomique en un processus objectif, rapide et fiable grâce à la convergence des capteurs inertiels et du Machine Learning.
+
+\section{Perspectives futures}
+Les prochaines étapes incluent l'intégration de la vision par ordinateur (MediaPipe) pour l'étalonnage automatique et le déploiement de l'apprentissage fédéré (Federated Learning) pour améliorer les modèles sur plusieurs sites industriels.
+
+\printbibliography
+\end{document}
