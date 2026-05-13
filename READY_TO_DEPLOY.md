@@ -1,6 +1,6 @@
 # Guide de Déploiement : Hébergement de Ergo Sensor
 
-Ce document explique les étapes pour héberger l'application complète Ergo Sensor (Backend IA + Frontend Dashboard + Socket.IO) en production.
+Ce document explique les étapes pour héberger l'application complète Ergo Sensor (Backend IA v3.0-Production + Frontend Dashboard + Socket.IO) en production.
 
 > ⚠️ **Pourquoi pas Vercel ou Netlify ?**
 > Vercel et Netlify sont conçus pour des architectures *Serverless* (fonctions qui s'éteignent après quelques secondes). Or, Ergo Sensor nécessite une connexion continue via **WebSockets** (Socket.IO) pour envoyer le flux de données en direct, ainsi que la mémoire nécessaire pour charger les modèles d'Intelligence Artificielle (LightGBM). Le Serverless n'est pas du tout adapté pour cela car il coupe les connexions WebSocket et manque de RAM.

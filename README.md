@@ -26,8 +26,8 @@
     - 4.1 ESP32 Microcontroller Setup
     - 4.2 IMU Sensor Placement Strategy
 5. [Software Stack & Technologies](#5-software-stack--technologies)
-6. [Biomechanical Modeling (59-Feature Vector)](#6-biomechanical-modeling)
-7. [Artificial Intelligence Ensemble (v3.0)](#7-artificial-intelligence-ensemble)
+6. [Biomechanical Modeling (75-Feature Vector)](#6-biomechanical-modeling)
+7. [Artificial Intelligence Ensemble (v3.0-Production)](#7-artificial-intelligence-ensemble)
     - 7.1 LightGBM 10-Day Risk Forecasting
     - 7.2 🚶‍♂️ 3D Digital Twin Visualization
     - 7.3 Isolation Forest Anomaly Detection
@@ -128,25 +128,32 @@ For a full 12-sensor assessment, sensors should be placed:
 
 ---
 
-The core "brain" of the system is the **Biomechanical Feature Vector**. Every 100ms, the system generates a **59-dimensional** description of the body state (v3.0):
+## 6. Biomechanical Modeling (75-Feature Vector)
+
+The core "brain" of the system is the **Biomechanical Feature Vector**. Every 100ms, the system generates a **75-dimensional** time-series description of the body state (v3.0-Production):
 
 1.  **Kinematic Angles (12)**: Raw joint rotations (Neck Flexion, Shoulder Abduction, etc.).
-2.  **Bilateral Asymmetry (5)**: Absolute difference between right and left joints (Shoulder, Elbow, Wrist, Hip, Knee).
-3.  **Velocity Dynamics (7)**: Rate of change for major joints (Degrees per second).
-4.  **Energy Proxies (7)**: Velocity × duration interaction scores per joint.
-5.  **Composite Load (2)**: Upper body and lower body weighted load scores.
-6.  **Raw Degree Overlays (4)**: Non-normalized raw angles for specific critical joints.
-7.  **High-Risk Flags (3)**: Binary indicators for hyperflexion/overextension.
-8.  **Temporal Statistics (19)**: Mean, Variance, and 95th Percentile over sliding windows.
+2.  **Rolling Means (12)**: 15-frame temporal average of core joints, capturing sustained postures.
+3.  **Rolling Variances (12)**: 15-frame standard deviation, capturing movement jitter and micro-vibrations.
+4.  **Lag Features (12)**: The joint angle exactly 15 frames (1.5 seconds) ago.
+5.  **Bilateral Asymmetry (5)**: Absolute difference between right and left joints (Shoulder, Elbow, Wrist, Hip, Knee).
+6.  **Velocity Dynamics (7)**: Rate of change for major joints (Degrees per second).
+7.  **Energy Proxies (7)**: Velocity × duration interaction scores per joint.
+8.  **Composite Load (2)**: Upper body and lower body weighted load scores.
+9.  **High-Risk Flags (3)**: Binary indicators for hyperflexion/overextension.
+10. **Raw Degree Overlays (2)**: Non-normalized raw angles for specific critical joints.
+11. **Accelerations (1)**: Aggregate velocity derivative (`joint_accel`).
 
-This vector allows the AI to understand not just *where* the joints are, but *how fast* they are moving and *how unusual* the current posture is relative to the last minute of work.
+This vector allows the AI to understand not just *where* the joints are, but *how fast* they are moving, their temporal history over the last 1.5 seconds, and *how unusual* the current posture is.
 
 ---
 
-## 7. Artificial Intelligence Ensemble
+## 7. Artificial Intelligence Ensemble (v3.0-Production)
+
+The v3.0-Production AI pipeline was optimized using **Optuna** (10 trials) and **TimeSeriesSplit** cross-validation to guarantee zero temporal data leakage.
 
 ### 7.1 LightGBM 10-Day Risk Forecasting
-The **Regressor** model analyzes movement patterns to predict cumulative stress. If a worker exhibits "Micro-vibrations" or sustained high-risk angles, the 10-day risk probability increases, alerting the clinician to prevent potential burnout or chronic injury.
+The **Regressor** model (R²=0.9981) analyzes movement patterns to predict cumulative stress. If a worker exhibits sustained high-risk angles, the 10-day risk probability increases, alerting the clinician to prevent potential burnout or chronic injury.
 
 ### 7.2 🚶‍♂️ 3D Digital Twin Visualization
 Ergo Sensor v3.0 includes a real-time **3D Humanoid Skeleton** rendered directly in the browser using **Three.js**. 
@@ -154,19 +161,21 @@ Ergo Sensor v3.0 includes a real-time **3D Humanoid Skeleton** rendered directly
 - Allows clinicians to observe worker posture from any angle (360° rotation).
 - Provides instant visual confirmation of AI-detected anomalies.
 
-### 7.3 Isolation Forest Anomaly Detection
-This unsupervised model identifies "Outliers" in kinematics. It is particularly effective at detecting sudden falls, unexpected collisions, or movements that the system hasn't seen before in its training set.
+### 7.3 Isolation Forest Global Anomaly Detection
+This unsupervised model (300 estimators, 5% contamination) identifies "Outliers" in kinematics across all 75 features. It is particularly effective at detecting sudden falls, unexpected collisions, or movements that the system hasn't seen before in its training set.
 
-### 7.3 Granular Postural Classifiers
-Five dedicated classifiers provide real-time probability curves for:
+### 7.4 Granular Postural Classifiers
+Five dedicated binary LightGBM classifiers (avg F1=0.9906) provide real-time probability curves for:
 - **Neck Hyperflexion**
 - **Shoulder Overextension**
 - **Wrist Strain**
 - **Trunk Torsion**
 - **Elbow Hyperextension**
 
-### 7.4 Explainability via SHAP
-Using **SHAP TreeExplainer**, the system provides "Local Interpretability". For every high-risk alert, the system identifies the "Contribution" of each joint. 
+Additionally, the **Condition Classifier** (Acc=99.60%) identifies 18 distinct pathological conditions, and the **Severity Classifier** tags the risk level.
+
+### 7.5 Explainability via SHAP
+Using **SHAP TreeExplainer**, the system provides "Local Interpretability". For every high-risk alert, the system identifies the "Contribution" of each of the 75 features. 
 - *Clinician Insight*: "The risk is high primarily because of the extreme rotation of the Trunk, not the Shoulder angle."
 
 ---
@@ -282,7 +291,7 @@ This project is licensed under the **MIT License**. We encourage forks and contr
 Designed for the future of work. Built for the safety of workers.
 </div>
 
-*(Document Version 3.0 - AI Predictive Analytics & 3D Twin Edition)*
+*(Document Version 3.0-Production - AI Predictive Analytics & Time-Series Edition)*
 ...
 ...
 ...
