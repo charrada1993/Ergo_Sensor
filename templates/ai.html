@@ -3,7 +3,7 @@
 
 {% block content %}
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
 
   :root {
     --accent:  #00e5ff;
@@ -11,127 +11,243 @@
     --danger:  #ff4d6d;
     --ok:      #00e5a0;
     --purple:  #c97fff;
-    --border:  rgba(255,255,255,0.06);
+    --border:  rgba(255,255,255,0.08);
     --card-bg: rgba(18,20,40,0.55);
+    --tab-bg:  rgba(10,12,25,0.8);
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
   }
 
   /* ── Layout ─────────────────────────────────────────────── */
-  .ai-wrap { padding: 0 1.2rem 2rem; }
+  .ai-wrap { padding: 0 1.2rem 3rem; max-width: 1400px; margin: 0 auto; }
 
   .dash-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 1.2rem 1.6rem 0.8rem;
+    padding: 1.5rem 1.6rem 1.2rem;
     border-bottom: 1px solid var(--border);
     margin-bottom: 1.8rem;
+    background: linear-gradient(90deg, rgba(0,229,255,0.05) 0%, transparent 50%);
+    border-radius: 16px;
   }
   .dash-header h1 {
-    font-size: 1.4rem; font-weight: 800; font-family: 'Syne', sans-serif;
-    letter-spacing: .05em; color: var(--accent); margin: 0;
+    font-size: 1.6rem; font-weight: 800; font-family: 'Syne', sans-serif;
+    letter-spacing: .05em; color: #fff; margin: 0;
+    text-shadow: 0 0 20px rgba(0,229,255,0.4);
   }
+  .dash-header h1 i { color: var(--accent); }
+  
   .badge-version {
-    background: rgba(0,229,255,0.12); color: var(--accent);
-    border: 1px solid rgba(0,229,255,0.3);
+    background: rgba(201,127,255,0.15); color: #eebbff;
+    border: 1px solid rgba(201,127,255,0.4);
     font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
-    padding: 0.25rem 0.7rem; border-radius: 20px; margin-left: 1rem;
+    padding: 0.35rem 0.8rem; border-radius: 20px; margin-left: 1rem;
+    box-shadow: 0 0 10px rgba(201,127,255,0.2);
   }
   .badge-live {
-    background: rgba(0,229,160,0.12); color: var(--ok);
-    border: 1px solid rgba(0,229,160,0.35);
-    font-size: 0.72rem; padding: 0.22rem 0.6rem; border-radius: 20px;
+    background: rgba(0,229,160,0.15); color: var(--ok);
+    border: 1px solid rgba(0,229,160,0.4);
+    font-size: 0.8rem; font-weight: 600; padding: 0.35rem 0.8rem; border-radius: 20px;
     animation: pulse 2s infinite;
+    box-shadow: 0 0 15px rgba(0,229,160,0.2);
   }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+  @keyframes pulse { 0%,100%{opacity:1; box-shadow: 0 0 15px rgba(0,229,160,0.2);} 50%{opacity:.6; box-shadow: none;} }
+
+  /* ── AI Description Box ───────────────────────────────────── */
+  .ai-desc-box {
+    background: linear-gradient(135deg, rgba(20,22,45,0.7) 0%, rgba(10,12,25,0.9) 100%);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 16px; padding: 1.5rem 2rem; margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3), inset 0 0 20px rgba(0,229,255,0.03);
+    position: relative; overflow: hidden;
+  }
+  .ai-desc-box::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+    background: linear-gradient(to bottom, var(--accent), var(--purple));
+  }
+  .ai-desc-box h3 {
+    font-family: 'Syne', sans-serif; font-size: 1.2rem; color: #fff; margin-top: 0; margin-bottom: 0.8rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .ai-desc-box h3 i { color: var(--accent); }
+  .ai-desc-box p {
+    color: #a0a8c0; font-size: 0.92rem; line-height: 1.6; margin-bottom: 0.5rem;
+  }
+  .ai-desc-box p:last-child { margin-bottom: 0; }
+  .ai-desc-box b { color: #e4e8f4; font-weight: 600; }
 
   /* ── Card ─────────────────────────────────────────────────── */
   .card {
     background: var(--card-bg);
-    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border);
-    border-radius: 20px; padding: 1.4rem;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.45);
-    transition: border-color .3s, box-shadow .3s;
+    border-radius: 20px; padding: 1.6rem;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+    transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative; overflow: hidden;
   }
-  .card:hover { border-color: rgba(0,229,255,0.18); box-shadow: 0 20px 48px rgba(0,229,255,0.08); }
+  .card::after {
+    content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.03), transparent);
+    transform: skewX(-20deg); transition: 0.5s;
+  }
+  .card:hover::after { left: 150%; }
+  .card:hover { 
+    border-color: rgba(0,229,255,0.3); 
+    box-shadow: 0 15px 40px rgba(0,229,255,0.1), inset 0 0 15px rgba(0,229,255,0.05); 
+    transform: translateY(-2px);
+  }
   .card h3 {
-    color: var(--accent); margin: 0 0 1rem; font-weight: 700;
-    font-family: 'Syne', sans-serif; font-size: 0.95rem;
-    border-bottom: 1px solid var(--border); padding-bottom: 0.6rem;
-    display: flex; align-items: center; gap: 0.5rem;
+    color: #fff; margin: 0 0 1.2rem; font-weight: 700;
+    font-family: 'Syne', sans-serif; font-size: 1.05rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.8rem;
+    display: flex; align-items: center; gap: 0.6rem;
   }
+  .card h3 i { color: var(--accent); }
 
   /* ── Grids ─────────────────────────────────────────────────── */
-  .g2 { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-bottom:1.2rem; }
-  .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.2rem; margin-bottom:1.2rem; }
-  .g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.2rem; }
-  @media(max-width:1100px){ .g3{grid-template-columns:1fr 1fr;} .g4{grid-template-columns:1fr 1fr;} }
-  @media(max-width:700px) { .g2,.g3,.g4{grid-template-columns:1fr;} }
+  .g2 { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem; }
+  .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem; margin-bottom:1.5rem; }
+  .g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:1.2rem; margin-bottom:1.5rem; }
+  @media(max-width:1200px){ .g4{grid-template-columns:1fr 1fr;} }
+  @media(max-width:1000px){ .g3{grid-template-columns:1fr 1fr;} }
+  @media(max-width:768px) { .g2,.g3,.g4{grid-template-columns:1fr;} }
 
   /* ── Metric big ─────────────────────────────────────────────── */
   .ai-big {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 2.6rem; font-weight: 700; color: #fff; margin: 0.4rem 0 0.2rem;
-    transition: color .4s;
+    font-size: 2.8rem; font-weight: 700; color: #fff; margin: 0.4rem 0 0.2rem;
+    transition: color .4s, text-shadow .4s;
+    text-shadow: 0 0 10px rgba(255,255,255,0.1);
   }
-  .ai-label { font-size: 0.75rem; color: #8890aa; text-transform: uppercase; letter-spacing:.08em; }
-  .ai-sub   { color: #8890aa; font-size: 0.82rem; line-height: 1.45; margin-top:.5rem; }
+  .ai-label { font-size: 0.75rem; color: #7a84a5; text-transform: uppercase; letter-spacing:.1em; font-weight: 600; }
+  .ai-sub   { color: #8890aa; font-size: 0.85rem; line-height: 1.5; margin-top:.6rem; }
 
   /* ── Progress bar ───────────────────────────────────────────── */
-  .pbar { background:rgba(0,0,0,0.3); border-radius:8px; height:10px; margin-top:.9rem; overflow:hidden; border:1px solid var(--border); }
-  .pfill { height:100%; width:0%; transition:width .6s ease, background .4s; border-radius:8px; }
+  .pbar { 
+    background: rgba(0,0,0,0.4); border-radius: 10px; height: 12px; 
+    margin-top: 1rem; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); 
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  }
+  .pfill { 
+    height: 100%; width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s; 
+    border-radius: 10px; position: relative;
+  }
+  .pfill::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: shimmer 2s infinite;
+  }
+  @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
   /* ── Anomaly list ───────────────────────────────────────────── */
-  .anom-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:.55rem; font-family:'JetBrains Mono',monospace; font-size:.82rem; }
-  .anom-bar-wrap { height:5px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden; margin-top:2px; }
+  .anom-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:.55rem; font-family:'JetBrains Mono',monospace; font-size:.85rem; }
+  .anom-bar-wrap { height:6px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; margin-top:4px; margin-bottom:12px; }
 
   /* ── Model metrics table ────────────────────────────────────── */
   .metrics-grid {
-    display: grid; grid-template-columns: repeat(4,1fr); gap:.7rem;
-    margin-top: .5rem;
+    display: grid; grid-template-columns: repeat(4,1fr); gap:.8rem;
+    margin-top: 1rem;
   }
   .metric-pill {
-    background: rgba(0,0,0,0.25); border: 1px solid var(--border);
-    border-radius: 12px; padding: .55rem .8rem; text-align:center;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.2) 100%); 
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: .8rem .5rem; text-align:center;
+    transition: transform .2s, border-color .2s;
   }
-  .metric-pill .mv { font-family:'JetBrains Mono',monospace; font-size:1.2rem; font-weight:700; }
-  .metric-pill .mk { font-size:.68rem; color:#8890aa; text-transform:uppercase; letter-spacing:.06em; margin-top:.2rem; }
+  .metric-pill:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.2); }
+  .metric-pill .mv { font-family:'JetBrains Mono',monospace; font-size:1.25rem; font-weight:700; }
+  .metric-pill .mk { font-size:.7rem; color:#8890aa; text-transform:uppercase; letter-spacing:.08em; margin-top:.4rem; font-weight:600;}
 
   /* ── Console ────────────────────────────────────────────────── */
-  .console {
-    background: #060810; border: 1px solid #1e2038; border-radius: 14px;
-    padding: 1rem 1.2rem; font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem; color: #00e5a0; height: 260px; overflow-y: auto;
-    line-height: 1.6;
+  .console-wrapper {
+    background: #04050a; border: 1px solid #1e2038; border-radius: 16px;
+    overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    position: relative;
   }
-  .console::-webkit-scrollbar { width:5px; }
-  .console::-webkit-scrollbar-track { background:#060810; }
-  .console::-webkit-scrollbar-thumb { background:#2a2d4a; border-radius:4px; }
-  .c-time { color: #4a5275; }
-  .c-key  { color: var(--accent); }
+  .console-header {
+    background: #0f111a; border-bottom: 1px solid #1e2038; padding: 8px 15px;
+    display: flex; gap: 6px; align-items: center;
+  }
+  .console-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .console-dot.r { background: #ff4d6d; } .console-dot.y { background: #ffaa00; } .console-dot.g { background: #00e5a0; }
+  
+  .console {
+    padding: 1.2rem 1.4rem; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem; color: #00e5a0; height: 300px; overflow-y: auto;
+    line-height: 1.7;
+  }
+  .console::-webkit-scrollbar { width:8px; }
+  .console::-webkit-scrollbar-track { background:#04050a; }
+  .console::-webkit-scrollbar-thumb { background:#2a2d4a; border-radius:4px; border: 2px solid #04050a;}
+  .console::-webkit-scrollbar-thumb:hover { background: #4a5275; }
+  
+  .c-time { color: #5a658f; }
+  .c-key  { color: var(--accent); text-shadow: 0 0 5px rgba(0,229,255,0.3); }
   .c-val  { color: #e4e8f4; }
   .c-warn { color: var(--warn); }
-  .c-err  { color: var(--danger); }
+  .c-err  { color: var(--danger); text-shadow: 0 0 5px rgba(255,77,109,0.4); }
   .c-ok   { color: var(--ok); }
 
   /* ── Architecture diagram ───────────────────────────────────── */
   .arch-box {
-    display:flex; flex-direction:column; align-items:center; gap:.3rem;
-    background:rgba(0,0,0,0.25); border:1px solid var(--border);
-    border-radius:14px; padding:.8rem .6rem; text-align:center;
-    font-size:.75rem; transition: border-color .3s;
+    display:flex; flex-direction:column; align-items:center; gap:.4rem;
+    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1);
+    border-radius:16px; padding:1rem .8rem; text-align:center;
+    font-size:.75rem; transition: all .3s;
+    backdrop-filter: blur(10px);
   }
-  .arch-box:hover { border-color: var(--accent); }
-  .arch-icon { font-size:1.6rem; margin-bottom:.2rem; }
-  .arch-title { color: var(--accent); font-weight:700; font-family:'Syne',sans-serif; font-size:.8rem; }
-  .arch-sub   { color:#8890aa; font-size:.68rem; line-height:1.4; }
-  .arch-arrow { color:#4a5275; font-size:1.2rem; display:flex; align-items:center; }
+  .arch-box:hover { border-color: var(--accent); background: rgba(0,229,255,0.05); transform: translateY(-3px); }
+  .arch-icon { font-size:1.8rem; margin-bottom:.3rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+  .arch-title { color: #fff; font-weight:700; font-family:'Syne',sans-serif; font-size:.85rem; }
+  .arch-sub   { color:#8890aa; font-size:.7rem; line-height:1.4; }
+  .arch-arrow { color:#4a5275; font-size:1.4rem; display:flex; align-items:center; padding: 0 0.5rem; }
 
   /* ── Section titles ─────────────────────────────────────────── */
   .sec-title {
-    font-family:'Syne',sans-serif; font-size:1rem; font-weight:700;
-    color: var(--accent); margin: 1.6rem 0 .8rem;
-    display:flex; align-items:center; gap:.5rem;
+    font-family:'Syne',sans-serif; font-size:1.15rem; font-weight:700;
+    color: #fff; margin: 2rem 0 1.2rem;
+    display:flex; align-items:center; gap:.8rem; text-transform: uppercase; letter-spacing: .05em;
   }
-  .sec-title::after { content:''; flex:1; height:1px; background:var(--border); }
+  .sec-title i { color: var(--accent); }
+  .sec-title::after { content:''; flex:1; height:1px; background:linear-gradient(90deg, var(--border), transparent); }
+
+  /* ── Tabs ───────────────────────────────────────────────────── */
+  .tabs-container {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    margin-bottom: 2rem;
+  }
+  .tabs-nav {
+    display: flex; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border);
+    overflow-x: auto; padding: 0 1rem;
+  }
+  .tabs-nav::-webkit-scrollbar { height: 4px; }
+  .tab-btn {
+    background: none; border: none; padding: 1.2rem 1.5rem;
+    color: #7a84a5; font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; position: relative; transition: color 0.3s;
+    white-space: nowrap; outline: none;
+  }
+  .tab-btn:hover { color: #e4e8f4; }
+  .tab-btn.active { color: var(--accent); }
+  .tab-btn::after {
+    content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px;
+    background: var(--accent); transform: scaleX(0); transition: transform 0.3s;
+    box-shadow: 0 -2px 10px rgba(0,229,255,0.5);
+  }
+  .tab-btn.active::after { transform: scaleX(1); }
+  
+  .tab-content { padding: 2rem; display: none; animation: fadeIn 0.4s ease; }
+  .tab-content.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .plot-img {
+    width: 100%; border-radius: 12px; border: 1px solid var(--border);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4); display: block; transition: border-color .3s;
+  }
+  .plot-img:hover { border-color: rgba(255,255,255,0.2); }
 </style>
 
 <div class="ai-wrap">
@@ -139,14 +255,21 @@
 <!-- ══ HEADER ══════════════════════════════════════════════════════════════ -->
 <div class="dash-header">
   <div style="display:flex;align-items:center;">
-    <h1><i class="fas fa-brain"></i>&nbsp; Ergo Sensor — AI Predictive Analytics</h1>
-    <span class="badge-version">v3.0-Production · 75 features · Optuna · SHAP · TimeSeriesSplit</span>
+    <h1><i class="fas fa-brain"></i>&nbsp; Ergo Sensor — AI Engine</h1>
+    <span class="badge-version">v3.0 Production</span>
   </div>
   <span id="live-badge" class="badge-live">● LIVE</span>
 </div>
 
+<!-- ══ AI DESCRIPTION ══════════════════════════════════════════════════════ -->
+<div class="ai-desc-box">
+  <h3><i class="fas fa-network-wired"></i> Predictive Biomechanics Architecture</h3>
+  <p>The Ergo Sensor AI Engine leverages a highly optimized machine learning pipeline to perform real-time ergonomic risk assessment and musculoskeletal disorder (MSD) classification. The system extracts <b>75 kinematic features</b>—including raw joint angles, rolling means/standard deviations, frame-lagged histories, and dynamic joint accelerations—from 12 bilateral body joints captured at 30 FPS.</p>
+  <p>Our ensemble architecture combines <b>LightGBM Regressors</b> for continuous risk scoring (R²=0.9981), <b>Gradient Boosting Classifiers</b> for 18-class clinical diagnosis (99.60% accuracy), and <b>Isolation Forests</b> integrated with 5 localized joint anomaly detectors to instantly identify anomalous biomechanical stress points. All hyperparameters were rigorously tuned via Optuna utilizing a TimeSeriesSplit strategy to strictly prevent temporal data leakage.</p>
+</div>
+
 <!-- ══ LIVE PREDICTIONS ════════════════════════════════════════════════════ -->
-<div class="sec-title"><i class="fas fa-satellite-dish"></i> Live AI Predictions</div>
+<div class="sec-title"><i class="fas fa-satellite-dish"></i> Live Stream Analysis</div>
 
 <div class="g4">
   <!-- Risk Score -->
@@ -154,70 +277,73 @@
     <h3><i class="fas fa-exclamation-triangle"></i> Risk Score (10-day)</h3>
     <div class="ai-label">Predicted probability</div>
     <div id="ai-risk-10d" class="ai-big">—</div>
-    <div id="ai-risk-level" style="font-weight:700;font-family:'Syne';font-size:.95rem;">WAITING…</div>
+    <div id="ai-risk-level" style="font-weight:800;font-family:'Syne';font-size:1rem; letter-spacing:.05em; margin-top:.4rem;">WAITING…</div>
     <div class="pbar"><div id="ai-risk-bar" class="pfill" style="background:var(--accent)"></div></div>
   </div>
   <!-- Condition -->
   <div class="card">
-    <h3><i class="fas fa-stethoscope"></i> Diagnosed Condition</h3>
-    <div class="ai-label">Main condition</div>
-    <div id="ai-condition" class="ai-big" style="font-size:1.1rem;margin-top:.7rem;line-height:1.3;">—</div>
-    <div id="ai-severity" style="margin-top:.6rem;font-weight:700;font-family:'JetBrains Mono';font-size:.9rem;">—</div>
+    <h3><i class="fas fa-stethoscope"></i> Clinical Diagnosis</h3>
+    <div class="ai-label">Primary MSD classification</div>
+    <div id="ai-condition" class="ai-big" style="font-size:1.3rem;margin-top:.8rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="Waiting for data...">—</div>
+    <div id="ai-severity" style="margin-top:1rem;font-weight:700;font-family:'JetBrains Mono';font-size:.9rem;background:rgba(255,255,255,0.05);display:inline-block;padding:.3rem .8rem;border-radius:8px;">—</div>
   </div>
   <!-- Critical Joint (SHAP) -->
   <div class="card">
-    <h3><i class="fas fa-search"></i> SHAP Critical Joint</h3>
-    <div class="ai-label">Root cause feature</div>
-    <div id="ai-critical-joint" class="ai-big" style="font-size:1.2rem;margin-top:.7rem;">—</div>
-    <div class="ai-sub">TreeExplainer identifies the joint driving the risk prediction.</div>
+    <h3><i class="fas fa-search"></i> SHAP Root Cause</h3>
+    <div class="ai-label">Highest impact feature</div>
+    <div id="ai-critical-joint" class="ai-big" style="font-size:1.3rem;margin-top:.8rem;">—</div>
+    <div class="ai-sub">TreeExplainer localized the joint driving the current risk prediction.</div>
   </div>
   <!-- Anomaly Score -->
   <div class="card">
-    <h3><i class="fas fa-radar"></i> IsolationForest Score</h3>
-    <div class="ai-label">Global anomaly index</div>
+    <h3><i class="fas fa-radar"></i> Global Anomaly</h3>
+    <div class="ai-label">IsolationForest Index</div>
     <div id="ai-anomaly-score" class="ai-big">—</div>
     <div class="pbar"><div id="ai-anomaly-bar" class="pfill" style="background:var(--warn)"></div></div>
   </div>
 </div>
 
-<!-- ══ ANOMALY CLASSIFICATION ═══════════════════════════════════════════ -->
-<div class="sec-title"><i class="fas fa-list-ul"></i> Per-Joint Anomaly Classification</div>
-
+<!-- ══ ANOMALY & CONSOLE ═══════════════════════════════════════════════════ -->
 <div class="g2">
   <div class="card">
-    <h3><i class="fas fa-project-diagram"></i> Anomaly Probabilities</h3>
-    <div id="ai-anomaly-top5"><div style="color:#aaa;font-style:italic;">Awaiting data…</div></div>
+    <h3><i class="fas fa-project-diagram"></i> Localized Joint Stress Probabilities</h3>
+    <div class="ai-sub" style="margin-bottom: 1.2rem;">Real-time probabilities from 5 independent binary classifiers monitoring regional biomechanical strain.</div>
+    <div id="ai-anomaly-top5"><div style="color:#667;font-style:italic;padding:1rem 0;">Awaiting sensor telemetry…</div></div>
   </div>
 
   <!-- AI Console -->
-  <div class="card">
-    <h3><i class="fas fa-terminal"></i> AI Console — Live Prediction Log</h3>
-    <div id="ai-console" class="console">
-      <span class="c-time">[boot]</span> <span class="c-ok">Ergo Sensor AI v3.0-Production initialized</span><br>
-      <span class="c-time">[boot]</span> <span class="c-key">Optuna HPO:</span> <span class="c-val">10 trials × TimeSeriesSplit(3-fold) — Model 1 &amp; 2 tuned</span><br>
-      <span class="c-time">[boot]</span> <span class="c-key">Models:</span> <span class="c-val">LightGBM Regressor · GBDT Classifier · Severity · IsolationForest(300) · 5× Anomaly</span><br>
-      <span class="c-time">[boot]</span> <span class="c-key">Features:</span> <span class="c-val">75 total (38 base + 37 engineered: asymmetry · energy · rolling · lag · acceleration)</span><br>
-      <span class="c-time">[boot]</span> <span class="c-key">SHAP:</span> <span class="c-ok">TreeExplainer active — shap_regressor.png + shap_classifier.png ✓</span><br>
-      <span class="c-time">[boot]</span> <span class="c-key">Anomaly models:</span> <span class="c-ok">5/5 operational ✓</span><br>
-      <span class="c-time">[boot]</span> Waiting for sensor data…<br>
+  <div class="card" style="padding: 1.2rem;">
+    <h3 style="margin-bottom: 0.8rem; padding-left: 0.4rem; border:none;"><i class="fas fa-terminal"></i> Terminal — System Log</h3>
+    <div class="console-wrapper">
+      <div class="console-header">
+        <div class="console-dot r"></div><div class="console-dot y"></div><div class="console-dot g"></div>
+        <span style="color:#5a658f; font-family:'JetBrains Mono'; font-size:0.7rem; margin-left:8px;">root@ergo-ai:~#</span>
+      </div>
+      <div id="ai-console" class="console">
+        <span class="c-time">[boot]</span> <span class="c-ok">Ergo Sensor AI v3.0-Production initialized</span><br>
+        <span class="c-time">[boot]</span> <span class="c-key">Optuna HPO:</span> <span class="c-val">10 trials × TimeSeriesSplit(3-fold) — Models tuned</span><br>
+        <span class="c-time">[boot]</span> <span class="c-key">Ensemble:</span> <span class="c-val">LightGBM(Reg+Cls) · Severity · IsolationForest(300) · 5× Anomaly</span><br>
+        <span class="c-time">[boot]</span> <span class="c-key">Features:</span> <span class="c-val">75 total (38 base + 37 engineered kinematics)</span><br>
+        <span class="c-time">[boot]</span> <span class="c-key">SHAP Explainer:</span> <span class="c-ok">Active ✓</span><br>
+        <span class="c-time">[boot]</span> Listening for Firebase websocket stream...<br>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ══ MODEL PERFORMANCE METRICS ════════════════════════════════════════ -->
-<div class="sec-title"><i class="fas fa-chart-bar"></i> Model Performance Metrics</div>
+<!-- ══ METRICS SUMMARY ═════════════════════════════════════════════════════ -->
+<div class="sec-title"><i class="fas fa-clipboard-check"></i> Ensemble Performance Metrics</div>
 
 <div class="g3">
   <!-- Regression -->
   <div class="card">
     <h3><i class="fas fa-wave-square"></i> LightGBM — Risk Regression</h3>
     <div class="metrics-grid">
-      <div class="metric-pill"><div class="mv" style="color:var(--ok)" id="m-r2">—</div><div class="mk">R²</div></div>
+      <div class="metric-pill"><div class="mv" style="color:var(--ok)" id="m-r2">—</div><div class="mk">R² Score</div></div>
       <div class="metric-pill"><div class="mv" style="color:var(--accent)" id="m-mae">—</div><div class="mk">MAE</div></div>
       <div class="metric-pill"><div class="mv" style="color:var(--warn)" id="m-rmse">—</div><div class="mk">RMSE</div></div>
       <div class="metric-pill"><div class="mv" style="color:#c97fff">75</div><div class="mk">Features</div></div>
     </div>
-    <div class="ai-sub" style="margin-top:.8rem;">Optuna-tuned gradient boosting regressor · 75 features · <b>R²=0.9981</b> · <b>RMSE=0.0079</b> · <b>MAE=0.0056</b>. Time-series features: rolling mean/std (0.5s), lag-15 frames, joint acceleration added to 38 base biomechanical signals.</div>
   </div>
   <!-- Classifier -->
   <div class="card">
@@ -228,128 +354,108 @@
       <div class="metric-pill"><div class="mv" style="color:#c97fff">18</div><div class="mk">Classes</div></div>
       <div class="metric-pill"><div class="mv" style="color:var(--warn)">GBDT</div><div class="mk">Booster</div></div>
     </div>
-    <div class="ai-sub" style="margin-top:.8rem;">Optuna CV tuned · balanced class weights · <b>Accuracy=99.60%</b> · <b>Recall=95.13%</b> · <b>F1=96.67%</b>. Predicts 18 TMS pathologies including lumbar disc, carpal tunnel, cervicalgia, tech neck, and rotator cuff tendinitis.</div>
   </div>
   <!-- Severity + IF -->
   <div class="card">
-    <h3><i class="fas fa-tachometer-alt"></i> Severity + IsolationForest</h3>
+    <h3><i class="fas fa-tachometer-alt"></i> Severity &amp; IsolationForest</h3>
     <div class="metrics-grid">
       <div class="metric-pill"><div class="mv" style="color:var(--ok)" id="m-acc-sev">—</div><div class="mk">Sev. Acc.</div></div>
       <div class="metric-pill"><div class="mv" style="color:var(--accent)" id="m-f1-sev">—</div><div class="mk">Sev. F1</div></div>
       <div class="metric-pill"><div class="mv" style="color:var(--warn)">300</div><div class="mk">IF Trees</div></div>
-      <div class="metric-pill"><div class="mv" style="color:var(--ok)">5/5</div><div class="mk">Anomaly ✓</div></div>
+      <div class="metric-pill"><div class="mv" style="color:var(--ok)">5/5</div><div class="mk">Anomalies</div></div>
     </div>
-    <div class="ai-sub" style="margin-top:.8rem;">Severity <b>Acc=96.95%</b> F1=<b>0.9411</b> · IsolationForest 300 estimators (max_samples=256) · All 5 per-joint anomaly classifiers active (Neck/Shoulder/Wrist/Trunk/Elbow) · Trunk F1=<b>1.000</b> · avg F1=<b>0.9906</b>.</div>
   </div>
 </div>
 
-<!-- ══ EVALUATION CHARTS ═══════════════════════════════════════════════ -->
-<div class="sec-title"><i class="fas fa-chart-line"></i> Full Evaluation Suite — All 10 Plots</div>
+<!-- ══ TABBED EVALUATION CHARTS ════════════════════════════════════════════ -->
+<div class="sec-title"><i class="fas fa-chart-line"></i> Deep Dive Evaluation Suite</div>
 
-<!-- Model 1 -->
-<div class="card" style="margin-bottom:1.2rem;">
-  <h3><i class="fas fa-wave-square"></i> Model 1 — Regressor: Learning · Predicted vs Actual · Residuals</h3>
-  <p class="ai-sub" style="margin-bottom:1rem;">Optuna-optimized. R²=<b>0.9981</b> · RMSE=<b>0.0079</b> · MAE=<b>0.0056</b>. Residuals centered at zero confirm low bias.</p>
-  <img src="/plots/eval_model1_regressor.png"
-       style="width:100%;border-radius:12px;border:1px solid var(--border);display:block;"
-       alt="Model 1 Evaluation" onerror="this.style.display='none'">
-</div>
+<div class="tabs-container">
+  <div class="tabs-nav">
+    <button class="tab-btn active" onclick="openTab(event, 'tab-m1')"><i class="fas fa-wave-square"></i> Risk Regressor</button>
+    <button class="tab-btn" onclick="openTab(event, 'tab-m2')"><i class="fas fa-tags"></i> Condition Classifier</button>
+    <button class="tab-btn" onclick="openTab(event, 'tab-m3')"><i class="fas fa-tachometer-alt"></i> Severity</button>
+    <button class="tab-btn" onclick="openTab(event, 'tab-m4')"><i class="fas fa-project-diagram"></i> Joint Anomalies</button>
+    <button class="tab-btn" onclick="openTab(event, 'tab-m5')"><i class="fas fa-radar"></i> IsolationForest</button>
+    <button class="tab-btn" onclick="openTab(event, 'tab-shap')"><i class="fas fa-lightbulb"></i> SHAP XAI</button>
+  </div>
 
-<!-- Model 2 -->
-<div class="sec-title" style="font-size:.88rem;"><i class="fas fa-tags"></i> Model 2 — Condition Classifier (18 Classes)</div>
-<div class="g2" style="margin-bottom:1.2rem;">
-  <div class="card">
-    <h3><i class="fas fa-history"></i> Learning Curve (LogLoss)</h3>
-    <img src="/plots/eval_model2_learning.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="M2 Learning" onerror="this.style.display='none'">
+  <!-- TAB 1: Regressor -->
+  <div id="tab-m1" class="tab-content active">
+    <h3 style="color:#fff; font-family:'Syne'; margin-top:0;">Model 1 — Continuous Risk Regressor</h3>
+    <p class="ai-sub" style="margin-bottom:1.5rem;">Optuna-optimized gradient boosting. R²=<b>0.9981</b> · RMSE=<b>0.0079</b> · MAE=<b>0.0056</b>. Residuals remain centered at zero confirming minimal bias.</p>
+    <img src="/plots/eval_model1_regressor.png" class="plot-img" alt="Model 1 Evaluation" onerror="this.style.display='none'">
   </div>
-  <div class="card">
-    <h3><i class="fas fa-th"></i> Confusion Matrix</h3>
-    <img src="/plots/eval_model2_confusion.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="M2 Confusion" onerror="this.style.display='none'">
-  </div>
-</div>
-<div class="g2" style="margin-bottom:1.2rem;">
-  <div class="card">
-    <h3><i class="fas fa-chart-area"></i> ROC Curves (One-vs-Rest · AUC per class)</h3>
-    <img src="/plots/eval_model2_roc.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="M2 ROC" onerror="this.style.display='none'">
-  </div>
-  <div class="card">
-    <h3><i class="fas fa-bullseye"></i> Precision-Recall Curves</h3>
-    <img src="/plots/eval_model2_pr.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="M2 PR" onerror="this.style.display='none'">
-  </div>
-</div>
 
-<!-- Model 3 -->
-<div class="card" style="margin-bottom:1.2rem;">
-  <h3><i class="fas fa-tachometer-alt"></i> Model 3 — Severity: Learning Curve + Confusion Matrix</h3>
-  <p class="ai-sub" style="margin-bottom:1rem;">Robust params (LR=0.03, leaves=128, depth=8). Accuracy=<b>96.95%</b> · Macro-F1=<b>0.9411</b>.</p>
-  <img src="/plots/eval_model3_severity.png"
-       style="width:100%;border-radius:12px;border:1px solid var(--border);display:block;"
-       alt="Model 3 Evaluation" onerror="this.style.display='none'">
-</div>
-
-<!-- Model 4 -->
-<div class="sec-title" style="font-size:.88rem;"><i class="fas fa-project-diagram"></i> Model 4 — Per-Joint Anomaly Classifiers (5 Joints)</div>
-<div class="card" style="margin-bottom:1rem;">
-  <h3><i class="fas fa-bar-chart"></i> F1 &amp; Accuracy by Joint</h3>
-  <p class="ai-sub" style="margin-bottom:.8rem;">Neck F1=0.9846 · Shoulder F1=0.9826 · Wrist F1=0.9926 · Trunk F1=<b>1.000</b> · Elbow F1=0.9932 · avg=<b>0.9906</b></p>
-  <img src="/plots/eval_model4_bars.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="M4 Bars" onerror="this.style.display='none'">
-</div>
-<div class="g2" style="margin-bottom:1.2rem;">
-  <div class="card">
-    <h3><i class="fas fa-history"></i> Per-Joint Learning Curves</h3>
-    <img src="/plots/eval_model4_learning.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="M4 Learning" onerror="this.style.display='none'">
+  <!-- TAB 2: Classifier -->
+  <div id="tab-m2" class="tab-content">
+    <h3 style="color:#fff; font-family:'Syne'; margin-top:0;">Model 2 — 18-Class Condition Classifier</h3>
+    <p class="ai-sub" style="margin-bottom:1.5rem;">Accuracy=<b>99.60%</b> · F1=<b>96.67%</b>. Evaluates 18 distinct TMS pathologies. Visualizing LogLoss convergence, confusion matrix, ROC-AUC per class, and Precision-Recall curves.</p>
+    <div class="g2" style="margin-bottom:1.5rem;">
+      <img src="/plots/eval_model2_learning.png" class="plot-img" alt="M2 Learning" onerror="this.style.display='none'">
+      <img src="/plots/eval_model2_confusion.png" class="plot-img" alt="M2 Confusion" onerror="this.style.display='none'">
+    </div>
+    <div class="g2">
+      <img src="/plots/eval_model2_roc.png" class="plot-img" alt="M2 ROC" onerror="this.style.display='none'">
+      <img src="/plots/eval_model2_pr.png" class="plot-img" alt="M2 PR" onerror="this.style.display='none'">
+    </div>
   </div>
-  <div class="card">
-    <h3><i class="fas fa-chart-area"></i> Per-Joint ROC Curves</h3>
-    <img src="/plots/eval_model4_roc.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="M4 ROC" onerror="this.style.display='none'">
-  </div>
-</div>
 
-<!-- Model 5 -->
-<div class="card" style="margin-bottom:1.2rem;">
-  <h3><i class="fas fa-radar"></i> Model 5 — IsolationForest: Score Distribution + Sorted Anomaly Scores</h3>
-  <p class="ai-sub" style="margin-bottom:1rem;">300 trees · contamination=5% · max_samples=256. Scores below 0 = anomaly. <b>5.00%</b> flagged in test set.</p>
-  <img src="/plots/eval_model5_isoforest.png"
-       style="width:100%;border-radius:12px;border:1px solid var(--border);display:block;"
-       alt="Model 5 IsoForest" onerror="this.style.display='none'">
-</div>
-
-<!-- SHAP -->
-<div class="g2" style="margin-bottom:1.2rem;">
-  <div class="card">
-    <h3><i class="fas fa-lightbulb"></i> SHAP — Risk Score Feature Importance</h3>
-    <p class="ai-sub" style="margin-bottom:.8rem;">TreeExplainer on 500 test samples. Shows which of 75 features most impact risk score.</p>
-    <img src="/plots/shap_regressor.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="SHAP Regressor" onerror="this.style.display='none'">
+  <!-- TAB 3: Severity -->
+  <div id="tab-m3" class="tab-content">
+    <h3 style="color:#fff; font-family:'Syne'; margin-top:0;">Model 3 — Severity Categorization</h3>
+    <p class="ai-sub" style="margin-bottom:1.5rem;">Classifies risk into Low/Medium/High severity bands. Accuracy=<b>96.95%</b> · Macro-F1=<b>0.9411</b>.</p>
+    <img src="/plots/eval_model3_severity.png" class="plot-img" alt="Model 3 Evaluation" onerror="this.style.display='none'">
   </div>
-  <div class="card">
-    <h3><i class="fas fa-lightbulb"></i> SHAP — Condition Classifier Feature Importance</h3>
-    <p class="ai-sub" style="margin-bottom:.8rem;">TreeExplainer identifies which joints drive the 18-class condition classification.</p>
-    <img src="/plots/shap_classifier.png" style="width:100%;border-radius:12px;border:1px solid var(--border);" alt="SHAP Classifier" onerror="this.style.display='none'">
-  </div>
-</div>
 
-<!-- Architecture -->
-<div class="card" style="margin-bottom:1.2rem;">
-  <h3><i class="fas fa-sitemap"></i> System Architecture — v3.0-Production</h3>
-  <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:center;margin-top:.5rem;">
-    <div class="arch-box" style="width:100px;"><div class="arch-icon">📡</div><div class="arch-title">Sensors</div><div class="arch-sub">IMU / ESP32<br>Firebase RTDB</div></div>
-    <div class="arch-arrow">→</div>
-    <div class="arch-box" style="width:110px;"><div class="arch-icon">⚙️</div><div class="arch-title">DataProcessor</div><div class="arch-sub">Angle calc<br>RULA / REBA</div></div>
-    <div class="arch-arrow">→</div>
-    <div class="arch-box" style="width:130px;border-color:rgba(0,229,255,0.35);"><div class="arch-icon">🤖</div><div class="arch-title">AI Engine v3.0</div><div class="arch-sub">LightGBM×3<br>IsoForest×1<br>Anomaly×5<br><b>Optuna+SHAP</b></div></div>
-    <div class="arch-arrow">→</div>
-    <div class="arch-box" style="width:100px;"><div class="arch-icon">🌐</div><div class="arch-title">Flask + WS</div><div class="arch-sub">SocketIO<br>REST API</div></div>
-    <div class="arch-arrow">→</div>
-    <div class="arch-box" style="width:100px;"><div class="arch-icon">📊</div><div class="arch-title">Dashboard</div><div class="arch-sub">Real-time<br>HTML/JS</div></div>
-    <div style="width:100%;margin-top:.8rem;border-top:1px solid var(--border);padding-top:.8rem;">
-      <div style="font-size:.72rem;color:#8890aa;line-height:1.9;">
-        <b style="color:var(--accent)">Dataset:</b> 20 000 samples · <b style="color:#c97fff">75 features</b> (38 base + 37 engineered: rolling, lag, accel, asymmetry, energy, load) · 12 joints bilateral<br>
-        <b style="color:var(--accent)">HPO:</b> Optuna (10 trials) + TimeSeriesSplit(3-fold) — prevents temporal data leakage in CV<br>
-        <b style="color:var(--accent)">Conditions:</b> 18 TMS pathologies · balanced class weights · GBDT booster<br>
-        <b style="color:var(--accent)">Anomalies:</b> 5/5 joint detectors · avg F1=<b style="color:var(--ok)">0.9906</b> · Trunk F1=<b style="color:var(--ok)">1.000</b><br>
-        <b style="color:var(--accent)">Pipeline:</b> retrain_v3.py → ai_engine.py → app.py · Render.com deployment
+  <!-- TAB 4: Per-Joint Anomalies -->
+  <div id="tab-m4" class="tab-content">
+    <h3 style="color:#fff; font-family:'Syne'; margin-top:0;">Model 4 — Localized Joint Anomaly Classifiers</h3>
+    <p class="ai-sub" style="margin-bottom:1.5rem;">5 independent models monitoring Neck, Shoulder, Wrist, Trunk, and Elbow. Average F1 Score=<b>0.9906</b>.</p>
+    <img src="/plots/eval_model4_bars.png" class="plot-img" style="margin-bottom:1.5rem;" alt="M4 Bars" onerror="this.style.display='none'">
+    <div class="g2">
+      <img src="/plots/eval_model4_learning.png" class="plot-img" alt="M4 Learning" onerror="this.style.display='none'">
+      <img src="/plots/eval_model4_roc.png" class="plot-img" alt="M4 ROC" onerror="this.style.display='none'">
+    </div>
+  </div>
+
+  <!-- TAB 5: IsolationForest -->
+  <div id="tab-m5" class="tab-content">
+    <h3 style="color:#fff; font-family:'Syne'; margin-top:0;">Model 5 — Global IsolationForest</h3>
+    <p class="ai-sub" style="margin-bottom:1.5rem;">Unsupervised anomaly detection using 300 estimators (max_samples=256). Identifies complex multivariate outliers in kinematic chains.</p>
+    <img src="/plots/eval_model5_isoforest.png" class="plot-img" alt="Model 5 IsoForest" onerror="this.style.display='none'">
+  </div>
+
+  <!-- TAB 6: SHAP -->
+  <div id="tab-shap" class="tab-content">
+    <h3 style="color:#fff; font-family:'Syne'; margin-top:0;">SHAP — Explainable AI (XAI)</h3>
+    <p class="ai-sub" style="margin-bottom:1.5rem;">TreeExplainer applied to test samples to decode model decision-making and pinpoint exact root causes driving risk.</p>
+    <div class="g2">
+      <div>
+        <h4 style="color:#a0a8c0; margin:0 0 10px; font-size:0.9rem;">Regressor Feature Importance</h4>
+        <img src="/plots/shap_regressor.png" class="plot-img" alt="SHAP Regressor" onerror="this.style.display='none'">
+      </div>
+      <div>
+        <h4 style="color:#a0a8c0; margin:0 0 10px; font-size:0.9rem;">Classifier Feature Importance</h4>
+        <img src="/plots/shap_classifier.png" class="plot-img" alt="SHAP Classifier" onerror="this.style.display='none'">
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ══ ARCHITECTURE DIAGRAM ════════════════════════════════════════════════ -->
+<div class="card" style="margin-bottom:2rem;">
+  <h3><i class="fas fa-sitemap"></i> Data Flow Architecture</h3>
+  <div style="display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;justify-content:center;margin-top:1rem; padding: 1rem 0;">
+    <div class="arch-box" style="width:110px;"><div class="arch-icon">📡</div><div class="arch-title">Sensors</div><div class="arch-sub">IMU / ESP32<br>Firebase RTDB</div></div>
+    <div class="arch-arrow"><i class="fas fa-chevron-right"></i></div>
+    <div class="arch-box" style="width:120px;"><div class="arch-icon">⚙️</div><div class="arch-title">DataProcessor</div><div class="arch-sub">Kinematics<br>RULA / REBA</div></div>
+    <div class="arch-arrow"><i class="fas fa-chevron-right"></i></div>
+    <div class="arch-box" style="width:150px;border-color:var(--accent);background:rgba(0,229,255,0.08);box-shadow:0 0 15px rgba(0,229,255,0.15);"><div class="arch-icon">🤖</div><div class="arch-title">AI Engine v3.0</div><div class="arch-sub">75 Features<br>Optuna+SHAP<br>Ensemble ML</div></div>
+    <div class="arch-arrow"><i class="fas fa-chevron-right"></i></div>
+    <div class="arch-box" style="width:110px;"><div class="arch-icon">🌐</div><div class="arch-title">Flask + WS</div><div class="arch-sub">SocketIO<br>REST API</div></div>
+    <div class="arch-arrow"><i class="fas fa-chevron-right"></i></div>
+    <div class="arch-box" style="width:110px;"><div class="arch-icon">📊</div><div class="arch-title">Dashboard</div><div class="arch-sub">Real-time<br>UI / UX</div></div>
   </div>
 </div>
 
@@ -360,10 +466,22 @@
 {% block scripts %}
 <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 <script>
+// ── Tabs Logic ──────────────────────────────────────────────
+function openTab(evt, tabId) {
+  const contents = document.querySelectorAll('.tab-content');
+  contents.forEach(c => c.classList.remove('active'));
+  
+  const btns = document.querySelectorAll('.tab-btn');
+  btns.forEach(b => b.classList.remove('active'));
+  
+  document.getElementById(tabId).classList.add('active');
+  evt.currentTarget.classList.add('active');
+}
+
+// ── WebSocket & Dynamic Updates ──────────────────────────────
 const socket = io();
 const cons   = document.getElementById('ai-console');
 
-// ── Console logger ──────────────────────────────────────────
 function ts() {
   return new Date().toTimeString().slice(0,8);
 }
@@ -372,7 +490,6 @@ function log(line) {
   cons.scrollTop  = cons.scrollHeight;
 }
 
-// ── Load static metrics on page load ───────────────────────
 fetch('/api/ai-metrics')
   .then(r => r.json())
   .then(m => {
@@ -389,24 +506,26 @@ fetch('/api/ai-metrics')
     const ver  = m.version    ?? '?';
     const nf   = m.n_features ?? '?';
     const ns   = m.n_samples  ?? '?';
-    const date = m.created    ? new Date(m.created).toLocaleString() : '?';
     log(`<span class="c-time">[${ts()}]</span> <span class="c-ok">Metrics loaded — v${ver}</span>`);
-    log(`<span class="c-time">[${ts()}]</span> <span class="c-key">Features:</span> <span class="c-val">${nf}</span>  <span class="c-key">Samples:</span> <span class="c-val">${ns}</span>  <span class="c-key">Trained:</span> <span class="c-val">${date}</span>`);
-    log(`<span class="c-time">[${ts()}]</span> <span class="c-key">R²=</span><span class="c-val">${fmt(m.regression?.r2,4)}</span>  <span class="c-key">RMSE=</span><span class="c-val">${fmt(m.regression?.rmse,4)}</span>  <span class="c-key">MAE=</span><span class="c-val">${fmt(m.regression?.mae,4)}</span>`);
-    log(`<span class="c-time">[${ts()}]</span> <span class="c-key">CondAcc=</span><span class="c-val">${fmt(m.condition?.accuracy,4)}</span>  <span class="c-key">Recall=</span><span class="c-val">${fmt(m.condition?.recall,4)}</span>  <span class="c-key">F1=</span><span class="c-val">${fmt(m.condition?.f1_macro,4)}</span>  <span class="c-key">SevAcc=</span><span class="c-val">${fmt(m.severity?.accuracy,4)}</span>`);
+    log(`<span class="c-time">[${ts()}]</span> <span class="c-key">Features:</span> <span class="c-val">${nf}</span>  <span class="c-key">Samples:</span> <span class="c-val">${ns}</span>`);
   })
   .catch(() => log(`<span class="c-time">[${ts()}]</span> <span class="c-warn">Could not load metrics JSON</span>`));
 
-// ── WebSocket ────────────────────────────────────────────────
 socket.on('connect', () => {
-  document.getElementById('live-badge').style.background = 'rgba(0,229,160,0.18)';
-  log(`<span class="c-time">[${ts()}]</span> <span class="c-ok">WebSocket connected</span>`);
+  const b = document.getElementById('live-badge');
+  b.style.background = 'rgba(0,229,160,0.15)';
+  b.style.color = 'var(--ok)';
+  b.style.borderColor = 'rgba(0,229,160,0.4)';
+  b.textContent = '● LIVE';
+  log(`<span class="c-time">[${ts()}]</span> <span class="c-ok">WebSocket stream connected</span>`);
 });
 
 socket.on('disconnect', () => {
-  document.getElementById('live-badge').style.background = 'rgba(255,77,109,0.18)';
-  document.getElementById('live-badge').style.color = 'var(--danger)';
-  document.getElementById('live-badge').textContent = '● OFFLINE';
+  const b = document.getElementById('live-badge');
+  b.style.background = 'rgba(255,77,109,0.15)';
+  b.style.color = 'var(--danger)';
+  b.style.borderColor = 'rgba(255,77,109,0.4)';
+  b.textContent = '● OFFLINE';
   log(`<span class="c-time">[${ts()}]</span> <span class="c-err">WebSocket disconnected</span>`);
 });
 
@@ -414,44 +533,51 @@ socket.on('angles', (data) => {
   if (!data.ai_predictions) return;
   const ai = data.ai_predictions;
 
-  // ── Risk Score ──────────────────────────────────────────
+  // Risk
   const r10 = parseFloat(ai.risk_10d || 0);
   let rColor = '#00e5a0';
   if (r10 > 0.4) rColor = '#ffaa00';
   if (r10 > 0.7) rColor = '#ff4d6d';
 
-  document.getElementById('ai-risk-10d').textContent   = r10.toFixed(3);
-  document.getElementById('ai-risk-10d').style.color   = rColor;
-  document.getElementById('ai-risk-level').textContent = (ai.risk_level || 'UNKNOWN');
+  const riskEl = document.getElementById('ai-risk-10d');
+  riskEl.textContent = r10.toFixed(3);
+  riskEl.style.color = rColor;
+  riskEl.style.textShadow = `0 0 15px ${rColor}80`;
+
+  document.getElementById('ai-risk-level').textContent = (ai.risk_level || 'UNKNOWN').toUpperCase();
   document.getElementById('ai-risk-level').style.color = rColor;
-  document.getElementById('ai-risk-bar').style.width   = `${r10 * 100}%`;
+  document.getElementById('ai-risk-bar').style.width   = `${Math.min(r10 * 100, 100)}%`;
   document.getElementById('ai-risk-bar').style.background = rColor;
 
-  // ── Condition & Severity ────────────────────────────────
+  // Condition
   const cond = (ai.condition || '—').replace(/_/g,' ');
   document.getElementById('ai-condition').textContent  = cond;
-  const sev  = (ai.severity   || '—').toUpperCase();
+  document.getElementById('ai-condition').title = cond;
+  
+  const sev  = (ai.severity || '—').toUpperCase();
   let sevColor = '#00e5a0';
   if (sev === 'MEDIUM') sevColor = '#ffaa00';
   if (sev === 'HIGH')   sevColor = '#ff4d6d';
   document.getElementById('ai-severity').textContent   = `Severity: ${sev}`;
   document.getElementById('ai-severity').style.color   = sevColor;
+  document.getElementById('ai-severity').style.borderLeft = `3px solid ${sevColor}`;
 
-  // ── SHAP Critical Joint ─────────────────────────────────
+  // SHAP
   const crit = (ai.critical_joint || 'Normal').replace(/_/g,' ');
   document.getElementById('ai-critical-joint').textContent = crit;
+  document.getElementById('ai-critical-joint').style.color = rColor;
 
-  // ── Anomaly Score ───────────────────────────────────────
+  // Anomaly Global
   const anom = parseFloat(ai.anomaly_score || 0);
   let aColor = '#00e5a0';
-  if (anom > 0.5) aColor = '#ffaa00';
+  if (anom > 0.4) aColor = '#ffaa00';
   if (anom > 0.7) aColor = '#ff4d6d';
   document.getElementById('ai-anomaly-score').textContent = anom.toFixed(3);
   document.getElementById('ai-anomaly-score').style.color = aColor;
   document.getElementById('ai-anomaly-bar').style.width   = `${Math.min(anom*100,100)}%`;
   document.getElementById('ai-anomaly-bar').style.background = aColor;
 
-  // ── Per-joint anomaly bars ──────────────────────────────
+  // Per-joint
   if (ai.anomaly_probs) {
     const sorted = Object.entries(ai.anomaly_probs).sort((a,b) => b[1]-a[1]);
     const html = sorted.map(([name,prob]) => {
@@ -460,31 +586,30 @@ socket.on('angles', (data) => {
       if (prob > 0.4) bc = '#ffaa00';
       if (prob > 0.7) bc = '#ff4d6d';
       return `
-        <div style="margin-bottom:7px;">
+        <div style="margin-bottom:10px;">
           <div class="anom-row">
-            <span style="color:#e4e8f4;">${name}</span>
+            <span style="color:#e4e8f4;font-weight:500;">${name}</span>
             <span style="color:${bc};font-weight:700;">${pct}%</span>
           </div>
           <div class="anom-bar-wrap">
-            <div style="height:100%;width:${pct}%;background:${bc};border-radius:3px;transition:width .5s;"></div>
+            <div style="height:100%;width:${pct}%;background:${bc};border-radius:3px;transition:width .6s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 0 8px ${bc}80;"></div>
           </div>
         </div>`;
     }).join('');
     document.getElementById('ai-anomaly-top5').innerHTML = html;
   }
 
-  // ── Console log ─────────────────────────────────────────
-  const condShort = (ai.condition||'—').replace(/_/g,' ').slice(0,22);
+  // Console
+  const condShort = cond.length > 20 ? cond.substring(0,20)+'...' : cond;
   log(
     `<span class="c-time">[${ts()}]</span> ` +
     `risk=<span style="color:${rColor};font-weight:700;">${r10.toFixed(3)}</span> ` +
-    `level=<span class="c-key">${ai.risk_level||'?'}</span> ` +
     `cond=<span class="c-val">${condShort}</span> ` +
     `sev=<span style="color:${sevColor}">${sev}</span> ` +
     `joint=<span class="c-warn">${crit}</span> ` +
     `anom=<span class="c-err">${anom.toFixed(3)}</span>`
   );
-  // Keep only last 80 lines
+  
   const lines = cons.innerHTML.split('<br>');
   if (lines.length > 80) cons.innerHTML = lines.slice(-80).join('<br>');
 });
