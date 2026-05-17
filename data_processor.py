@@ -38,6 +38,9 @@ class DataProcessor:
         self.rula_engine  = RULAEngine(config)
         self.reba_engine  = REBAEngine(config)
 
+        self._last_emit = 0.0   # throttle: emit at most 10 times per second
+        self.EMIT_INTERVAL = 0.1  # seconds
+
     def set_ai_models(self, ai_models):
         self.ai_models = ai_models
         from feature_extractor import FeatureExtractor
@@ -71,7 +74,7 @@ class DataProcessor:
 
             # --- Emit raw sensor data to dashboard (for debugging, always) ---
             self.socketio.emit('raw_sensors', raw_data)
-            print("[EMIT] raw_sensors event sent.")
+            self.socketio.sleep(0)
 
             # --- Build data dict using EXPECTED_SENSORS (or all sensors if EXPECTED_SENSORS empty) ---
             expected = getattr(self.config, 'EXPECTED_SENSORS', [])
@@ -87,10 +90,19 @@ class DataProcessor:
 
             print(f"[DEBUG] Filtered sensor snapshot (by EXPECTED_SENSORS): {data}")
 
-            # Need at least two sensors to compute joint angles
-            if len(data) < 2:
-                print(f"[DEBUG] Only {len(data)} sensor(s) available. Need >=2 for joint angles. Waiting for more sensors...")
+            # Need at least one sensor to emit angles
+            if len(data) < 1:
+                print(f"[DEBUG] No sensors available yet. Waiting...")
                 return
+
+            # --- Throttle: only run heavy processing and emit at 10Hz max ---
+            now = time.time()
+            # Default to 0.1s interval to allow 10Hz processing
+            emit_interval = getattr(self, 'EMIT_INTERVAL', 0.1)
+            if now - self._last_emit < emit_interval:
+                return
+            self._last_emit = now
+
 
             # --- Compute joint angles ---
             angles = compute_joint_angles(data)
@@ -236,6 +248,7 @@ class DataProcessor:
                 payload['ai_predictions'] = ai_pred
 
             self.socketio.emit('angles', payload)
+            self.socketio.sleep(0)
             print("[EMIT] angles payload sent.")
 
     def get_sensor_status(self):

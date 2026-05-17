@@ -189,41 +189,21 @@ function initRebaCharts() {
     }
 }
 
-initTrendCharts();
-initRulaCharts();
-initRebaCharts();
-
-// Connection status
-const statusEl = document.getElementById('conn-status');
-if (!statusEl) {
-    const newStatus = document.createElement('div');
-    newStatus.id = 'conn-status';
-    newStatus.style.position = 'fixed';
-    newStatus.style.top = '10px';
-    newStatus.style.right = '10px';
-    newStatus.style.background = '#12151d';
-    newStatus.style.border = '1px solid #1e2330';
-    newStatus.style.padding = '4px 12px';
-    newStatus.style.borderRadius = '20px';
-    newStatus.style.fontFamily = 'monospace';
-    newStatus.style.fontSize = '12px';
-    newStatus.style.zIndex = '9999';
-    document.body.appendChild(newStatus);
-}
-
-socket.on('connect', () => {
-    const el = document.getElementById('conn-status');
-    const elMob = document.getElementById('conn-status-mobile');
-    if (el) { el.innerText = '⬤ Connected'; el.classList.add('live'); }
-    if (elMob) { elMob.innerText = '⬤ Live'; elMob.classList.add('live'); }
-    console.log('Socket connected');
-});
-socket.on('disconnect', () => {
-    const el = document.getElementById('conn-status');
-    const elMob = document.getElementById('conn-status-mobile');
-    if (el) { el.innerText = '⬤ Disconnected'; el.classList.remove('live'); }
-    if (elMob) { elMob.innerText = '⬤ Disconnected'; elMob.classList.remove('live'); }
-    console.log('Socket disconnected');
+// Defer all chart + socket wiring until the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Ensure conn-status badge exists
+    if (!document.getElementById('conn-status')) {
+        const newStatus = document.createElement('div');
+        newStatus.id = 'conn-status';
+        newStatus.style.cssText = 'position:fixed;top:10px;right:10px;background:#12151d;border:1px solid #1e2330;padding:4px 12px;border-radius:20px;font-family:monospace;font-size:12px;z-index:9999;';
+        newStatus.innerText = '⬤ Connecting...';
+        document.body.appendChild(newStatus);
+    }
+    initTrendCharts();
+    initRulaCharts();
+    initRebaCharts();
+    createRawDebugPanel();
+    wireSocketEvents();
 });
 
 // ── Debug panel for raw sensor data ──
@@ -272,9 +252,23 @@ function createRawDebugPanel() {
     document.body.appendChild(div);
     rawDebugDiv = div;
 }
-createRawDebugPanel();
+// ── Wire all socket events (called after DOM ready) ──────────────────────
+function wireSocketEvents() {
+    socket.on('connect', () => {
+        const el = document.getElementById('conn-status');
+        const elMob = document.getElementById('conn-status-mobile');
+        if (el) { el.innerText = '⬤ Connected'; el.classList.add('live'); }
+        if (elMob) { elMob.innerText = '⬤ Live'; elMob.classList.add('live'); }
+        console.log('Socket connected');
+    });
+    socket.on('disconnect', () => {
+        const el = document.getElementById('conn-status');
+        const elMob = document.getElementById('conn-status-mobile');
+        if (el) { el.innerText = '⬤ Disconnected'; el.classList.remove('live'); }
+        if (elMob) { elMob.innerText = '⬤ Disconnected'; elMob.classList.remove('live'); }
+        console.log('Socket disconnected');
+    });
 
-// Listen for raw sensor data (emitted by fixed data_processor.py)
 socket.on('raw_sensors', (data) => {
     console.log('[RAW]', data);
     
@@ -317,19 +311,19 @@ socket.on('angles', data => {
         if (rulaChartRight) {
             rulaChartRight.data.labels = Array.from({ length: rulaRightHistory.length }, (_, i) => i);
             rulaChartRight.data.datasets[0].data = rulaRightHistory;
-            rulaChartRight.update();
+        rulaChartRight.update('none');
         }
         if (rulaChartLeft) {
             rulaChartLeft.data.labels = Array.from({ length: rulaLeftHistory.length }, (_, i) => i);
             rulaChartLeft.data.datasets[0].data = rulaLeftHistory;
-            rulaChartLeft.update();
+            rulaChartLeft.update('none');
         }
         if (rulaChartBoth) {
             const maxLen = Math.max(rulaRightHistory.length, rulaLeftHistory.length);
             rulaChartBoth.data.labels = Array.from({ length: maxLen }, (_, i) => i);
             rulaChartBoth.data.datasets[0].data = rulaRightHistory;
             rulaChartBoth.data.datasets[1].data = rulaLeftHistory;
-            rulaChartBoth.update();
+            rulaChartBoth.update('none');
         }
     }
     if (data.reba) {
@@ -344,22 +338,23 @@ socket.on('angles', data => {
         if (rebaChartRight) {
             rebaChartRight.data.labels = Array.from({ length: rebaRightHistory.length }, (_, i) => i);
             rebaChartRight.data.datasets[0].data = rebaRightHistory;
-            rebaChartRight.update();
+            rebaChartRight.update('none');
         }
         if (rebaChartLeft) {
             rebaChartLeft.data.labels = Array.from({ length: rebaLeftHistory.length }, (_, i) => i);
             rebaChartLeft.data.datasets[0].data = rebaLeftHistory;
-            rebaChartLeft.update();
+            rebaChartLeft.update('none');
         }
         if (rebaChartBoth) {
             const maxLen = Math.max(rebaRightHistory.length, rebaLeftHistory.length);
             rebaChartBoth.data.labels = Array.from({ length: maxLen }, (_, i) => i);
             rebaChartBoth.data.datasets[0].data = rebaRightHistory;
             rebaChartBoth.data.datasets[1].data = rebaLeftHistory;
-            rebaChartBoth.update();
+            rebaChartBoth.update('none');
         }
     }
 });
+} // end wireSocketEvents
 
 function setText(id, val) {
     const el = document.getElementById(id);
@@ -411,7 +406,7 @@ function updateTrends(angles, legs_score) {
             const padded = Array(maxLen - slice.length).fill(null).concat(slice);
             chart.data.datasets[idx].data = padded;
         });
-        chart.update();
+        chart.update('none');  // no animation for real-time speed
     }
 }
 

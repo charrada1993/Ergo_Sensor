@@ -45,6 +45,8 @@ if not hasattr(app, '_ai_models_loaded'):
         Config.FIREBASE_CREDENTIALS_PATH,
         Config.FIREBASE_DATABASE_URL
     )
+    import atexit
+    atexit.register(firebase_listener.stop)
     print("[OK] Firebase listener started")
 
     app._ai_models_loaded = True
@@ -473,5 +475,6 @@ if __name__ == '__main__':
         host="0.0.0.0",
         port=int(os.environ.get("PORT", 5000)),
         debug=False,
-        use_reloader=False
+        use_reloader=False,
+        allow_unsafe_werkzeug=True
     )
