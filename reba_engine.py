@@ -168,10 +168,7 @@ class REBAEngine:
                      forearm_lateral=0.0,
                      wrist_deviation=0.0,
                      wrist_pronation=0.0,
-                     legs_score=None,
-                     load_score=None,
-                     coupling_score=None,
-                     activity_score=None):
+                     legs_score=None):
         """
         Compute REBA score for one side.
 
@@ -193,9 +190,6 @@ class REBAEngine:
         wrist_deviation   : wrist roll diff (hand − forearm), degrees
         wrist_pronation   : wrist yaw diff (hand − forearm), degrees
         legs_score        : 1-4  (1=standing bilateral, 2=unilateral, 3=knees 30-60°, 4=knees>60°)
-        load_score        : 0 (<5 kg), 1 (5-10 kg), 2 (>10 kg or shock)
-        coupling_score    : 0 (good), 1 (fair), 2 (poor), 3 (unacceptable)
-        activity_score    : 0 or 1
 
         Returns
         -------

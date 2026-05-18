@@ -12,7 +12,7 @@ function initCharts() {
             type: 'line',
             data: { labels: [], datasets: [{ label: 'Right RULA', data: [], borderColor: '#E84545', backgroundColor: 'rgba(232,69,69,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 1.5 }] },
             options: {
-                responsive: false,   // FIXED SIZE – canvas will not resize
+                responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
                 scales: { y: { min: 1, max: 7, ticks: { stepSize: 1 } }, x: { ticks: { display: false } } },
@@ -43,7 +43,7 @@ function initCharts() {
                 { label: 'Left RULA', data: [], borderColor: '#2980B9', backgroundColor: 'transparent', tension: 0, pointRadius: 0, borderWidth: 2 }
             ] },
             options: {
-                responsive: false,
+                responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
                 scales: { y: { min: 1, max: 7, ticks: { stepSize: 1 } }, x: { ticks: { display: false } } },

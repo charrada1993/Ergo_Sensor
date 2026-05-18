@@ -43,7 +43,7 @@ function initCharts() {
                 { label: 'Left REBA', data: [], borderColor: '#2980B9', backgroundColor: 'transparent', tension: 0, pointRadius: 0, borderWidth: 2 }
             ] },
             options: {
-                responsive: false,
+                responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
                 scales: { y: { min: 1, max: 15, ticks: { stepSize: 2 } }, x: { ticks: { display: false } } },

@@ -188,8 +188,6 @@ class RULAEngine:
                      shoulder_raised=False,
                      arm_leaning=False,
                      wrist_twist=1,
-                     load_score=None,
-                     muscle_score=None,
                      legs_score=None):
         """
         Compute RULA score for one side.
@@ -212,8 +210,6 @@ class RULAEngine:
         shoulder_raised   : bool
         arm_leaning       : bool – arm supported / leaning
         wrist_twist       : 1 (mid-range) or 2 (near end of range)
-        load_score        : 0 (<2 kg intermittent), 1 (2-10 kg intermittent), 2 (≥10 kg or shock)
-        muscle_score      : 0 (dynamic), 1 (static/repeated)
         legs_score        : 1 (both legs supported), 2 (unsupported/single leg)
 
         Returns
