@@ -235,12 +235,28 @@ class DataProcessor:
                 ai_pred=ai_pred
             )
 
-            # --- Build WebSocket payload ---
+            # --- Build WebSocket payload (replace None sides with safe defaults) ---
+            def safe_rula(s):
+                if s is None:
+                    return {'final': 0, 'action': 'Acceptable', 'upper_arm_score': 0,
+                            'forearm_score': 0, 'wrist_score': 0, 'neck_score': 0,
+                            'trunk_score': 0, 'score_a': 0, 'score_b': 0,
+                            'score_c': 0, 'score_d': 0}
+                return s
+
+            def safe_reba(s):
+                if s is None:
+                    return {'final': 0, 'action': 'Acceptable', 'trunk_score': 0,
+                            'neck_score': 0, 'legs_score': 0, 'upper_arm_score': 0,
+                            'forearm_score': 0, 'wrist_score': 0,
+                            'score_a': 0, 'score_b': 0, 'score_c': 0}
+                return s
+
             payload = {
                 'angles':      angles,
                 'risk':        risk,
-                'rula':        {'right': rula_right, 'left': rula_left},
-                'reba':        {'right': reba_right, 'left': reba_left},
+                'rula':        {'right': safe_rula(rula_right), 'left': safe_rula(rula_left)},
+                'reba':        {'right': safe_reba(reba_right), 'left': safe_reba(reba_left)},
                 'trunk_angle': trunk_angle,
                 'legs_score':  self.config.REBA_LEGS_SCORE,
             }

@@ -202,6 +202,20 @@ def reba_page():
     return render_template('reba.html')
 
 
+@app.route('/history')
+@login_required(role='doctor')
+def history():
+    """Session history — shows the CSV data viewer."""
+    return render_template('csv_view.html')
+
+
+@app.route('/settings')
+@login_required()
+def settings():
+    """Settings page — shows the system status page."""
+    return render_template('system.html')
+
+
 @app.route('/view-csv')
 @login_required(role='doctor')
 def view_csv():
