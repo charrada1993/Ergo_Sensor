@@ -135,11 +135,11 @@ function updateRULA(rula) {
         if (!ids) continue;
         setText(ids.final, s.final);
         setText(ids.action, s.action);
-        setText(ids.ua, s.upper_arm);
-        setText(ids.fa, s.forearm);
-        setText(ids.w, s.wrist);
-        setText(ids.n, s.neck);
-        setText(ids.t, s.trunk);
+        setText(ids.ua, s.upper_arm_score);
+        setText(ids.fa, s.forearm_score);
+        setText(ids.w, s.wrist_score);
+        setText(ids.n, s.neck_score);
+        setText(ids.t, s.trunk_score);
         setText(ids.a, s.score_a);
         setText(ids.b, s.score_b);
         setText(ids.c, s.score_c);
