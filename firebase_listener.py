@@ -9,13 +9,12 @@ from firebase_admin import credentials, db
 _orig_excepthook = threading.excepthook
 
 def _firebase_excepthook(args):
-    # Swallow the AttributeError that firebase_admin throws when the SSE
-    # connection drops (AttributeError: 'NoneType' object has no attribute 'read')
     if args.exc_type is AttributeError and 'read' in str(args.exc_value):
         return
     _orig_excepthook(args)
 
 threading.excepthook = _firebase_excepthook
+
 
 class FirebaseListener:
     def __init__(self, data_processor):
@@ -23,6 +22,8 @@ class FirebaseListener:
         self.thread = None
         self.running = False
         self._sensor_cache = {}
+        # Track last forwarded timestamp per sensor to deduplicate
+        self._last_forwarded_ts = {}
 
     def start(self, cred_path, database_url):
         """Initialize Firebase and start listening in a background thread."""
@@ -51,98 +52,96 @@ class FirebaseListener:
         print("Firebase listener started")
 
     def _forward_sensor(self, sensor_id, data):
+        """Forward sensor data to the data processor with timestamp deduplication."""
         if not isinstance(data, dict):
             return
-        roll  = data.get('roll')
-        pitch = data.get('pitch')
-        yaw   = data.get('yaw')
+        roll      = data.get('roll')
+        pitch     = data.get('pitch')
+        yaw       = data.get('yaw')
         timestamp = data.get('timestamp', time.time())
-        if roll is not None and pitch is not None and yaw is not None:
-            self.data_processor.process_incoming(
-                sensor_id, float(roll), float(pitch), float(yaw), float(timestamp)
-            )
+        if roll is None or pitch is None or yaw is None:
+            return
 
-    def _process_data_node(self, sensor_id, data):
-        """Recursively process data to find sensor readings."""
-        if not isinstance(data, dict):
+        # Deduplicate: skip if this exact timestamp was already forwarded
+        last_ts = self._last_forwarded_ts.get(sensor_id, 0)
+        if float(timestamp) <= last_ts:
             return
-            
-        # Is this a reading itself?
-        if 'roll' in data and 'pitch' in data and 'yaw' in data:
-            self._forward_sensor(sensor_id, data)
+        self._last_forwarded_ts[sensor_id] = float(timestamp)
+
+        self.data_processor.process_incoming(
+            sensor_id, float(roll), float(pitch), float(yaw), float(timestamp)
+        )
+
+    def _process_snapshot(self, snapshot_data):
+        """Process a full /sensor_data snapshot (dict of sensor_id -> reading)."""
+        if not isinstance(snapshot_data, dict):
             return
-            
-        # Otherwise, it might be a dict of push IDs
-        for key, value in data.items():
-            if isinstance(value, dict):
-                if 'roll' in value and 'pitch' in value and 'yaw' in value:
-                    self._forward_sensor(sensor_id, value)
-                else:
-                    self._process_data_node(sensor_id, value)
+        for sensor_id, sdata in snapshot_data.items():
+            if isinstance(sdata, dict) and 'roll' in sdata and 'pitch' in sdata and 'yaw' in sdata:
+                self._forward_sensor(sensor_id, sdata)
+                self._sensor_cache[sensor_id] = dict(sdata)
 
     def _listen(self):
         """Listen for real-time data under /sensor_data/ with auto-reconnect."""
-        SILENCE_TIMEOUT = 30  # seconds with no events before reconnect
+        SILENCE_TIMEOUT = 30  # seconds without any event before reconnect
 
         while self.running:
             ref = db.reference('/sensor_data')
-            self._initial_load = True
             self._last_event_time = time.time()
             listener = None
 
             def stream_handler(message):
                 self._last_event_time = time.time()
                 try:
-                    event = message.event_type
-                    path  = message.path
-                    data  = message.data
-
-                    # Ignore the very first full-history snapshot
-                    if self._initial_load and path == '/':
-                        self._initial_load = False
-                        print("[Firebase] Initial snapshot skipped. Listening for live data...")
-                        return
-                    self._initial_load = False
+                    path = message.path
+                    data = message.data
 
                     if data is None:
                         return
 
                     parts = [p for p in path.split('/') if p]
 
+                    # ── Full snapshot: /  ─────────────────────────────────
+                    # Render gets data this way on initial connect AND on
+                    # reconnect. Process it — deduplication prevents replaying.
                     if len(parts) == 0:
-                        if isinstance(data, dict):
-                            for sid, sdata in data.items():
-                                self._process_data_node(sid, sdata)
+                        print("[Firebase] Full snapshot received. Processing...")
+                        self._process_snapshot(data)
 
-                    elif len(parts) >= 1:
+                    # ── Single sensor node: /SENSOR_ID  ──────────────────
+                    elif len(parts) == 1:
                         sensor_id = parts[0]
+                        if isinstance(data, dict) and 'roll' in data and 'pitch' in data and 'yaw' in data:
+                            self._forward_sensor(sensor_id, data)
+                            self._sensor_cache[sensor_id] = dict(data)
 
-                        if len(parts) == 1:
-                            self._process_data_node(sensor_id, data)
+                    # ── Single field: /SENSOR_ID/field  ──────────────────
+                    elif len(parts) == 2:
+                        sensor_id = parts[0]
+                        field     = parts[1]
+                        if sensor_id not in self._sensor_cache:
+                            self._sensor_cache[sensor_id] = {}
+                        if isinstance(data, dict):
+                            if 'roll' in data and 'pitch' in data and 'yaw' in data:
+                                self._forward_sensor(sensor_id, data)
+                                self._sensor_cache[sensor_id] = dict(data)
+                        else:
+                            self._sensor_cache[sensor_id][field] = data
+                            cached = self._sensor_cache[sensor_id]
+                            if all(k in cached for k in ('roll', 'pitch', 'yaw')):
+                                self._forward_sensor(sensor_id, cached)
 
-                        elif len(parts) == 2:
-                            if isinstance(data, dict):
-                                self._process_data_node(sensor_id, data)
-                            else:
-                                field = parts[1]
-                                if sensor_id not in self._sensor_cache:
-                                    self._sensor_cache[sensor_id] = {}
-                                self._sensor_cache[sensor_id][field] = data
-                                cached = self._sensor_cache[sensor_id]
-                                if all(k in cached for k in ('roll', 'pitch', 'yaw')):
-                                    self._forward_sensor(sensor_id, cached)
-
-                        elif len(parts) >= 3:
-                            # /SENSOR/push_id/field
-                            sensor_id = parts[0]
-                            field = parts[-1]
-                            if not isinstance(data, dict):
-                                if sensor_id not in self._sensor_cache:
-                                    self._sensor_cache[sensor_id] = {}
-                                self._sensor_cache[sensor_id][field] = data
-                                cached = self._sensor_cache[sensor_id]
-                                if all(k in cached for k in ('roll', 'pitch', 'yaw')):
-                                    self._forward_sensor(sensor_id, cached)
+                    # ── Deep field: /SENSOR_ID/subkey/field  ─────────────
+                    elif len(parts) >= 3:
+                        sensor_id = parts[0]
+                        field     = parts[-1]
+                        if sensor_id not in self._sensor_cache:
+                            self._sensor_cache[sensor_id] = {}
+                        if not isinstance(data, dict):
+                            self._sensor_cache[sensor_id][field] = data
+                            cached = self._sensor_cache[sensor_id]
+                            if all(k in cached for k in ('roll', 'pitch', 'yaw')):
+                                self._forward_sensor(sensor_id, cached)
 
                 except Exception as e:
                     print(f"[Firebase ERROR] stream_handler: {e}")
@@ -154,7 +153,7 @@ class FirebaseListener:
                     listener = ref.listen(stream_handler)
                 print("[Firebase] Stream started.")
 
-                # Watchdog: check for silence and reconnect if needed
+                # Watchdog: reconnect if no events arrive for SILENCE_TIMEOUT
                 while self.running:
                     time.sleep(5)
                     silence = time.time() - self._last_event_time
@@ -179,4 +178,4 @@ class FirebaseListener:
     def stop(self):
         self.running = False
         if self.thread:
-            self.thread.join(timeout=5)
+            self.thread.join(timeout=5)
