@@ -11,8 +11,6 @@ Final    →  Table C lookup (Score C × Score D)
 class RULAEngine:
     def __init__(self, config):
         self.config       = config
-        self.load_score   = getattr(config, 'RULA_LOAD_SCORE',   0)   # 0-2
-        self.muscle_score = getattr(config, 'RULA_MUSCLE_SCORE', 0)   # 0-1
         self.legs_score   = getattr(config, 'RULA_LEGS_SCORE',   1)   # 1=supported, 2=not
 
     # ──────────────────────────────────────────────────────────────────────────
@@ -222,8 +220,6 @@ class RULAEngine:
         -------
         dict with all intermediate and final scores.
         """
-        load   = load_score   if load_score   is not None else self.load_score
-        muscle = muscle_score if muscle_score is not None else self.muscle_score
         legs   = legs_score   if legs_score   is not None else self.legs_score
 
         # ── Group A ───────────────────────────────────────────────────────────
@@ -239,7 +235,7 @@ class RULAEngine:
         idx_tw = tw - 1
 
         score_a = self._table_a[idx_ua][idx_fa][idx_w][idx_tw]
-        score_c = score_a + muscle + load
+        score_c = score_a
 
         # ── Group B ───────────────────────────────────────────────────────────
         n_raw = self.neck_score(neck_flexion, neck_lateral, neck_rotation)
@@ -251,7 +247,7 @@ class RULAEngine:
         idx_l = l - 1
 
         score_b = self._table_b[idx_n][idx_t][idx_l]
-        score_d = score_b + muscle + load
+        score_d = score_b
 
         # ── Table C (Final) ───────────────────────────────────────────────────
         idx_sc = min(max(score_c, 1), 8) - 1
@@ -282,9 +278,7 @@ class RULAEngine:
             'score_b':  score_b,
             'score_c':  score_c,
             'score_d':  score_d,
-            # Adjustments
-            'muscle':   muscle,
-            'load':     load,
+
             # Input angles (for CSV logging)
             'shoulder_flexion':    round(shoulder_flexion, 2),
             'shoulder_abduction':  round(shoulder_abduction, 2),

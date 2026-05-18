@@ -41,14 +41,9 @@ class Config:
     RISK_WEIGHTS = [0.2, 0.2, 0.2, 0.2, 0.2]
 
     # RULA defaults
-    RULA_LOAD_SCORE = 0
-    RULA_MUSCLE_SCORE = 0
     RULA_LEGS_SCORE = 1
 
     # REBA defaults
-    REBA_LOAD_SCORE = 0
-    REBA_COUPLING_SCORE = 0
-    REBA_ACTIVITY_SCORE = 0
     REBA_LEGS_SCORE = 1
 
     # Ensure directories exist

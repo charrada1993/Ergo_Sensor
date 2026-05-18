@@ -11,9 +11,6 @@ Final    →  Table C lookup (Score A × Score B)  + activity
 class REBAEngine:
     def __init__(self, config):
         self.config          = config
-        self.load_score      = getattr(config, 'REBA_LOAD_SCORE',     0)  # 0,1,2
-        self.coupling_score  = getattr(config, 'REBA_COUPLING_SCORE', 0)  # 0,1,2,3
-        self.activity_score  = getattr(config, 'REBA_ACTIVITY_SCORE', 0)  # 0,1
         self.legs_score      = getattr(config, 'REBA_LEGS_SCORE',     1)  # 1-4
 
     # ──────────────────────────────────────────────────────────────────────────
@@ -204,9 +201,6 @@ class REBAEngine:
         -------
         dict with all intermediate and final scores.
         """
-        load     = load_score     if load_score     is not None else self.load_score
-        coupling = coupling_score if coupling_score is not None else self.coupling_score
-        activity = activity_score if activity_score is not None else self.activity_score
         legs     = legs_score     if legs_score     is not None else self.legs_score
 
         # ── Group A ───────────────────────────────────────────────────────────
@@ -219,7 +213,7 @@ class REBAEngine:
         idx_l = l - 1
 
         table_a_val = self._table_a[idx_n][idx_t][idx_l]
-        score_a     = table_a_val + load
+        score_a     = table_a_val
 
         # ── Group B ───────────────────────────────────────────────────────────
         ua_raw = self.upper_arm_score(upper_arm_flexion, upper_arm_abduction,
@@ -232,13 +226,13 @@ class REBAEngine:
         idx_w  = min(max(w_raw,  1), 3) - 1
 
         table_b_val = self._table_b[idx_ua][idx_fa][idx_w]
-        score_b     = table_b_val + coupling
+        score_b     = table_b_val
 
         # ── Table C (Final) ───────────────────────────────────────────────────
         idx_sa = min(max(score_a, 1), 12) - 1
         idx_sb = min(max(score_b, 1), 12) - 1
         score_c = self._table_c[idx_sa][idx_sb]
-        final   = score_c + activity
+        final   = score_c
 
         # ── Action level ──────────────────────────────────────────────────────
         if final <= 1:
@@ -266,10 +260,7 @@ class REBAEngine:
             'table_b':  table_b_val,
             'score_b':  score_b,
             'score_c':  score_c,
-            # Adjustments
-            'load':     load,
-            'coupling': coupling,
-            'activity': activity,
+
             # Input angles (for CSV logging)
             'trunk_flexion':       round(trunk_flexion,     2),
             'trunk_lateral':       round(trunk_lateral,     2),
