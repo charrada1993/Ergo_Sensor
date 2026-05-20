@@ -291,7 +291,7 @@ class ReportGenerator:
 
         condition_list, severity_list, risk_level_list = [], [], []
 
-        for _, row in df.iterrows():
+        for idx, (_, row) in enumerate(df.iterrows()):
             angle_w.append({c: row[c] for c in df.columns if 'deg' in c or 'Pitch' in c or 'Roll' in c or 'Yaw' in c})
             
             rula_r = row.get('RULA_R_Final', 0.0)
@@ -309,7 +309,7 @@ class ReportGenerator:
                 current_time = row['Timestamp'].timestamp() if 'Timestamp' in df.columns and pd.notna(row['Timestamp']) else 0
                 f_dict = extractor.extract(angle_w, risk_w, rula_l_w, rula_r_w, reba_l_w, reba_r_w, current_time)
                 try:
-                    result = self.ai_models.predict(f_dict)
+                    result = self.ai_models.predict(f_dict, explain=(idx % 50 == 0))
                     risk_10d_list.append(round(float(result.get('risk_10d', 0.0)), 4))
                     anomaly_score_list.append(round(float(result.get('anomaly_score', 0.0)), 4))
                     joint_list.append(result.get('critical_joint') or '')
@@ -466,7 +466,33 @@ class ReportGenerator:
         
         # Upload to Firebase RTDB as Base64
         try:
-            from firebase_admin import db
+            import firebase_admin
+            from firebase_admin import credentials, db
+            import json
+            
+            if not firebase_admin._apps:
+                cred_path = getattr(self.config, 'FIREBASE_CREDENTIALS_PATH', 'msd-monitor-system-firebase-adminsdk-fbsvc-57e212bc0a.json')
+                database_url = getattr(self.config, 'FIREBASE_DATABASE_URL', 'https://msd-monitor-system-default-rtdb.europe-west1.firebasedatabase.app/')
+                
+                env_creds = os.environ.get("FIREBASE_CREDS_JSON")
+                if env_creds:
+                    try:
+                        cred_dict = json.loads(env_creds)
+                        cred = credentials.Certificate(cred_dict)
+                        print("[ReportGen] Firebase initialized using FIREBASE_CREDS_JSON")
+                    except Exception as e:
+                        print(f"[ReportGen] Failed to parse FIREBASE_CREDS_JSON: {e}")
+                        cred = None
+                elif os.path.exists(cred_path):
+                    cred = credentials.Certificate(cred_path)
+                    print(f"[ReportGen] Firebase initialized using {cred_path}")
+                else:
+                    cred = None
+                    print(f"[ReportGen] Firebase credentials not found at {cred_path}")
+                
+                if cred:
+                    firebase_admin.initialize_app(cred, {'databaseURL': database_url})
+
             with open(pdf_path, 'rb') as f:
                 pdf_data = f.read()
             if pdf_data:

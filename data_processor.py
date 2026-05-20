@@ -221,7 +221,7 @@ class DataProcessor:
                         current_time
                     )
                 
-                    ai_pred = self.ai_models.predict(features_dict)
+                    ai_pred = self.ai_models.predict(features_dict, explain=False)
                     print(f"[AI] {ai_pred}")
                 except Exception as e:
                     print(f"[AI ERROR] {e}")

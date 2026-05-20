@@ -316,14 +316,13 @@ def get_firebase_db_files(path):
 @app.route('/api/csv/list', methods=['GET'])
 @login_required(role='doctor')
 def list_csv():
-    files = get_firebase_db_files('/files/csv')
-    if files is not None:
-        return jsonify(files)
-    
-    # Fallback to local
-    files = [f for f in os.listdir(Config.CSV_DIR) if f.endswith('.csv')]
-    files.sort(reverse=True)
-    return jsonify(files)
+    fb_files = get_firebase_db_files('/files/csv') or []
+    local_files = []
+    if os.path.exists(Config.CSV_DIR):
+        local_files = [f for f in os.listdir(Config.CSV_DIR) if f.endswith('.csv')]
+    all_files = list(set(fb_files + local_files))
+    all_files.sort(reverse=True)
+    return jsonify(all_files)
 
 
 @app.route('/api/csv/delete/<filename>', methods=['DELETE'])
@@ -361,19 +360,37 @@ def delete_csv(filename):
     abort(404)
 
 
+@app.route('/api/csv/latest/download', methods=['GET'])
 @app.route('/api/csv/latest', methods=['GET'])
 @login_required(role='doctor')
 def get_latest_csv():
-    files = get_firebase_db_files('/files/csv')
-    if files:
-        return download_csv(files[0])
-
-    files = [f for f in os.listdir(Config.CSV_DIR) if f.endswith('.csv')]
-    files.sort(reverse=True)
-    if not files:
+    custom_filename = request.args.get('filename')
+    fb_files = get_firebase_db_files('/files/csv') or []
+    local_files = []
+    if os.path.exists(Config.CSV_DIR):
+        local_files = [f for f in os.listdir(Config.CSV_DIR) if f.endswith('.csv')]
+    all_files = list(set(fb_files + local_files))
+    all_files.sort(reverse=True)
+    
+    if not all_files:
         return jsonify({'error': 'No CSV files'}), 404
-
-    return send_from_directory(Config.CSV_DIR, files[0], as_attachment=True)
+        
+    latest_file = all_files[0]
+    download_name = custom_filename or latest_file
+    
+    if latest_file in fb_files:
+        try:
+            from firebase_admin import db
+            file_key = latest_file.replace('.', '_')
+            ref = db.reference(f'/files/csv/{file_key}')
+            data = ref.get()
+            if data and 'data' in data:
+                file_bytes = base64.b64decode(data['data'])
+                return send_file(io.BytesIO(file_bytes), download_name=download_name, as_attachment=True)
+        except Exception as e:
+            print(f"Error fetching from RTDB: {e}")
+            
+    return send_file(os.path.join(Config.CSV_DIR, latest_file), download_name=download_name, as_attachment=True)
 
 
 @app.route('/api/csv/download/<filename>', methods=['GET'])
@@ -396,13 +413,13 @@ def download_csv(filename):
 @app.route('/api/reports/list', methods=['GET'])
 @login_required(role='doctor')
 def list_reports():
-    files = get_firebase_db_files('/files/reports')
-    if files is not None:
-        return jsonify(files)
-
-    files = [f for f in os.listdir(Config.REPORTS_DIR) if f.endswith('.pdf')]
-    files.sort(reverse=True)
-    return jsonify(files)
+    fb_files = get_firebase_db_files('/files/reports') or []
+    local_files = []
+    if os.path.exists(Config.REPORTS_DIR):
+        local_files = [f for f in os.listdir(Config.REPORTS_DIR) if f.endswith('.pdf')]
+    all_files = list(set(fb_files + local_files))
+    all_files.sort(reverse=True)
+    return jsonify(all_files)
 
 
 @app.route('/api/reports/download/<filename>', methods=['GET'])

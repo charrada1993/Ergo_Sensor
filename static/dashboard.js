@@ -204,6 +204,26 @@ document.addEventListener('DOMContentLoaded', () => {
     initRebaCharts();
     createRawDebugPanel();
     wireSocketEvents();
+
+    // Start active patient tracking session timer
+    if (document.getElementById('patient-session-timer')) {
+        window.sessionStartTime = Date.now();
+        setInterval(() => {
+            const elapsed = Math.floor((Date.now() - window.sessionStartTime) / 1000);
+            const hrs = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+            const mins = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+            const secs = String(elapsed % 60).padStart(2, '0');
+            const timerEl = document.getElementById('patient-session-timer');
+            if (timerEl) timerEl.innerText = `${hrs}:${mins}:${secs}`;
+            
+            // Goal progress (30 minutes goal)
+            const goalMins = 30;
+            const goalPct = Math.min(100, Math.round((elapsed / (goalMins * 60)) * 100));
+            setText('patient-goal-val', `${goalPct}%`);
+            const goalFill = document.getElementById('patient-goal-progress');
+            if (goalFill) goalFill.style.width = `${goalPct}%`;
+        }, 1000);
+    }
 });
 
 // ── Debug panel for raw sensor data ──
@@ -298,6 +318,120 @@ socket.on('angles', data => {
     if (data.angles)  updateTrends(data.angles, data.legs_score);
     if (data.rula)    updateRULA(data.rula);
     if (data.reba)    updateREBA(data.reba);
+
+    // Calibrate posture score from angles
+    if (data.angles) {
+        let postureScore = 100;
+        let worstJoint = 'Normal';
+        let maxDev = 0;
+        let activeJoints = 0;
+        
+        for (const joint of jointList) {
+            const val = (joint === 'Back') ? data.angles['Trunk_Pitch'] : data.angles[joint];
+            if (val === undefined || val === null) continue;
+            activeJoints++;
+            const threshold = RISK_THRESHOLDS[joint] || 999;
+            const dev = Math.abs(val) - threshold;
+            if (dev > 0) {
+                const penalty = Math.min(25, (dev / threshold) * 20);
+                postureScore -= penalty;
+                if (dev > maxDev) {
+                    maxDev = dev;
+                    worstJoint = joint;
+                }
+            }
+        }
+        postureScore = Math.max(0, Math.round(postureScore));
+        
+        // --- Update Patient HUD (if elements exist) ---
+        const ring = document.getElementById('score-ring-fill');
+        if (ring) {
+            const circumference = 80 * 2 * Math.PI; // r=80
+            ring.style.strokeDasharray = circumference;
+            const offset = circumference - (postureScore / 100) * circumference;
+            ring.style.strokeDashoffset = offset;
+            
+            // color mapping
+            if (postureScore >= 85) {
+                ring.style.stroke = 'var(--ok)';
+            } else if (postureScore >= 60) {
+                ring.style.stroke = 'var(--warn)';
+            } else {
+                ring.style.stroke = 'var(--danger)';
+            }
+        }
+        
+        setText('patient-score-text', `${postureScore}%`);
+        const label = document.getElementById('patient-score-label');
+        if (label) {
+            if (postureScore >= 85) {
+                label.innerText = 'EXCELLENT';
+                label.style.color = 'var(--ok)';
+            } else if (postureScore >= 60) {
+                label.innerText = 'ADJUST POSTURE';
+                label.style.color = 'var(--warn)';
+            } else {
+                label.innerText = 'HIGH TENSION';
+                label.style.color = 'var(--danger)';
+            }
+        }
+        
+        const adviceEl = document.getElementById('patient-coach-advice');
+        if (adviceEl) {
+            let advice = 'Looking great! Sitting upright with excellent spinal alignment. Keep it up!';
+            if (postureScore < 85) {
+                if (worstJoint === 'Neck') {
+                    advice = 'Your neck is leaning forward. Try raising your chin and alignment back to standard.';
+                } else if (worstJoint === 'Back') {
+                    advice = 'Trunk slumping detected. Sit tall and align your spine back.';
+                } else if (worstJoint.includes('Shoulder')) {
+                    advice = 'Shoulder extension/abduction strain. Bring your arms closer and lower shoulders.';
+                } else {
+                    advice = `Tension detected at ${worstJoint.replace('_', ' ')}. Adjust your position.`;
+                }
+            }
+            adviceEl.innerText = advice;
+        }
+        
+        // Track safe alignment ratio
+        if (typeof window.totalFrames === 'undefined') {
+            window.totalFrames = 0;
+            window.safeFrames = 0;
+        }
+        window.totalFrames++;
+        if (postureScore >= 85) window.safeFrames++;
+        const ratio = Math.round((window.safeFrames / window.totalFrames) * 100);
+        setText('patient-ratio-val', `${ratio}%`);
+        const ratioFill = document.getElementById('patient-ratio-progress');
+        if (ratioFill) ratioFill.style.width = `${ratio}%`;
+        
+        // --- Update Doctor Diagnostics Panel (if elements exist) ---
+        if (data.ai_predictions) {
+            const ai = data.ai_predictions;
+            const prob = (ai.risk_10d * 100).toFixed(1);
+            setText('ai-risk-prob-text', `${prob}%`);
+            const probFill = document.getElementById('ai-risk-gauge-fill');
+            if (probFill) probFill.style.width = `${prob}%`;
+            
+            const badge = document.getElementById('ai-risk-level-badge');
+            if (badge) {
+                badge.innerText = ai.risk_level || 'SAFE';
+                badge.className = 'badge clinical ' + (ai.risk_level || 'safe').toLowerCase();
+            }
+            
+            setText('ai-anomaly-state', ai.top_anomaly && ai.top_anomaly !== 'normal' ? ai.top_anomaly.replace(/_/g, ' ') : 'Normal');
+            
+            let crit = ai.critical_joint;
+            if (!crit || crit === 'None') {
+                crit = (worstJoint !== 'Normal') ? worstJoint.replace('_', ' ') : 'None';
+            }
+            setText('ai-critical-joint', crit);
+        } else {
+            // Warm-up/fallback
+            let crit = (worstJoint !== 'Normal') ? worstJoint.replace('_', ' ') : 'None';
+            setText('ai-critical-joint', crit);
+        }
+    }
     // Update RULA/REBA trends
     if (data.rula) {
         if (data.rula.right && data.rula.right.final !== undefined) {
@@ -481,3 +615,40 @@ function generateReport() {
         })
         .catch(err => console.error('Report generation failed:', err));
 }
+
+// ── Active Stretching Timer Logic ──
+let stretchInterval = null;
+window.startStretch = function(btn, type) {
+    if (stretchInterval) clearInterval(stretchInterval);
+    
+    // Reset all stretching buttons
+    document.querySelectorAll('.btn-stretch').forEach(b => {
+        b.innerHTML = '<i class="fas fa-play"></i> Start Stretch (15s)';
+        b.classList.remove('active');
+        b.disabled = false;
+    });
+    
+    btn.disabled = true;
+    btn.classList.add('active');
+    let left = 15;
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Stretching... (${left}s)`;
+    
+    stretchInterval = setInterval(() => {
+        left--;
+        if (left > 0) {
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Stretching... (${left}s)`;
+        } else {
+            clearInterval(stretchInterval);
+            stretchInterval = null;
+            btn.innerHTML = '<i class="fas fa-check"></i> Completed!';
+            btn.disabled = false;
+            btn.classList.remove('active');
+            
+            const card = btn.closest('.stretch-card');
+            if (card) {
+                card.classList.add('completed-flash');
+                setTimeout(() => card.classList.remove('completed-flash'), 1000);
+            }
+        }
+    }, 1000);
+};

@@ -16,25 +16,33 @@ INFO = "\033[94m[INFO]\033[0m"
 
 results = {"pass": 0, "fail": 0, "warn": 0}
 
+def print_safe(msg):
+    # ASCII fallback logic for Windows CMD/PowerShell without UTF-8 codepage
+    msg = msg.replace("→", "->").replace("—", "-").replace("✓", "[PASS]").replace("✗", "[FAIL]")
+    try:
+        print(msg)
+    except UnicodeEncodeError:
+        print(msg.encode('ascii', errors='replace').decode('ascii'))
+
 def ok(msg):
-    print(f"  {PASS} {msg}")
+    print_safe(f"  {PASS} {msg}")
     results["pass"] += 1
 
 def fail(msg):
-    print(f"  {FAIL} {msg}")
+    print_safe(f"  {FAIL} {msg}")
     results["fail"] += 1
 
 def warn(msg):
-    print(f"  {WARN} {msg}")
+    print_safe(f"  {WARN} {msg}")
     results["warn"] += 1
 
 def info(msg):
-    print(f"  {INFO} {msg}")
+    print_safe(f"  {INFO} {msg}")
 
 def section(title):
-    print(f"\n{'='*55}")
-    print(f"  {title}")
-    print(f"{'='*55}")
+    print_safe(f"\n{'='*55}")
+    print_safe(f"  {title}")
+    print_safe(f"{'='*55}")
 
 # ─────────────────────────────────────────────────────────
 # 1. SERVER REACHABILITY
@@ -267,11 +275,11 @@ except Exception as e:
 # ─────────────────────────────────────────────────────────
 section("RESULTS SUMMARY")
 total = results["pass"] + results["fail"] + results["warn"]
-print(f"  Total:   {total}")
-print(f"  \033[92mPassed:  {results['pass']}\033[0m")
-print(f"  \033[91mFailed:  {results['fail']}\033[0m")
-print(f"  \033[93mWarnings:{results['warn']}\033[0m")
+print_safe(f"  Total:   {total}")
+print_safe(f"  \033[92mPassed:  {results['pass']}\033[0m")
+print_safe(f"  \033[91mFailed:  {results['fail']}\033[0m")
+print_safe(f"  \033[93mWarnings:{results['warn']}\033[0m")
 if results["fail"] == 0:
-    print(f"\n  \033[92m✓ ALL TESTS PASSED\033[0m\n")
+    print_safe(f"\n  \033[92m✓ ALL TESTS PASSED\033[0m\n")
 else:
-    print(f"\n  \033[91m✗ {results['fail']} FAILURE(S) — review above\033[0m\n")
+    print_safe(f"\n  \033[91m✗ {results['fail']} FAILURE(S) — review above\033[0m\n")

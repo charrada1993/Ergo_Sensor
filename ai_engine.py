@@ -62,7 +62,7 @@ class AIModels:
         print(f"[OK] Ergo Sensor AI Models loaded | Risk model: OK | Anomaly models: {n_anom}/5")
 
     # ─────────────────────────────────────────────────────────────────────────
-    def predict(self, features_dict):
+    def predict(self, features_dict, explain=True):
         """
         Prediction complete a partir d'un dict de features.
         Retourne risk_score, condition, severite, anomalie, SHAP top joint.
@@ -78,12 +78,15 @@ class AIModels:
             risk_score = float(np.clip(risk_score, 0.0, 1.0))
 
             # ── SHAP critical joint ───────────────────────────────────────
-            shap_values = self.explainer.shap_values(X)
-            shap_vals   = shap_values[0] if not isinstance(shap_values, list) else shap_values[0][0]
-            top_idx     = int(np.argmax(np.abs(shap_vals)))
-            critical_joint = (
-                self.feature_cols[top_idx] if top_idx < len(self.feature_cols) else None
-            )
+            if explain:
+                shap_values = self.explainer.shap_values(X)
+                shap_vals   = shap_values[0] if not isinstance(shap_values, list) else shap_values[0][0]
+                top_idx     = int(np.argmax(np.abs(shap_vals)))
+                critical_joint = (
+                    self.feature_cols[top_idx] if top_idx < len(self.feature_cols) else None
+                )
+            else:
+                critical_joint = None
 
             # ── Condition ─────────────────────────────────────────────────
             cond_probs = self.condition_model.predict(X)[0]  # shape (n_classes,)
