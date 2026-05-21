@@ -313,16 +313,72 @@ def get_firebase_db_files(path):
         print(f"Error accessing Firebase RTDB: {e}")
     return None
 
+def get_firebase_db_files_metadata(path):
+    try:
+        from firebase_admin import db
+        ref = db.reference(path)
+        data = ref.get()
+        if data:
+            result = {}
+            for k, v in data.items():
+                if isinstance(v, dict) and 'filename' in v:
+                    size = 0
+                    if 'data' in v:
+                        size = len(v['data']) * 3 // 4
+                    result[v['filename']] = {
+                        'timestamp': v.get('timestamp', time.time()),
+                        'size': size
+                    }
+            return result
+    except Exception as e:
+        print(f"Error accessing Firebase RTDB metadata: {e}")
+    return {}
+
+
 @app.route('/api/csv/list', methods=['GET'])
 @login_required(role='doctor')
 def list_csv():
-    fb_files = get_firebase_db_files('/files/csv') or []
-    local_files = []
+    fb_meta = get_firebase_db_files_metadata('/files/csv')
+    local_files = {}
     if os.path.exists(Config.CSV_DIR):
-        local_files = [f for f in os.listdir(Config.CSV_DIR) if f.endswith('.csv')]
-    all_files = list(set(fb_files + local_files))
-    all_files.sort(reverse=True)
-    return jsonify(all_files)
+        for f in os.listdir(Config.CSV_DIR):
+            if f.endswith('.csv'):
+                filepath = os.path.join(Config.CSV_DIR, f)
+                try:
+                    local_files[f] = {
+                        'timestamp': os.path.getmtime(filepath),
+                        'size': os.path.getsize(filepath)
+                    }
+                except Exception:
+                    pass
+
+    all_filenames = list(set(list(fb_meta.keys()) + list(local_files.keys())))
+    all_filenames.sort(reverse=True)
+
+    result = []
+    for fname in all_filenames:
+        in_local = fname in local_files
+        in_firebase = fname in fb_meta
+        
+        timestamp = None
+        size = None
+        
+        if in_local:
+            timestamp = local_files[fname]['timestamp']
+            size = local_files[fname]['size']
+        elif in_firebase:
+            timestamp = fb_meta[fname]['timestamp']
+            size = fb_meta[fname]['size']
+
+        result.append({
+            'filename': fname,
+            'timestamp': timestamp,
+            'size': size,
+            'in_local': in_local,
+            'in_firebase': in_firebase
+        })
+
+    return jsonify(result)
 
 
 @app.route('/api/csv/delete/<filename>', methods=['DELETE'])
@@ -410,16 +466,125 @@ def download_csv(filename):
     return send_from_directory(Config.CSV_DIR, filename, as_attachment=True)
 
 
+@app.route('/api/csv/preview/<filename>', methods=['GET'])
+@login_required(role='doctor')
+def preview_csv(filename):
+    if '..' in filename or filename.startswith('/'):
+        abort(400)
+    
+    csv_data = None
+    try:
+        from firebase_admin import db
+        file_key = filename.replace('.', '_')
+        ref = db.reference(f'/files/csv/{file_key}')
+        data = ref.get()
+        if data and 'data' in data:
+            file_bytes = base64.b64decode(data['data'])
+            csv_data = file_bytes.decode('utf-8')
+    except Exception as e:
+        print(f"Error fetching CSV for preview: {e}")
+
+    if not csv_data:
+        filepath = os.path.join(Config.CSV_DIR, filename)
+        if os.path.exists(filepath):
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    csv_data = f.read()
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+
+    if not csv_data:
+        return jsonify({'error': 'File not found'}), 404
+
+    try:
+        reader = csv.reader(io.StringIO(csv_data))
+        rows = []
+        for i, row in enumerate(reader):
+            if i >= 25:  # Let's show up to 25 rows for a richer preview
+                break
+            rows.append(row)
+        return jsonify({'filename': filename, 'rows': rows})
+    except Exception as e:
+        return jsonify({'error': f'Failed to parse CSV: {str(e)}'}), 500
+
+
 @app.route('/api/reports/list', methods=['GET'])
 @login_required(role='doctor')
 def list_reports():
-    fb_files = get_firebase_db_files('/files/reports') or []
-    local_files = []
+    fb_meta = get_firebase_db_files_metadata('/files/reports')
+    local_files = {}
     if os.path.exists(Config.REPORTS_DIR):
-        local_files = [f for f in os.listdir(Config.REPORTS_DIR) if f.endswith('.pdf')]
-    all_files = list(set(fb_files + local_files))
-    all_files.sort(reverse=True)
-    return jsonify(all_files)
+        for f in os.listdir(Config.REPORTS_DIR):
+            if f.endswith('.pdf'):
+                filepath = os.path.join(Config.REPORTS_DIR, f)
+                try:
+                    local_files[f] = {
+                        'timestamp': os.path.getmtime(filepath),
+                        'size': os.path.getsize(filepath)
+                    }
+                except Exception:
+                    pass
+
+    all_filenames = list(set(list(fb_meta.keys()) + list(local_files.keys())))
+    all_filenames.sort(reverse=True)
+
+    result = []
+    for fname in all_filenames:
+        in_local = fname in local_files
+        in_firebase = fname in fb_meta
+        
+        timestamp = None
+        size = None
+        
+        if in_local:
+            timestamp = local_files[fname]['timestamp']
+            size = local_files[fname]['size']
+        elif in_firebase:
+            timestamp = fb_meta[fname]['timestamp']
+            size = fb_meta[fname]['size']
+
+        result.append({
+            'filename': fname,
+            'timestamp': timestamp,
+            'size': size,
+            'in_local': in_local,
+            'in_firebase': in_firebase
+        })
+
+    return jsonify(result)
+
+
+@app.route('/api/reports/delete/<filename>', methods=['DELETE'])
+@login_required(role='doctor')
+def delete_report(filename):
+    if '..' in filename or filename.startswith('/'):
+        abort(400)
+
+    # Delete from Firebase
+    deleted_from_firebase = False
+    try:
+        from firebase_admin import db
+        file_key = filename.replace('.', '_')
+        ref = db.reference(f'/files/reports/{file_key}')
+        if ref.get():
+            ref.delete()
+            deleted_from_firebase = True
+    except Exception as e:
+        print(f"Error deleting report from Firebase: {e}")
+
+    filepath = os.path.join(Config.REPORTS_DIR, filename)
+    if os.path.exists(filepath):
+        try:
+            os.remove(filepath)
+            return jsonify({'status': 'ok'}), 200
+        except PermissionError:
+            return jsonify({'error': 'File in use'}), 409
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    if deleted_from_firebase:
+        return jsonify({'status': 'ok'}), 200
+    abort(404)
 
 
 @app.route('/api/reports/download/<filename>', methods=['GET'])

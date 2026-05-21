@@ -1,56 +1,1189 @@
 {% extends "base.html" %}
 {% block title %}CSV Data{% endblock %}
+
+{% block head %}
+<style>
+    /* Premium Page Styling */
+    .page-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 25px;
+        letter-spacing: 0.5px;
+        background: linear-gradient(120deg, #00e5ff 0%, #8c52ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-title i {
+        color: #00e5ff;
+        filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.4));
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: rgba(18, 20, 35, 0.45);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(0, 229, 255, 0.2);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 15px;
+        background: rgba(0, 229, 255, 0.1);
+        color: #00e5ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.1);
+    }
+
+    .stat-icon.cloud {
+        background: rgba(140, 82, 255, 0.1);
+        color: #8c52ff;
+    }
+
+    .stat-icon.local {
+        background: rgba(0, 255, 128, 0.1);
+        color: #00ff80;
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #8890aa;
+        font-weight: 550;
+    }
+
+    .stat-val {
+        font-size: 1.5rem;
+        font-weight: 750;
+        color: #fff;
+    }
+
+    /* Controls Card */
+    .controls-card {
+        margin-bottom: 25px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .search-sort-group {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .search-box {
+        flex: 1 1 350px;
+        position: relative;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #8890aa;
+        font-size: 1rem;
+    }
+
+    .search-box input {
+        width: 100%;
+        background: rgba(10, 12, 30, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 30px;
+        padding: 12px 20px 12px 48px;
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.95rem;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+        border-color: #00e5ff;
+        box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+        background: rgba(10, 12, 30, 0.8);
+    }
+
+    .sort-box {
+        flex: 0 1 220px;
+        position: relative;
+    }
+
+    .sort-box i {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #8890aa;
+        pointer-events: none;
+    }
+
+    .sort-box select {
+        width: 100%;
+        background: rgba(10, 12, 30, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 30px;
+        padding: 12px 20px 12px 42px;
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.95rem;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        transition: all 0.3s ease;
+    }
+
+    .sort-box select:focus {
+        border-color: #00e5ff;
+        box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+    }
+
+    .actions-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding-top: 15px;
+    }
+
+    .select-all-wrapper {
+        display: flex;
+        align-items: center;
+    }
+
+    /* Custom Checkbox styles */
+    .custom-checkbox {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        user-select: none;
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: 550;
+    }
+
+    .custom-checkbox input {
+        display: none;
+    }
+
+    .checkmark {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        border-radius: 6px;
+        display: inline-block;
+        position: relative;
+        transition: all 0.25s ease;
+        background: rgba(10, 12, 30, 0.5);
+    }
+
+    .custom-checkbox:hover .checkmark {
+        border-color: #00e5ff;
+    }
+
+    .custom-checkbox input:checked + .checkmark {
+        background: #00e5ff;
+        border-color: #00e5ff;
+        box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+    }
+
+    .checkmark::after {
+        content: '';
+        position: absolute;
+        left: 6px;
+        top: 2px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2.5px 2.5px 0;
+        transform: rotate(45deg);
+        display: none;
+    }
+
+    .custom-checkbox input:checked + .checkmark::after {
+        display: block;
+    }
+
+    .bulk-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    #selected-count-label {
+        font-size: 0.9rem;
+        color: #8c52ff;
+        font-weight: 700;
+        margin-right: 5px;
+        background: rgba(140, 82, 255, 0.1);
+        padding: 5px 12px;
+        border-radius: 15px;
+        border: 1px solid rgba(140, 82, 255, 0.2);
+    }
+
+    .bulk-btn {
+        padding: 9px 18px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .bulk-btn.download {
+        background: linear-gradient(45deg, #00d4ff, #8c52ff);
+    }
+
+    .bulk-btn.download:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 229, 255, 0.3);
+    }
+
+    .bulk-btn.delete {
+        background: rgba(255, 80, 80, 0.15);
+        border-color: rgba(255, 80, 80, 0.3);
+        color: #ff6666;
+    }
+
+    .bulk-btn.delete:hover {
+        background: #ff4444;
+        border-color: #ff4444;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(255, 68, 68, 0.3);
+    }
+
+    .action-btn-primary {
+        background: linear-gradient(45deg, #00ff80, #00d4ff);
+        border: none;
+        padding: 10px 22px;
+        border-radius: 30px;
+        color: #0d0f1a;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 255, 128, 0.2);
+    }
+
+    .action-btn-primary:hover {
+        transform: scale(1.03) translateY(-1px);
+        box-shadow: 0 8px 25px rgba(0, 255, 128, 0.4);
+    }
+
+    /* Files Grid */
+    .files-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .file-card {
+        background: rgba(18, 20, 35, 0.4);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 22px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .file-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        background: linear-gradient(135deg, rgba(0, 229, 255, 0.05) 0%, transparent 60%);
+        border-radius: 20px;
+        opacity: 0.5;
+    }
+
+    .file-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(0, 229, 255, 0.2);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 229, 255, 0.05);
+    }
+
+    .file-card.selected {
+        border-color: rgba(140, 82, 255, 0.4);
+        background: rgba(140, 82, 255, 0.06);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 20px rgba(140, 82, 255, 0.1);
+    }
+
+    .card-header-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        z-index: 2;
+    }
+
+    .card-select-label {
+        margin: 0;
+    }
+
+    .card-icon-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(0, 229, 255, 0.08);
+        color: #00e5ff;
+        font-size: 1.25rem;
+    }
+
+    .file-card.selected .card-icon-wrap {
+        background: rgba(140, 82, 255, 0.1);
+        color: #8c52ff;
+    }
+
+    .card-info {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .card-title {
+        font-size: 1.05rem;
+        font-weight: 750;
+        color: #fff;
+        word-break: break-all;
+    }
+
+    .card-date {
+        font-size: 0.82rem;
+        color: #8890aa;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .card-meta-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 5px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        padding-top: 10px;
+    }
+
+    .card-size {
+        font-size: 0.8rem;
+        color: #8890aa;
+        font-family: monospace;
+        font-weight: bold;
+    }
+
+    .badges-group {
+        display: flex;
+        gap: 6px;
+    }
+
+    .badge-status {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .badge-status.firebase {
+        background: rgba(140, 82, 255, 0.12);
+        color: #aa80ff;
+        border: 1px solid rgba(140, 82, 255, 0.2);
+    }
+
+    .badge-status.local {
+        background: rgba(0, 255, 128, 0.12);
+        color: #00ffaa;
+        border: 1px solid rgba(0, 255, 128, 0.2);
+    }
+
+    .badge-status.synced {
+        background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(0, 255, 128, 0.1) 100%);
+        color: #00f3ff;
+        border: 1px solid rgba(0, 229, 255, 0.2);
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 5px;
+        z-index: 2;
+    }
+
+    .card-btn {
+        flex: 1;
+        padding: 9px;
+        border-radius: 12px;
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.04);
+        color: #e4e8f4;
+        transition: all 0.25s ease;
+    }
+
+    .card-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .card-btn.preview-btn {
+        color: #00e5ff;
+        background: rgba(0, 229, 255, 0.04);
+        border-color: rgba(0, 229, 255, 0.1);
+    }
+
+    .card-btn.preview-btn:hover {
+        background: rgba(0, 229, 255, 0.1);
+        border-color: rgba(0, 229, 255, 0.3);
+        box-shadow: 0 0 10px rgba(0, 229, 255, 0.15);
+    }
+
+    .card-btn.download-btn {
+        color: #00ff80;
+        background: rgba(0, 255, 128, 0.04);
+        border-color: rgba(0, 255, 128, 0.1);
+    }
+
+    .card-btn.download-btn:hover {
+        background: rgba(0, 255, 128, 0.1);
+        border-color: rgba(0, 255, 128, 0.3);
+        box-shadow: 0 0 10px rgba(0, 255, 128, 0.15);
+    }
+
+    .card-btn.delete-btn {
+        color: #ff6666;
+        background: rgba(255, 80, 80, 0.04);
+        border-color: rgba(255, 80, 80, 0.1);
+    }
+
+    .card-btn.delete-btn:hover {
+        background: #ff4444;
+        border-color: #ff4444;
+        color: white;
+        box-shadow: 0 0 10px rgba(255, 68, 68, 0.2);
+    }
+
+    /* Modal Layout */
+    .modal-content.preview-modal-content {
+        max-width: 950px;
+        background: rgba(18, 20, 32, 0.95);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(0, 229, 255, 0.2);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 229, 255, 0.05);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .modal-header h3 {
+        color: #00e5ff;
+        font-size: 1.3rem;
+        font-weight: 750;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .modal-header h3 i {
+        color: #00e5ff;
+    }
+
+    .table-container {
+        max-height: 480px;
+        overflow-y: auto;
+        overflow-x: auto;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .table-container table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.8rem;
+        text-align: left;
+    }
+
+    .table-container th {
+        background: rgba(18, 20, 35, 0.95);
+        color: #00e5ff;
+        font-weight: 700;
+        position: sticky;
+        top: 0;
+        border-bottom: 2px solid rgba(0, 229, 255, 0.2);
+        z-index: 10;
+        padding: 12px 15px;
+        white-space: nowrap;
+    }
+
+    .table-container td {
+        padding: 10px 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        color: #e2e8f0;
+        white-space: nowrap;
+    }
+
+    .table-container tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .table-container tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.01);
+    }
+
+    /* Light Mode Overrides */
+    body.light-mode .stat-card {
+        background: rgba(255, 255, 255, 0.85);
+        border-color: rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    body.light-mode .stat-val {
+        color: #1e293b;
+    }
+
+    body.light-mode .search-box input,
+    body.light-mode .sort-box select {
+        background: rgba(255, 255, 255, 0.95);
+        border-color: rgba(0, 0, 0, 0.12);
+        color: #1e293b;
+    }
+
+    body.light-mode .search-box input:focus,
+    body.light-mode .sort-box select:focus {
+        border-color: #8c52ff;
+        background: #fff;
+    }
+
+    body.light-mode .custom-checkbox {
+        color: #1e293b;
+    }
+
+    body.light-mode .checkmark {
+        background: #fff;
+        border-color: rgba(0, 0, 0, 0.2);
+    }
+
+    body.light-mode .file-card {
+        background: rgba(255, 255, 255, 0.85);
+        border-color: rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    body.light-mode .file-card.selected {
+        background: rgba(140, 82, 255, 0.06);
+        border-color: rgba(140, 82, 255, 0.3);
+    }
+
+    body.light-mode .card-title {
+        color: #1e293b;
+    }
+
+    body.light-mode .card-btn {
+        background: rgba(0, 0, 0, 0.03);
+        border-color: rgba(0, 0, 0, 0.05);
+        color: #334155;
+    }
+
+    body.light-mode .card-btn:hover {
+        background: rgba(0, 0, 0, 0.06);
+    }
+
+    body.light-mode .modal-content.preview-modal-content {
+        background: rgba(255, 255, 255, 0.98);
+        border-color: rgba(0, 0, 0, 0.1);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    }
+
+    body.light-mode .table-container {
+        background: #fff;
+    }
+
+    body.light-mode .table-container th {
+        background: #f8fafc;
+        color: #0f172a;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    body.light-mode .table-container td {
+        color: #334155;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .loader-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        gap: 15px;
+        color: #8890aa;
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(0, 229, 255, 0.1);
+        border-top-color: #00e5ff;
+        border-radius: 50%;
+        animation: spin 1s infinite linear;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 50px 20px;
+        background: rgba(18, 20, 35, 0.2);
+        border-radius: 20px;
+        border: 1px dashed rgba(255, 255, 255, 0.08);
+        color: #8890aa;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: rgba(0, 229, 255, 0.2);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1><i class="fas fa-file-csv"></i> CSV Data Files</h1>
-<ul id="csv-list"></ul>
-<button onclick="downloadLatestCSV()"><i class="fas fa-download"></i> Download Latest CSV</button>
+<h1 class="page-title"><i class="fas fa-file-csv"></i> CSV Data Files</h1>
+
+<!-- Stats Overview Card -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-database"></i></div>
+        <div class="stat-info">
+            <span class="stat-label">Total Sessions</span>
+            <span class="stat-val" id="total-count">0</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon cloud"><i class="fas fa-cloud"></i></div>
+        <div class="stat-info">
+            <span class="stat-label">Firebase Cloud Sync</span>
+            <span class="stat-val" id="firebase-count">0</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon local"><i class="fas fa-hdd"></i></div>
+        <div class="stat-info">
+            <span class="stat-label">Local Only</span>
+            <span class="stat-val" id="local-count">0</span>
+        </div>
+    </div>
+</div>
+
+<!-- Controls Panel -->
+<div class="controls-card card">
+    <div class="search-sort-group">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-input" placeholder="Search sessions by filename or date (e.g. May 2026)..." oninput="applyFilters()">
+        </div>
+        <div class="sort-box">
+            <i class="fas fa-sort-amount-down"></i>
+            <select id="sort-select" onchange="applyFilters()">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="largest">Size: Largest First</option>
+                <option value="smallest">Size: Smallest First</option>
+            </select>
+        </div>
+    </div>
+    <div class="actions-group">
+        <div class="select-all-wrapper">
+            <label class="custom-checkbox">
+                <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)">
+                <span class="checkmark"></span>
+                Select All
+            </label>
+        </div>
+        <div class="bulk-actions" id="bulk-actions" style="display: none;">
+            <span id="selected-count-label">0 selected</span>
+            <button onclick="downloadSelected()" class="bulk-btn download"><i class="fas fa-cloud-download-alt"></i> Download Selected</button>
+            <button onclick="deleteSelected()" class="bulk-btn delete"><i class="fas fa-trash-alt"></i> Delete Selected</button>
+        </div>
+        <button onclick="downloadLatestCSV()" class="action-btn-primary"><i class="fas fa-download"></i> Download Latest CSV</button>
+    </div>
+</div>
+
+<!-- Files Grid -->
+<div class="files-grid" id="csv-grid">
+    <div class="loader-wrap" style="grid-column: 1/-1;">
+        <div class="spinner"></div>
+        <p>Loading files list...</p>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div id="preview-modal" class="modal">
+    <div class="modal-content preview-modal-content">
+        <div class="modal-header">
+            <h3 id="preview-title"><i class="fas fa-table"></i> CSV Data Preview</h3>
+            <span class="close" onclick="closePreviewModal()">&times;</span>
+        </div>
+        <div class="table-container" id="preview-table-wrap">
+            <!-- Populated via JS -->
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-async function fetchCSVList() {
-    const response = await fetch('/api/csv/list');
-    const files = await response.json();
-    const ul = document.getElementById('csv-list');
-    ul.innerHTML = '';
-    files.forEach(f => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <a href="/api/csv/download/${f}" download>${f}</a>
-            <button onclick="deleteCSV('${f}')" class="delete-btn">X</button>
-        `;
-        ul.appendChild(li);
+let allCSVFiles = [];
+let filteredCSVFiles = [];
+const selectedFiles = new Set();
+
+// Format file size
+function formatBytes(bytes, decimals = 2) {
+    if (!bytes) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+// Parse date from filename: e.g. session_20260522_001234.csv
+function parseFilenameDate(filename) {
+    const regex = /session_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/;
+    const match = filename.match(regex);
+    if (match) {
+        const [_, year, month, day, hour, min, sec] = match;
+        return new Date(year, parseInt(month) - 1, day, hour, min, sec);
+    }
+    return null;
+}
+
+function formatReadableDate(date) {
+    if (!date) return 'Unknown Date';
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
     });
 }
 
-async function deleteCSV(filename) {
-    if (confirm(`Are you sure you want to delete ${filename}?`)) {
-        const response = await fetch('/api/csv/delete/' + encodeURIComponent(filename), { method: 'DELETE' });
-        if (response.ok) {
-            fetchCSVList(); // refresh the list
-        } else {
-            alert('Failed to delete file');
+async function fetchCSVList() {
+    try {
+        const response = await fetch('/api/csv/list');
+        allCSVFiles = await response.json();
+        
+        // Enrich files with parsed dates
+        allCSVFiles.forEach(f => {
+            f.dateObj = parseFilenameDate(f.filename);
+            f.formattedDate = formatReadableDate(f.dateObj);
+        });
+
+        updateStats();
+        applyFilters();
+    } catch (error) {
+        console.error('Failed to fetch CSV list:', error);
+        document.getElementById('csv-grid').innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle" style="color: #ff4444;"></i>
+                <p>Failed to load CSV files. Make sure the backend server is running.</p>
+            </div>
+        `;
+    }
+}
+
+function updateStats() {
+    const total = allCSVFiles.length;
+    const fbCount = allCSVFiles.filter(f => f.in_firebase).length;
+    const localCount = allCSVFiles.filter(f => f.in_local && !f.in_firebase).length;
+
+    document.getElementById('total-count').innerText = total;
+    document.getElementById('firebase-count').innerText = fbCount;
+    document.getElementById('local-count').innerText = localCount;
+}
+
+function applyFilters() {
+    const searchVal = document.getElementById('search-input').value.toLowerCase();
+    const sortVal = document.getElementById('sort-select').value;
+
+    // Search filter
+    filteredCSVFiles = allCSVFiles.filter(f => {
+        return f.filename.toLowerCase().includes(searchVal) || 
+               f.formattedDate.toLowerCase().includes(searchVal);
+    });
+
+    // Sorting
+    filteredCSVFiles.sort((a, b) => {
+        if (sortVal === 'newest') {
+            return (b.dateObj || 0) - (a.dateObj || 0);
+        } else if (sortVal === 'oldest') {
+            return (a.dateObj || 0) - (b.dateObj || 0);
+        } else if (sortVal === 'largest') {
+            return (b.size || 0) - (a.size || 0);
+        } else if (sortVal === 'smallest') {
+            return (a.size || 0) - (b.size || 0);
         }
+        return 0;
+    });
+
+    renderGrid();
+}
+
+function renderGrid() {
+    const grid = document.getElementById('csv-grid');
+    grid.innerHTML = '';
+
+    if (filteredCSVFiles.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <p>No CSV files found matching your criteria.</p>
+            </div>
+        `;
+        return;
+    }
+
+    filteredCSVFiles.forEach(f => {
+        const isSelected = selectedFiles.has(f.filename);
+        
+        let badgeHtml = '';
+        if (f.in_local && f.in_firebase) {
+            badgeHtml = `<span class="badge-status synced"><i class="fas fa-sync-alt"></i> Synced</span>`;
+        } else if (f.in_firebase) {
+            badgeHtml = `<span class="badge-status firebase"><i class="fas fa-cloud"></i> Cloud</span>`;
+        } else {
+            badgeHtml = `<span class="badge-status local"><i class="fas fa-hdd"></i> Local</span>`;
+        }
+
+        const card = document.createElement('div');
+        card.className = `file-card ${isSelected ? 'selected' : ''}`;
+        card.innerHTML = `
+            <div class="card-header-actions">
+                <label class="custom-checkbox card-select-label">
+                    <input type="checkbox" class="file-select-checkbox" data-filename="${f.filename}" ${isSelected ? 'checked' : ''} onchange="toggleFileSelection('${f.filename}', this.checked)">
+                    <span class="checkmark"></span>
+                </label>
+                <div class="card-icon-wrap">
+                    <i class="fas fa-file-csv"></i>
+                </div>
+            </div>
+            
+            <div class="card-info">
+                <div class="card-title">${f.filename}</div>
+                <div class="card-date"><i class="far fa-calendar-alt"></i> ${f.formattedDate}</div>
+            </div>
+            
+            <div class="card-meta-row">
+                <span class="card-size">${formatBytes(f.size)}</span>
+                <div class="badges-group">
+                    ${badgeHtml}
+                </div>
+            </div>
+            
+            <div class="card-actions">
+                <button onclick="previewCSV('${f.filename}')" class="card-btn preview-btn"><i class="fas fa-eye"></i> Preview</button>
+                <button onclick="downloadCSV('${f.filename}')" class="card-btn download-btn"><i class="fas fa-download"></i> Get</button>
+                <button onclick="deleteCSV('${f.filename}')" class="card-btn delete-btn"><i class="fas fa-trash"></i></button>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+
+    updateBulkActionBar();
+}
+
+function toggleFileSelection(filename, isChecked) {
+    if (isChecked) {
+        selectedFiles.add(filename);
+    } else {
+        selectedFiles.delete(filename);
+    }
+    
+    // Sync Select All checkbox state
+    const allCheckboxes = document.querySelectorAll('.file-select-checkbox');
+    const checkedCount = Array.from(allCheckboxes).filter(cb => cb.checked).length;
+    document.getElementById('select-all-checkbox').checked = checkedCount === allCheckboxes.length && allCheckboxes.length > 0;
+
+    applyCardSelectedClass(filename, isChecked);
+    updateBulkActionBar();
+}
+
+function applyCardSelectedClass(filename, isChecked) {
+    const checkboxes = document.querySelectorAll('.file-select-checkbox');
+    checkboxes.forEach(cb => {
+        if (cb.getAttribute('data-filename') === filename) {
+            const card = cb.closest('.file-card');
+            if (card) {
+                if (isChecked) card.classList.add('selected');
+                else card.classList.remove('selected');
+            }
+        }
+    });
+}
+
+function toggleSelectAll(selectAllCheckbox) {
+    const isChecked = selectAllCheckbox.checked;
+    filteredCSVFiles.forEach(f => {
+        if (isChecked) {
+            selectedFiles.add(f.filename);
+        } else {
+            selectedFiles.delete(f.filename);
+        }
+    });
+
+    // Toggle DOM elements
+    const checkboxes = document.querySelectorAll('.file-select-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = isChecked;
+        const card = cb.closest('.file-card');
+        if (card) {
+            if (isChecked) card.classList.add('selected');
+            else card.classList.remove('selected');
+        }
+    });
+
+    updateBulkActionBar();
+}
+
+function updateBulkActionBar() {
+    const bulkBar = document.getElementById('bulk-actions');
+    const label = document.getElementById('selected-count-label');
+    
+    if (selectedFiles.size > 0) {
+        label.innerText = `${selectedFiles.size} selected`;
+        bulkBar.style.display = 'flex';
+    } else {
+        bulkBar.style.display = 'none';
+    }
+}
+
+// Actions
+function downloadCSV(filename) {
+    window.location.href = '/api/csv/download/' + encodeURIComponent(filename);
+}
+
+async function deleteCSV(filename) {
+    if (confirm(`Are you sure you want to delete session log ${filename}? This action will remove it from both local storage and Firebase cloud.`)) {
+        try {
+            const response = await fetch('/api/csv/delete/' + encodeURIComponent(filename), { method: 'DELETE' });
+            if (response.ok) {
+                selectedFiles.delete(filename);
+                fetchCSVList();
+            } else {
+                const err = await response.json();
+                alert('Deletion failed: ' + (err.error || 'Unknown error'));
+            }
+        } catch (e) {
+            alert('An error occurred during file deletion.');
+        }
+    }
+}
+
+async function downloadSelected() {
+    if (selectedFiles.size === 0) return;
+    const filenames = Array.from(selectedFiles);
+    
+    // Download files sequentially with a short delay to bypass browser blocking popups
+    for (let i = 0; i < filenames.length; i++) {
+        const link = document.createElement('a');
+        link.href = '/api/csv/download/' + encodeURIComponent(filenames[i]);
+        link.download = filenames[i];
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        await new Promise(resolve => setTimeout(resolve, 350));
+    }
+}
+
+async function deleteSelected() {
+    if (selectedFiles.size === 0) return;
+    const filenames = Array.from(selectedFiles);
+    if (confirm(`Are you sure you want to delete all ${filenames.length} selected CSV session logs?`)) {
+        let successCount = 0;
+        let failCount = 0;
+        
+        for (const fname of filenames) {
+            try {
+                const response = await fetch('/api/csv/delete/' + encodeURIComponent(fname), { method: 'DELETE' });
+                if (response.ok) {
+                    successCount++;
+                    selectedFiles.delete(fname);
+                } else {
+                    failCount++;
+                }
+            } catch {
+                failCount++;
+            }
+        }
+        
+        alert(`Bulk delete complete. Successfully deleted: ${successCount}. Failed: ${failCount}.`);
+        document.getElementById('select-all-checkbox').checked = false;
+        fetchCSVList();
     }
 }
 
 function downloadLatestCSV() {
-    let filename = prompt("Enter filename for the CSV (e.g., export.csv):", "export.csv");
+    let filename = prompt("Enter download filename:", "latest_export.csv");
     if (filename) {
         window.location.href = '/api/csv/latest/download?filename=' + encodeURIComponent(filename);
     }
 }
-async function deleteCSV(filename) {
-    if (confirm(`Are you sure you want to delete ${filename}?`)) {
-        const response = await fetch('/api/csv/delete/' + encodeURIComponent(filename), { method: 'DELETE' });
-        if (response.ok) {
-            fetchCSVList(); // refresh the list
-        } else {
-            const error = await response.json();
-            alert('Failed to delete: ' + (error.error || 'Unknown error'));
+
+// CSV Preview Drawer
+async function previewCSV(filename) {
+    const tableWrap = document.getElementById('preview-table-wrap');
+    document.getElementById('preview-title').innerHTML = `<i class="fas fa-table"></i> Preview: ${filename}`;
+    tableWrap.innerHTML = `
+        <div class="loader-wrap">
+            <div class="spinner"></div>
+            <p>Fetching and compiling data preview...</p>
+        </div>
+    `;
+    
+    document.getElementById('preview-modal').style.display = 'block';
+
+    try {
+        const response = await fetch('/api/csv/preview/' + encodeURIComponent(filename));
+        if (!response.ok) throw new Error('API Error');
+        const data = await response.json();
+        
+        if (!data.rows || data.rows.length === 0) {
+            tableWrap.innerHTML = `<div style="padding:40px; text-align:center; color:#8890aa;">No readable CSV data found.</div>`;
+            return;
         }
+
+        let tableHtml = '<table>';
+        data.rows.forEach((row, rIndex) => {
+            if (rIndex === 0) {
+                // Header
+                tableHtml += '<thead><tr>';
+                row.forEach(cell => {
+                    tableHtml += `<th>${cell}</th>`;
+                });
+                tableHtml += '</tr></thead><tbody>';
+            } else {
+                // Body
+                tableHtml += '<tr>';
+                row.forEach(cell => {
+                    tableHtml += `<td>${cell}</td>`;
+                });
+                tableHtml += '</tr>';
+            }
+        });
+        tableHtml += '</tbody></table>';
+        tableWrap.innerHTML = tableHtml;
+    } catch (e) {
+        tableWrap.innerHTML = `
+            <div style="padding:40px; text-align:center; color:#ff6666;">
+                <i class="fas fa-exclamation-triangle" style="font-size:2rem; margin-bottom:10px;"></i>
+                <p>Failed to retrieve preview data. The file might be in use or corrupt.</p>
+            </div>
+        `;
     }
 }
+
+function closePreviewModal() {
+    document.getElementById('preview-modal').style.display = 'none';
+}
+
+// Close modal on click outside
+window.onclick = function(event) {
+    const modal = document.getElementById('preview-modal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+}
+
 // Initial fetch
 fetchCSVList();
 </script>

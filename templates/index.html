@@ -699,42 +699,8 @@
 <div class="doctor-dashboard">
 
   <div class="doctor-grid">
-    <!-- Clinical AI Diagnostics Panel -->
-    <div class="card ai-diagnostics-card">
-      <div class="card-title"><i class="fas fa-brain"></i> AI Diagnostics</div>
-      
-      <div class="gauge-container">
-        <div class="gauge-value-text" id="ai-risk-prob-text">0%</div>
-        <div class="gauge-track">
-          <div class="gauge-fill" id="ai-risk-gauge-fill" style="width: 0%;"></div>
-        </div>
-        <div style="font-size:0.7rem; color:var(--text-dim); margin-top:0.4rem;">Global MSD Risk Probability</div>
-      </div>
 
-      <div class="ai-stat-row">
-        <span class="label">AI Risk Level:</span>
-        <span class="badge clinical safe" id="ai-risk-level-badge">SAFE</span>
-      </div>
 
-      <div class="ai-stat-row">
-        <span class="label">Top Posture Driver:</span>
-        <span class="val highlight" id="ai-critical-joint">None</span>
-      </div>
-
-      <div class="ai-stat-row">
-        <span class="label">Predicted Anomaly:</span>
-        <span class="val" id="ai-anomaly-state">Normal</span>
-      </div>
-
-      <div class="ai-stat-row" style="margin-top: auto; padding-top: 1rem;">
-        <span class="label">Patient Name:</span>
-        <span class="val">John Doe</span>
-      </div>
-
-      <div class="ai-stat-row">
-        <span class="label">User Role:</span>
-        <span class="val">Patient</span>
-      </div>
     </div>
 
     <!-- Live Joint Angles Grid -->
@@ -803,14 +769,6 @@
   <div style="margin-bottom: 2rem;">
     <div class="section-title">RULA Assessment Trends</div>
     <div class="grid-9">
-      <div class="card trend-card">
-        <div class="card-title">Right RULA</div>
-        <canvas id="trend-rula-right"></canvas>
-      </div>
-      <div class="card trend-card">
-        <div class="card-title">Left RULA</div>
-        <canvas id="trend-rula-left"></canvas>
-      </div>
       <div class="card trend-card full-width">
         <div class="card-title">RULA Comparison (Right vs Left)</div>
         <canvas id="trend-rula-both"></canvas>
@@ -822,27 +780,12 @@
   <div style="margin-bottom: 2rem;">
     <div class="section-title">REBA Assessment Trends</div>
     <div class="grid-9">
-      <div class="card trend-card">
-        <div class="card-title">Right REBA</div>
-        <canvas id="trend-reba-right"></canvas>
-      </div>
-      <div class="card trend-card">
-        <div class="card-title">Left REBA</div>
-        <canvas id="trend-reba-left"></canvas>
-      </div>
       <div class="card trend-card full-width">
         <div class="card-title">REBA Comparison (Right vs Left)</div>
         <canvas id="trend-reba-both"></canvas>
       </div>
     </div>
   </div>
-
-  <!-- Clinical Controls -->
-  <div class="controls">
-    <button onclick="downloadCSV()"><i class="fas fa-download"></i> Download CSV logs</button>
-    <button onclick="generateReport()"><i class="fas fa-file-pdf"></i> Generate PDF Report</button>
-  </div>
-
 </div>
 {% endif %}
 
