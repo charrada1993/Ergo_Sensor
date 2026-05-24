@@ -204,7 +204,7 @@ h1 i {
     margin: 40px auto;
     background: rgba(12, 12, 28, 0.55);
     border-radius: 30px;
-    padding: 50px 30px 60px 30px;
+    padding: 20px 20px 40px 20px;
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid rgba(0, 229, 255, 0.08);
@@ -296,8 +296,9 @@ h1 i {
 
 /* Neck pin: goes upward */
 .sensor-pin.pin-up {
-    flex-direction: column;
+    flex-direction: column-reverse;
     align-items: center;
+    gap: 4px;
 }
 
 /* Glowing dot ON the body */
@@ -326,9 +327,9 @@ h1 i {
 
 /* Line connecting dot to card */
 .pin-line {
-    width: 30px;
+    width: 20px;
     height: 1.5px;
-    background: linear-gradient(90deg, rgba(0, 229, 255, 0.8), rgba(0, 229, 255, 0.2));
+    background: linear-gradient(90deg, rgba(0, 229, 255, 0.8), rgba(0, 229, 255, 0.1));
     flex-shrink: 0;
 }
 
@@ -338,28 +339,33 @@ h1 i {
 
 /* The card itself */
 .sensor-card {
-    background: rgba(10, 12, 30, 0.88);
-    backdrop-filter: blur(14px);
-    border: 1px solid rgba(0, 229, 255, 0.22);
-    border-radius: 12px;
-    padding: 8px 12px;
-    min-width: 110px;
+    background: rgba(10, 15, 35, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    border-radius: 8px;
+    padding: 6px 10px;
+    min-width: 90px;
     text-align: center;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 0 0 rgba(0, 229, 255, 0);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
     cursor: default;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
 }
 
 .sensor-card:hover {
-    transform: scale(1.07);
-    border-color: rgba(0, 229, 255, 0.6);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 229, 255, 0.25);
+    transform: translateY(-2px) scale(1.05);
+    border-color: rgba(0, 229, 255, 0.8);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7), 0 0 15px rgba(0, 229, 255, 0.4);
 }
 
 /* Online glow state */
 .sensor-card.card-online {
-    border-color: rgba(0, 255, 128, 0.4);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 14px rgba(0, 255, 128, 0.25);
+    border-color: rgba(0, 255, 128, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 255, 128, 0.1);
 }
 
 @media (max-width: 768px) {
@@ -420,17 +426,17 @@ h1 i {
 }
 
 .sensor-name {
-    font-weight: 600;
-    color: #00d4ff;
-    margin-bottom: 4px;
-    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
+    line-height: 1;
 }
 
 .sensor-status {
-    margin: 5px 0;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
+    font-weight: 600;
 }
 
 .sensor-values {
@@ -441,26 +447,48 @@ h1 i {
 .badge {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-weight: 600;
+    justify-content: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.65rem;
 }
 
 .badge.online {
-    background: rgba(0, 255, 0, 0.15);
-    color: #00ffaa;
-    border: 1px solid #00ffaa;
+    background: rgba(0, 229, 160, 0.15);
+    color: #00e5a0;
+    border: 1px solid rgba(0, 229, 160, 0.3);
 }
 
 .badge.offline {
-    background: rgba(255, 0, 0, 0.15);
-    color: #ff6b6b;
-    border: 1px solid #ff6b6b;
+    background: rgba(255, 77, 109, 0.15);
+    color: #ff4d6d;
+    border: 1px solid rgba(255, 77, 109, 0.3);
+}
+
+.badge.low-risk {
+    background: rgba(0, 229, 160, 0.15);
+    color: #00e5a0;
+    border: 1px solid rgba(0, 229, 160, 0.3);
+}
+
+.badge.med-risk {
+    background: rgba(255, 170, 0, 0.15);
+    color: #ffaa00;
+    border: 1px solid rgba(255, 170, 0, 0.3);
+}
+
+.badge.high-risk {
+    background: rgba(255, 77, 109, 0.15);
+    color: #ff4d6d;
+    border: 1px solid rgba(255, 77, 109, 0.3);
 }
 
 .badge i {
-    font-size: 0.6rem;
+    font-size: 0.5rem;
 }
 
 .text-center {

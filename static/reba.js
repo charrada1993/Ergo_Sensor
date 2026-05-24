@@ -1,53 +1,21 @@
 const socket = io();
 
-const rebaRightHistory = [];
-const rebaLeftHistory = [];
+const rebaHistory = [];
 
-let rebaChartRight, rebaChartLeft, rebaChartBoth;
+let rebaChartUnified;
 
 function initCharts() {
-    const ctxRight = document.getElementById('trend-reba-right')?.getContext('2d');
-    if (ctxRight) {
-        rebaChartRight = new Chart(ctxRight, {
+    const ctxUnified = document.getElementById('trend-reba-unified')?.getContext('2d');
+    if (ctxUnified) {
+        rebaChartUnified = new Chart(ctxUnified, {
             type: 'line',
-            data: { labels: [], datasets: [{ label: 'Right REBA', data: [], borderColor: '#E84545', backgroundColor: 'rgba(232,69,69,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 1.5 }] },
+            data: { labels: [], datasets: [{ label: 'REBA Score', data: [], borderColor: '#00e5ff', backgroundColor: 'rgba(0,229,255,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 2 }] },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
                 scales: { y: { min: 1, max: 15, ticks: { stepSize: 2 } }, x: { ticks: { display: false } } },
                 plugins: { legend: { display: false } }
-            }
-        });
-    }
-    const ctxLeft = document.getElementById('trend-reba-left')?.getContext('2d');
-    if (ctxLeft) {
-        rebaChartLeft = new Chart(ctxLeft, {
-            type: 'line',
-            data: { labels: [], datasets: [{ label: 'Left REBA', data: [], borderColor: '#2980B9', backgroundColor: 'rgba(41,128,185,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 1.5 }] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false,
-                scales: { y: { min: 1, max: 15, ticks: { stepSize: 2 } }, x: { ticks: { display: false } } },
-                plugins: { legend: { display: false } }
-            }
-        });
-    }
-    const ctxBoth = document.getElementById('trend-reba-both')?.getContext('2d');
-    if (ctxBoth) {
-        rebaChartBoth = new Chart(ctxBoth, {
-            type: 'line',
-            data: { labels: [], datasets: [
-                { label: 'Right REBA', data: [], borderColor: '#E84545', backgroundColor: 'transparent', tension: 0, pointRadius: 0, borderWidth: 2 },
-                { label: 'Left REBA', data: [], borderColor: '#2980B9', backgroundColor: 'transparent', tension: 0, pointRadius: 0, borderWidth: 2 }
-            ] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false,
-                scales: { y: { min: 1, max: 15, ticks: { stepSize: 2 } }, x: { ticks: { display: false } } },
-                plugins: { legend: { labels: { color: '#fff' } } }
             }
         });
     }
@@ -78,84 +46,49 @@ socket.on('connect', () => {
 });
 
 socket.on('angles', (data) => {
-    if (data.reba) updateREBA(data.reba);
     if (data.reba) {
-        if (data.reba.right && data.reba.right.final !== undefined) {
-            rebaRightHistory.push(data.reba.right.final);
-            if (rebaRightHistory.length > 600) rebaRightHistory.shift();
+        updateREBA(data.reba);
+        if (data.reba.final !== undefined) {
+            rebaHistory.push(data.reba.final);
+            if (rebaHistory.length > 600) rebaHistory.shift();
         }
-        if (data.reba.left && data.reba.left.final !== undefined) {
-            rebaLeftHistory.push(data.reba.left.final);
-            if (rebaLeftHistory.length > 600) rebaLeftHistory.shift();
-        }
-        if (rebaChartRight) {
-            rebaChartRight.data.labels = Array.from({ length: rebaRightHistory.length }, (_, i) => i);
-            rebaChartRight.data.datasets[0].data = rebaRightHistory;
-            rebaChartRight.update();
-        }
-        if (rebaChartLeft) {
-            rebaChartLeft.data.labels = Array.from({ length: rebaLeftHistory.length }, (_, i) => i);
-            rebaChartLeft.data.datasets[0].data = rebaLeftHistory;
-            rebaChartLeft.update();
-        }
-        if (rebaChartBoth) {
-            const maxLen = Math.max(rebaRightHistory.length, rebaLeftHistory.length);
-            rebaChartBoth.data.labels = Array.from({ length: maxLen }, (_, i) => i);
-            rebaChartBoth.data.datasets[0].data = rebaRightHistory;
-            rebaChartBoth.data.datasets[1].data = rebaLeftHistory;
-            rebaChartBoth.update();
+        if (rebaChartUnified) {
+            rebaChartUnified.data.labels = Array.from({ length: rebaHistory.length }, (_, i) => i);
+            rebaChartUnified.data.datasets[0].data = rebaHistory;
+            rebaChartUnified.update();
         }
     }
 });
 
 function updateREBA(reba) {
-    const sideMap = {
-        right: {
-            final: 'reba-right-final', action: 'reba-right-action',
-            trunk: 'reba-right-trunk', neck: 'reba-right-neck', legs: 'reba-right-legs',
-            a: 'reba-right-a', ua: 'reba-right-ua', fa: 'reba-right-fa', w: 'reba-right-w',
-            b: 'reba-right-b', c: 'reba-right-c', act: 'reba-right-act',
-            trunk_flex: 'reba-right-trunk-flex', neck_flex: 'reba-right-neck-flex',
-            ua_flex: 'reba-right-ua-flex', ua_abd: 'reba-right-ua-abd',
-            fa_flex: 'reba-right-fa-flex', wrist_flex: 'reba-right-wrist-flex',
-            wrist_dev: 'reba-right-wrist-dev', wrist_pron: 'reba-right-wrist-pron'
-        },
-        left: {
-            final: 'reba-left-final', action: 'reba-left-action',
-            trunk: 'reba-left-trunk', neck: 'reba-left-neck', legs: 'reba-left-legs',
-            a: 'reba-left-a', ua: 'reba-left-ua', fa: 'reba-left-fa', w: 'reba-left-w',
-            b: 'reba-left-b', c: 'reba-left-c', act: 'reba-left-act',
-            trunk_flex: 'reba-left-trunk-flex', neck_flex: 'reba-left-neck-flex',
-            ua_flex: 'reba-left-ua-flex', ua_abd: 'reba-left-ua-abd',
-            fa_flex: 'reba-left-fa-flex', wrist_flex: 'reba-left-wrist-flex',
-            wrist_dev: 'reba-left-wrist-dev', wrist_pron: 'reba-left-wrist-pron'
-        }
-    };
-    for (const [side, s] of Object.entries(reba)) {
-        if (!s) continue;
-        const ids = sideMap[side];
-        if (!ids) continue;
-        setText(ids.final, s.final);
-        setText(ids.action, s.action);
-        setText(ids.trunk, s.trunk_score);
-        setText(ids.neck, s.neck_score);
-        setText(ids.legs, s.legs_score);
-        setText(ids.a, s.score_a);
-        setText(ids.ua, s.upper_arm_score);
-        setText(ids.fa, s.forearm_score);
-        setText(ids.w, s.wrist_score);
-        setText(ids.b, s.score_b);
-        setText(ids.c, s.score_c);
-        setText(ids.act, s.activity !== undefined ? s.activity : '-');
-        setText(ids.trunk_flex, s.trunk_flexion !== undefined ? s.trunk_flexion.toFixed(1) + '°' : '-');
-        setText(ids.neck_flex, s.neck_flexion !== undefined ? s.neck_flexion.toFixed(1) + '°' : '-');
-        setText(ids.ua_flex, s.upper_arm_flexion !== undefined ? s.upper_arm_flexion.toFixed(1) + '°' : '-');
-        setText(ids.ua_abd, s.upper_arm_abduction !== undefined ? s.upper_arm_abduction.toFixed(1) + '°' : '-');
-        setText(ids.fa_flex, s.forearm_flexion !== undefined ? s.forearm_flexion.toFixed(1) + '°' : '-');
-        setText(ids.wrist_flex, s.wrist_flexion !== undefined ? s.wrist_flexion.toFixed(1) + '°' : '-');
-        setText(ids.wrist_dev, s.wrist_deviation !== undefined ? s.wrist_deviation.toFixed(1) + '°' : '-');
-        setText(ids.wrist_pron, s.wrist_pronation !== undefined ? s.wrist_pronation.toFixed(1) + '°' : '-');
+    if (!reba) return;
+    setText('reba-final', reba.final);
+    const actionEl = document.getElementById('reba-action');
+    if (actionEl) {
+        actionEl.innerText = reba.action || '-';
+        actionEl.className = 'action-label'; // reset
+        if (reba.final >= 8) actionEl.classList.add('badge', 'high-risk');
+        else if (reba.final >= 4) actionEl.classList.add('badge', 'med-risk');
+        else actionEl.classList.add('badge', 'low-risk');
     }
+    setText('reba-side', reba.side || 'None');
+    setText('reba-trunk', reba.trunk_score);
+    setText('reba-neck', reba.neck_score);
+    setText('reba-legs', reba.legs_score);
+    setText('reba-a', reba.score_a);
+    setText('reba-ua', reba.upper_arm_score);
+    setText('reba-fa', reba.forearm_score);
+    setText('reba-w', reba.wrist_score);
+    setText('reba-b', reba.score_b);
+    setText('reba-c', reba.score_c);
+    setText('reba-trunk-flex', reba.trunk_flexion !== undefined ? reba.trunk_flexion.toFixed(1) + '°' : '-');
+    setText('reba-neck-flex', reba.neck_flexion !== undefined ? reba.neck_flexion.toFixed(1) + '°' : '-');
+    setText('reba-ua-flex', reba.upper_arm_flexion !== undefined ? reba.upper_arm_flexion.toFixed(1) + '°' : '-');
+    setText('reba-ua-abd', reba.upper_arm_abduction !== undefined ? reba.upper_arm_abduction.toFixed(1) + '°' : '-');
+    setText('reba-fa-flex', reba.forearm_flexion !== undefined ? reba.forearm_flexion.toFixed(1) + '°' : '-');
+    setText('reba-wrist-flex', reba.wrist_flexion !== undefined ? reba.wrist_flexion.toFixed(1) + '°' : '-');
+    setText('reba-wrist-dev', reba.wrist_deviation !== undefined ? reba.wrist_deviation.toFixed(1) + '°' : '-');
+    setText('reba-wrist-pron', reba.wrist_pronation !== undefined ? reba.wrist_pronation.toFixed(1) + '°' : '-');
 }
 
 initCharts();

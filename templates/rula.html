@@ -2,239 +2,280 @@
 {% block title %}RULA Assessment{% endblock %}
 {% block content %}
 <style>
-  .sensor-placement {
-    margin-bottom: 2rem;
+  .assessment-layout {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 30px;
+    align-items: start;
+    margin-top: 20px;
   }
 
-  .rula-details .detail-item.highlight {
-    background: rgba(0, 212, 255, 0.1);
-    border-left: 3px solid #00d4ff;
-    padding: 6px 8px;
-    margin-top: 4px;
-    border-radius: 6px;
-  }
-
-  .rula-details .detail-item.important {
-    background: linear-gradient(90deg, rgba(255, 170, 0, 0.15) 0%, rgba(255, 170, 0, 0.05) 100%);
-    border-left: 3px solid #ffaa00;
-    padding: 8px;
-    border-radius: 6px;
-  }
-
-  .chart-card {
-    padding: 15px;
-    background: rgba(18, 20, 35, 0.4);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  .chart-card h4 {
-    margin: 0 0 10px 0;
-    color: #00d4ff;
-    font-size: 1rem;
-    text-align: center;
-  }
-
-  .chart-card canvas {
-    width: 100%;
-    height: 150px;
-  }
-
-  .full-width {
-    grid-column: span 2;
-  }
-
-  @media (max-width: 700px) {
-    .full-width {
-      grid-column: span 1;
+  @media (max-width: 1000px) {
+    .assessment-layout {
+      grid-template-columns: 1fr;
     }
   }
 
-  .rula-charts-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+  .sensor-placement {
+    margin-bottom: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rula-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+  }
+
+  .detail-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateX(4px);
+  }
+
+  .detail-item span:first-child {
+    font-family: 'Outfit', sans-serif;
+    color: #8890aa;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.75rem;
+  }
+
+  .detail-item span:last-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: #fff;
+    font-size: 1rem;
+  }
+
+  .detail-item.highlight {
+    background: rgba(0, 229, 255, 0.05);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+  }
+
+  .detail-item.highlight span:last-child {
+    color: #00e5ff;
+  }
+
+  .detail-item.important {
+    background: linear-gradient(90deg, rgba(255, 77, 109, 0.1) 0%, transparent 100%);
+    border-left: 4px solid #ff4d6d;
+    border-radius: 8px 12px 12px 8px;
+    padding: 16px;
+  }
+
+  .detail-item.important span:last-child {
+    color: #ff4d6d;
+    font-size: 1.2rem;
+  }
+
+  .angle-sub {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 16px 4px 32px;
+    font-size: 0.75rem;
+    color: #5a6280;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .final-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    background: radial-gradient(circle at center, rgba(0, 229, 255, 0.1) 0%, transparent 70%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin: -25px -25px 20px -25px;
+  }
+
+  .final-num {
+    font-size: 5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    text-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
+    margin-bottom: 10px;
+  }
+
+  .action-label {
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #00e5ff;
+    background: rgba(0, 229, 255, 0.1);
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(0, 229, 255, 0.2);
+  }
+
+  .chart-card {
+    padding: 20px;
+    background: rgba(18, 20, 35, 0.4);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     margin-top: 30px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  }
+
+  .chart-card h4 {
+    margin: 0 0 15px 0;
+    color: #8890aa;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
   }
 </style>
 
 <h1><i class="fas fa-clipboard-list"></i> Rapid Upper Limb Assessment (RULA)</h1>
 
-<!-- Sensor Placement Card -->
-<div class="card sensor-placement">
-  <h3>Sensor Placement Check</h3>
-  <p class="sensor-note">Required for RULA: NECK, UPPER_BACK, R_BICEPS, L_BICEPS, R_FOREARM, L_FOREARM, R_HAND, L_HAND
-  </p>
+<div class="assessment-layout">
+  <!-- Sensor Placement Card -->
+  <div class="card sensor-placement">
+    <h3 style="margin-bottom: 5px; color: #fff;">Sensor Map</h3>
+    <p class="sensor-note">Required: NECK, UPPER_BACK, R_BICEPS, L_BICEPS, R_FOREARM, L_FOREARM, R_HAND, L_HAND</p>
 
-  <div class="sensor-map" style="margin: 10px auto;">
-    <div class="body-figure-wrap">
-      <div class="body-figure-img"></div>
+    <div class="sensor-map" style="margin: auto; flex: 1; display: flex; align-items: center; justify-content: center;">
+      <div class="body-figure-wrap">
+        <div class="body-figure-img"></div>
 
-      <!-- Neck — top center, pin goes up -->
-      <div class="sensor-pin" style="top:12.5%; left:50%; flex-direction:column; align-items:center;">
-        <div class="sensor-card">
-          <div class="sensor-name">Neck</div>
-          <div class="sensor-status" id="status-NECK">...</div>
+        <div class="sensor-pin" style="top:12.5%; left:50%; flex-direction:column-reverse; align-items:center; gap: 4px;">
+          <div class="sensor-card">
+            <div class="sensor-name">Neck</div>
+            <div class="sensor-status" id="status-NECK">...</div>
+          </div>
+          <div class="pin-line" style="width:1.5px;height:16px;background:linear-gradient(180deg,rgba(0,229,255,0.15),rgba(0,229,255,0.9));"></div>
+          <div class="pin-dot"></div>
         </div>
-        <div class="pin-line"
-          style="width:1.5px;height:26px;background:linear-gradient(180deg,rgba(0,229,255,0.15),rgba(0,229,255,0.9));">
+
+        <div class="sensor-pin pin-right" style="top:28%; left:57%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">Upper Back</div>
+            <div class="sensor-status" id="status-UPPER_BACK">...</div>
+          </div>
         </div>
-        <div class="pin-dot"></div>
+
+        <div class="sensor-pin pin-left" style="top:30%; left:32%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">L Biceps</div>
+            <div class="sensor-status" id="status-L_BICEPS">...</div>
+          </div>
+        </div>
+
+        <div class="sensor-pin pin-right" style="top:30%; left:68%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">R Biceps</div>
+            <div class="sensor-status" id="status-R_BICEPS">...</div>
+          </div>
+        </div>
+
+        <div class="sensor-pin pin-left" style="top:42%; left:30%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">L Forearm</div>
+            <div class="sensor-status" id="status-L_FOREARM">...</div>
+          </div>
+        </div>
+
+        <div class="sensor-pin pin-right" style="top:42%; left:70%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">R Forearm</div>
+            <div class="sensor-status" id="status-R_FOREARM">...</div>
+          </div>
+        </div>
+
+        <div class="sensor-pin pin-left" style="top:52%; left:27%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">L Hand</div>
+            <div class="sensor-status" id="status-L_HAND">...</div>
+          </div>
+        </div>
+
+        <div class="sensor-pin pin-right" style="top:52%; left:73%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">R Hand</div>
+            <div class="sensor-status" id="status-R_HAND">...</div>
+          </div>
+        </div>
+
       </div>
-
-      <!-- Upper Back — center, pin goes right -->
-      <div class="sensor-pin pin-right" style="top:28%; left:57%;">
-        <div class="pin-dot"></div>
-        <div class="pin-line"></div>
-        <div class="sensor-card">
-          <div class="sensor-name">Upper Back</div>
-          <div class="sensor-status" id="status-UPPER_BACK">...</div>
-        </div>
-      </div>
-
-      <!-- L Biceps — left arm upper -->
-      <div class="sensor-pin pin-left" style="top:30%; left:32%;">
-        <div class="pin-dot"></div>
-        <div class="pin-line"></div>
-        <div class="sensor-card">
-          <div class="sensor-name">L Biceps</div>
-          <div class="sensor-status" id="status-L_BICEPS">...</div>
-        </div>
-      </div>
-
-      <!-- R Biceps — right arm upper -->
-      <div class="sensor-pin pin-right" style="top:30%; left:68%;">
-        <div class="pin-dot"></div>
-        <div class="pin-line"></div>
-        <div class="sensor-card">
-          <div class="sensor-name">R Biceps</div>
-          <div class="sensor-status" id="status-R_BICEPS">...</div>
-        </div>
-      </div>
-
-      <!-- L Forearm — left arm mid -->
-      <div class="sensor-pin pin-left" style="top:42%; left:30%;">
-        <div class="pin-dot"></div>
-        <div class="pin-line"></div>
-        <div class="sensor-card">
-          <div class="sensor-name">L Forearm</div>
-          <div class="sensor-status" id="status-L_FOREARM">...</div>
-        </div>
-      </div>
-
-      <!-- R Forearm — right arm mid -->
-      <div class="sensor-pin pin-right" style="top:42%; left:70%;">
-        <div class="pin-dot"></div>
-        <div class="pin-line"></div>
-        <div class="sensor-card">
-          <div class="sensor-name">R Forearm</div>
-          <div class="sensor-status" id="status-R_FOREARM">...</div>
-        </div>
-      </div>
-
-      <!-- L Hand — left arm lower -->
-      <div class="sensor-pin pin-left" style="top:52%; left:27%;">
-        <div class="pin-dot"></div>
-        <div class="pin-line"></div>
-        <div class="sensor-card">
-          <div class="sensor-name">L Hand</div>
-          <div class="sensor-status" id="status-L_HAND">...</div>
-        </div>
-      </div>
-
-      <!-- R Hand — right arm lower -->
-      <div class="sensor-pin pin-right" style="top:52%; left:73%;">
-        <div class="pin-dot"></div>
-        <div class="pin-line"></div>
-        <div class="sensor-card">
-          <div class="sensor-name">R Hand</div>
-          <div class="sensor-status" id="status-R_HAND">...</div>
-        </div>
-      </div>
-
-    </div><!-- /body-figure-wrap -->
-  </div><!-- /sensor-map -->
-</div><!-- /card -->
-
-<!-- Live RULA Scores (Right & Left) -->
-<div class="rula-scores-grid">
-  <!-- Right RULA -->
-  <div class="card rula-card">
-    <h3><i class="fas fa-hand-point-right"></i> Right RULA</h3>
-    <div class="final-badge">
-      <span class="final-num" id="rula-right-final">-</span>
-      <span class="action-label" id="rula-right-action">-</span>
-    </div>
-    <div class="rula-details">
-      <div class="detail-item"><span>Upper Arm score</span><span id="rula-right-ua">-</span></div>
-      <div class="angle-sub"><span>↳ Shoulder flexion</span><span id="rula-right-shoulder-flex">-</span></div>
-      <div class="angle-sub"><span>↳ Shoulder abduction</span><span id="rula-right-shoulder-abd">-</span></div>
-      <div class="detail-item"><span>Forearm score</span><span id="rula-right-fa">-</span></div>
-      <div class="angle-sub"><span>↳ Elbow flexion</span><span id="rula-right-elbow-flex">-</span></div>
-      <div class="detail-item"><span>Wrist score</span><span id="rula-right-w">-</span></div>
-      <div class="angle-sub"><span>↳ Wrist flexion / ext.</span><span id="rula-right-wrist-flex">-</span></div>
-      <div class="angle-sub"><span>↳ Wrist deviation</span><span id="rula-right-wrist-dev">-</span></div>
-      <div class="angle-sub"><span>↳ Wrist pronation</span><span id="rula-right-wrist-pron">-</span></div>
-      <div class="detail-item highlight"><span>Score A</span><span id="rula-right-a">-</span></div>
-      <div class="detail-item"><span>Neck score</span><span id="rula-right-n">-</span></div>
-      <div class="angle-sub"><span>↳ Neck flexion</span><span id="rula-right-neck-flex">-</span></div>
-      <div class="detail-item"><span>Trunk score</span><span id="rula-right-t">-</span></div>
-      <div class="angle-sub"><span>↳ Trunk flexion</span><span id="rula-right-trunk-flex">-</span></div>
-      <div class="detail-item highlight"><span>Score B</span><span id="rula-right-b">-</span></div>
-      <div class="detail-item"><span>Score C</span><span id="rula-right-c">-</span></div>
-      <div class="detail-item"><span>Score D</span><span id="rula-right-d">-</span></div>
-      <div class="detail-item important"><span>Final RULA</span><span id="rula-right-final2">-</span></div>
     </div>
   </div>
-  <!-- Left RULA -->
-  <div class="card rula-card">
-    <h3><i class="fas fa-hand-point-left"></i> Left RULA</h3>
+
+  <!-- Live RULA Score -->
+  <div class="card rula-card" style="padding: 25px;">
     <div class="final-badge">
-      <span class="final-num" id="rula-left-final">-</span>
-      <span class="action-label" id="rula-left-action">-</span>
+      <span class="final-num" id="rula-final">-</span>
+      <span class="action-label" id="rula-action">-</span>
     </div>
     <div class="rula-details">
-      <div class="detail-item"><span>Upper Arm score</span><span id="rula-left-ua">-</span></div>
-      <div class="angle-sub"><span>↳ Shoulder flexion</span><span id="rula-left-shoulder-flex">-</span></div>
-      <div class="angle-sub"><span>↳ Shoulder abduction</span><span id="rula-left-shoulder-abd">-</span></div>
-      <div class="detail-item"><span>Forearm score</span><span id="rula-left-fa">-</span></div>
-      <div class="angle-sub"><span>↳ Elbow flexion</span><span id="rula-left-elbow-flex">-</span></div>
-      <div class="detail-item"><span>Wrist score</span><span id="rula-left-w">-</span></div>
-      <div class="angle-sub"><span>↳ Wrist flexion / ext.</span><span id="rula-left-wrist-flex">-</span></div>
-      <div class="angle-sub"><span>↳ Wrist deviation</span><span id="rula-left-wrist-dev">-</span></div>
-      <div class="angle-sub"><span>↳ Wrist pronation</span><span id="rula-left-wrist-pron">-</span></div>
-      <div class="detail-item highlight"><span>Score A</span><span id="rula-left-a">-</span></div>
-      <div class="detail-item"><span>Neck score</span><span id="rula-left-n">-</span></div>
-      <div class="angle-sub"><span>↳ Neck flexion</span><span id="rula-left-neck-flex">-</span></div>
-      <div class="detail-item"><span>Trunk score</span><span id="rula-left-t">-</span></div>
-      <div class="angle-sub"><span>↳ Trunk flexion</span><span id="rula-left-trunk-flex">-</span></div>
-      <div class="detail-item highlight"><span>Score B</span><span id="rula-left-b">-</span></div>
-      <div class="detail-item"><span>Score C</span><span id="rula-left-c">-</span></div>
-      <div class="detail-item"><span>Score D</span><span id="rula-left-d">-</span></div>
-      <div class="detail-item important"><span>Final RULA</span><span id="rula-left-final2">-</span></div>
+      <div class="detail-item"><span>Worst Assessment Side</span><span id="rula-side">-</span></div>
+      
+      <div class="detail-item"><span>Upper Arm score</span><span id="rula-ua">-</span></div>
+      <div class="angle-sub"><span>↳ Flexion</span><span id="rula-shoulder-flex">-</span></div>
+      <div class="angle-sub"><span>↳ Abduction</span><span id="rula-shoulder-abd">-</span></div>
+      
+      <div class="detail-item"><span>Forearm score</span><span id="rula-fa">-</span></div>
+      <div class="angle-sub"><span>↳ Flexion</span><span id="rula-elbow-flex">-</span></div>
+      
+      <div class="detail-item"><span>Wrist score</span><span id="rula-w">-</span></div>
+      <div class="angle-sub"><span>↳ Flexion / ext.</span><span id="rula-wrist-flex">-</span></div>
+      <div class="angle-sub"><span>↳ Deviation</span><span id="rula-wrist-dev">-</span></div>
+      <div class="angle-sub"><span>↳ Pronation</span><span id="rula-wrist-pron">-</span></div>
+      
+      <div class="detail-item highlight"><span>Score A</span><span id="rula-a">-</span></div>
+      
+      <div class="detail-item"><span>Neck score</span><span id="rula-n">-</span></div>
+      <div class="angle-sub"><span>↳ Flexion</span><span id="rula-neck-flex">-</span></div>
+      
+      <div class="detail-item"><span>Trunk score</span><span id="rula-t">-</span></div>
+      <div class="angle-sub"><span>↳ Flexion</span><span id="rula-trunk-flex">-</span></div>
+      
+      <div class="detail-item highlight"><span>Score B</span><span id="rula-b">-</span></div>
+      <div class="detail-item"><span>Score C</span><span id="rula-c">-</span></div>
+      <div class="detail-item"><span>Score D</span><span id="rula-d">-</span></div>
+      
+      <div class="detail-item important"><span>Final RULA</span><span id="rula-final2">-</span></div>
     </div>
   </div>
 </div>
 
-<!-- RULA Trend Charts -->
-<div class="rula-charts-grid">
-  <div class="card chart-card">
-    <h4>Right RULA Final Score</h4>
-    <div style="position: relative; height: 180px; width: 100%;">
-      <canvas id="trend-rula-right"></canvas>
-    </div>
-  </div>
-  <div class="card chart-card">
-    <h4>Left RULA Final Score</h4>
-    <div style="position: relative; height: 180px; width: 100%;">
-      <canvas id="trend-rula-left"></canvas>
-    </div>
-  </div>
-  <div class="card chart-card full-width">
-    <h4>RULA Comparison</h4>
-    <div style="position: relative; height: 220px; width: 100%;">
-      <canvas id="trend-rula-both"></canvas>
-    </div>
+<!-- RULA Trend Chart -->
+<div class="chart-card">
+  <h4><i class="fas fa-chart-line"></i> RULA Final Score Trend</h4>
+  <div style="position: relative; height: 300px; width: 100%;">
+    <canvas id="trend-rula-unified"></canvas>
   </div>
 </div>
 

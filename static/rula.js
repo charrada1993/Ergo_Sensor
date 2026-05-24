@@ -1,53 +1,21 @@
 const socket = io();
 
-const rulaRightHistory = [];
-const rulaLeftHistory = [];
+const rulaHistory = [];
 
-let rulaChartRight, rulaChartLeft, rulaChartBoth;
+let rulaChartUnified;
 
 function initCharts() {
-    const ctxRight = document.getElementById('trend-rula-right')?.getContext('2d');
-    if (ctxRight) {
-        rulaChartRight = new Chart(ctxRight, {
+    const ctxUnified = document.getElementById('trend-rula-unified')?.getContext('2d');
+    if (ctxUnified) {
+        rulaChartUnified = new Chart(ctxUnified, {
             type: 'line',
-            data: { labels: [], datasets: [{ label: 'Right RULA', data: [], borderColor: '#E84545', backgroundColor: 'rgba(232,69,69,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 1.5 }] },
+            data: { labels: [], datasets: [{ label: 'RULA Score', data: [], borderColor: '#00e5ff', backgroundColor: 'rgba(0,229,255,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 2 }] },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
                 scales: { y: { min: 1, max: 7, ticks: { stepSize: 1 } }, x: { ticks: { display: false } } },
                 plugins: { legend: { display: false } }
-            }
-        });
-    }
-    const ctxLeft = document.getElementById('trend-rula-left')?.getContext('2d');
-    if (ctxLeft) {
-        rulaChartLeft = new Chart(ctxLeft, {
-            type: 'line',
-            data: { labels: [], datasets: [{ label: 'Left RULA', data: [], borderColor: '#2980B9', backgroundColor: 'rgba(41,128,185,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 1.5 }] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false,
-                scales: { y: { min: 1, max: 7, ticks: { stepSize: 1 } }, x: { ticks: { display: false } } },
-                plugins: { legend: { display: false } }
-            }
-        });
-    }
-    const ctxBoth = document.getElementById('trend-rula-both')?.getContext('2d');
-    if (ctxBoth) {
-        rulaChartBoth = new Chart(ctxBoth, {
-            type: 'line',
-            data: { labels: [], datasets: [
-                { label: 'Right RULA', data: [], borderColor: '#E84545', backgroundColor: 'transparent', tension: 0, pointRadius: 0, borderWidth: 2 },
-                { label: 'Left RULA', data: [], borderColor: '#2980B9', backgroundColor: 'transparent', tension: 0, pointRadius: 0, borderWidth: 2 }
-            ] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false,
-                scales: { y: { min: 1, max: 7, ticks: { stepSize: 1 } }, x: { ticks: { display: false } } },
-                plugins: { legend: { labels: { color: '#fff' } } }
             }
         });
     }
@@ -78,82 +46,51 @@ socket.on('connect', () => {
 });
 
 socket.on('angles', (data) => {
-    if (data.rula) updateRULA(data.rula);
     if (data.rula) {
-        if (data.rula.right && data.rula.right.final !== undefined) {
-            rulaRightHistory.push(data.rula.right.final);
-            if (rulaRightHistory.length > 600) rulaRightHistory.shift();
+        updateRULA(data.rula);
+        if (data.rula.final !== undefined) {
+            rulaHistory.push(data.rula.final);
+            if (rulaHistory.length > 600) rulaHistory.shift();
         }
-        if (data.rula.left && data.rula.left.final !== undefined) {
-            rulaLeftHistory.push(data.rula.left.final);
-            if (rulaLeftHistory.length > 600) rulaLeftHistory.shift();
-        }
-        if (rulaChartRight) {
-            rulaChartRight.data.labels = Array.from({ length: rulaRightHistory.length }, (_, i) => i);
-            rulaChartRight.data.datasets[0].data = rulaRightHistory;
-            rulaChartRight.update();
-        }
-        if (rulaChartLeft) {
-            rulaChartLeft.data.labels = Array.from({ length: rulaLeftHistory.length }, (_, i) => i);
-            rulaChartLeft.data.datasets[0].data = rulaLeftHistory;
-            rulaChartLeft.update();
-        }
-        if (rulaChartBoth) {
-            const maxLen = Math.max(rulaRightHistory.length, rulaLeftHistory.length);
-            rulaChartBoth.data.labels = Array.from({ length: maxLen }, (_, i) => i);
-            rulaChartBoth.data.datasets[0].data = rulaRightHistory;
-            rulaChartBoth.data.datasets[1].data = rulaLeftHistory;
-            rulaChartBoth.update();
+        if (rulaChartUnified) {
+            rulaChartUnified.data.labels = Array.from({ length: rulaHistory.length }, (_, i) => i);
+            rulaChartUnified.data.datasets[0].data = rulaHistory;
+            rulaChartUnified.update();
         }
     }
 });
 
 function updateRULA(rula) {
-    const sideMap = {
-        right: {
-            final: 'rula-right-final', action: 'rula-right-action',
-            ua: 'rula-right-ua', fa: 'rula-right-fa', w: 'rula-right-w',
-            n: 'rula-right-n', t: 'rula-right-t', a: 'rula-right-a', b: 'rula-right-b', c: 'rula-right-c', d: 'rula-right-d',
-            shoulder_flex: 'rula-right-shoulder-flex', shoulder_abd: 'rula-right-shoulder-abd',
-            elbow_flex: 'rula-right-elbow-flex', wrist_flex: 'rula-right-wrist-flex',
-            wrist_dev: 'rula-right-wrist-dev', wrist_pron: 'rula-right-wrist-pron',
-            neck_flex: 'rula-right-neck-flex', trunk_flex: 'rula-right-trunk-flex', final2: 'rula-right-final2'
-        },
-        left: {
-            final: 'rula-left-final', action: 'rula-left-action',
-            ua: 'rula-left-ua', fa: 'rula-left-fa', w: 'rula-left-w',
-            n: 'rula-left-n', t: 'rula-left-t', a: 'rula-left-a', b: 'rula-left-b', c: 'rula-left-c', d: 'rula-left-d',
-            shoulder_flex: 'rula-left-shoulder-flex', shoulder_abd: 'rula-left-shoulder-abd',
-            elbow_flex: 'rula-left-elbow-flex', wrist_flex: 'rula-left-wrist-flex',
-            wrist_dev: 'rula-left-wrist-dev', wrist_pron: 'rula-left-wrist-pron',
-            neck_flex: 'rula-left-neck-flex', trunk_flex: 'rula-left-trunk-flex', final2: 'rula-left-final2'
-        }
-    };
-    for (const [side, s] of Object.entries(rula)) {
-        if (!s) continue;
-        const ids = sideMap[side];
-        if (!ids) continue;
-        setText(ids.final, s.final);
-        setText(ids.action, s.action);
-        setText(ids.ua, s.upper_arm_score);
-        setText(ids.fa, s.forearm_score);
-        setText(ids.w, s.wrist_score);
-        setText(ids.n, s.neck_score);
-        setText(ids.t, s.trunk_score);
-        setText(ids.a, s.score_a);
-        setText(ids.b, s.score_b);
-        setText(ids.c, s.score_c);
-        setText(ids.d, s.score_d);
-        setText(ids.shoulder_flex, s.shoulder_flexion !== undefined ? s.shoulder_flexion.toFixed(1) + '°' : '-');
-        setText(ids.shoulder_abd, s.shoulder_abduction !== undefined ? s.shoulder_abduction.toFixed(1) + '°' : '-');
-        setText(ids.elbow_flex, s.elbow_flexion !== undefined ? s.elbow_flexion.toFixed(1) + '°' : '-');
-        setText(ids.wrist_flex, s.wrist_flexion !== undefined ? s.wrist_flexion.toFixed(1) + '°' : '-');
-        setText(ids.wrist_dev, s.wrist_deviation !== undefined ? s.wrist_deviation.toFixed(1) + '°' : '-');
-        setText(ids.wrist_pron, s.wrist_pronation !== undefined ? s.wrist_pronation.toFixed(1) + '°' : '-');
-        setText(ids.neck_flex, s.neck_flexion !== undefined ? s.neck_flexion.toFixed(1) + '°' : '-');
-        setText(ids.trunk_flex, s.trunk_flexion !== undefined ? s.trunk_flexion.toFixed(1) + '°' : '-');
-        setText(ids.final2, s.final);
+    if (!rula) return;
+    setText('rula-final', rula.final);
+    const actionEl = document.getElementById('rula-action');
+    if (actionEl) {
+        actionEl.innerText = rula.action || '-';
+        actionEl.className = 'action-label'; // reset
+        if (rula.final >= 7) actionEl.classList.add('badge', 'high-risk');
+        else if (rula.final >= 5) actionEl.classList.add('badge', 'med-risk');
+        else if (rula.final >= 3) actionEl.classList.add('badge', 'med-risk'); // RULA 3-4 is further investigation, let's treat as med or low-med.
+        else actionEl.classList.add('badge', 'low-risk');
     }
+    setText('rula-side', rula.side || 'None');
+    setText('rula-ua', rula.upper_arm_score);
+    setText('rula-fa', rula.forearm_score);
+    setText('rula-w', rula.wrist_score);
+    setText('rula-n', rula.neck_score);
+    setText('rula-t', rula.trunk_score);
+    setText('rula-a', rula.score_a);
+    setText('rula-b', rula.score_b);
+    setText('rula-c', rula.score_c);
+    setText('rula-d', rula.score_d);
+    setText('rula-shoulder-flex', rula.shoulder_flexion !== undefined ? rula.shoulder_flexion.toFixed(1) + '°' : '-');
+    setText('rula-shoulder-abd', rula.shoulder_abduction !== undefined ? rula.shoulder_abduction.toFixed(1) + '°' : '-');
+    setText('rula-elbow-flex', rula.elbow_flexion !== undefined ? rula.elbow_flexion.toFixed(1) + '°' : '-');
+    setText('rula-wrist-flex', rula.wrist_flexion !== undefined ? rula.wrist_flexion.toFixed(1) + '°' : '-');
+    setText('rula-wrist-dev', rula.wrist_deviation !== undefined ? rula.wrist_deviation.toFixed(1) + '°' : '-');
+    setText('rula-wrist-pron', rula.wrist_pronation !== undefined ? rula.wrist_pronation.toFixed(1) + '°' : '-');
+    setText('rula-neck-flex', rula.neck_flexion !== undefined ? rula.neck_flexion.toFixed(1) + '°' : '-');
+    setText('rula-trunk-flex', rula.trunk_flexion !== undefined ? rula.trunk_flexion.toFixed(1) + '°' : '-');
+    setText('rula-final2', rula.final);
 }
 
 initCharts();

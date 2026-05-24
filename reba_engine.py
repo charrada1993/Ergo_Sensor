@@ -24,13 +24,13 @@ class REBAEngine:
         lateral: trunk roll, degrees.
         rotation: trunk yaw, degrees.
         """
-        if flexion < 0:           # extension
+        if abs(flexion) <= 5:     # upright
+            s = 1
+        elif flexion < -5 or flexion <= 20: # extension or flexion <= 20
             s = 2
-        elif flexion <= 20:
-            s = 2
-        elif flexion <= 60:
+        elif flexion <= 60:       # flexion 20-60
             s = 3
-        else:
+        else:                     # flexion > 60
             s = 4
         if abs(lateral) > 15 or abs(rotation) > 15:
             s += 1
@@ -41,7 +41,7 @@ class REBAEngine:
         Neck flexion score (Group A).
         flexion: neck pitch diff (head − trunk). Degrees.
         """
-        if flexion <= 20:
+        if 0 <= flexion <= 20:
             s = 1
         else:
             s = 2
@@ -59,14 +59,11 @@ class REBAEngine:
         flexion: shoulder pitch diff (arm − trunk). Degrees.
         abduction: shoulder roll diff (arm − trunk). Degrees.
         """
-        a = abs(flexion)
-        if flexion < 0:          # extension
-            s = 2
-        elif a <= 20:
+        if -20 <= flexion <= 20:
             s = 1
-        elif a <= 45:
+        elif flexion < -20 or 20 < flexion <= 45:
             s = 2
-        elif a <= 90:
+        elif 45 < flexion <= 90:
             s = 3
         else:
             s = 4

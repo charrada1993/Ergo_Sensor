@@ -236,12 +236,38 @@ class DataProcessor:
             )
 
             # --- Build WebSocket payload (replace None sides with safe defaults) ---
+            rula_unified = None
+            if rula_right or rula_left:
+                r_val = rula_right['final'] if rula_right else 0
+                l_val = rula_left['final'] if rula_left else 0
+                if r_val >= l_val:
+                    rula_unified = rula_right.copy() if rula_right else None
+                    if rula_unified:
+                        rula_unified['side'] = 'Right'
+                else:
+                    rula_unified = rula_left.copy() if rula_left else None
+                    if rula_unified:
+                        rula_unified['side'] = 'Left'
+
+            reba_unified = None
+            if reba_right or reba_left:
+                r_val = reba_right['final'] if reba_right else 0
+                l_val = reba_left['final'] if reba_left else 0
+                if r_val >= l_val:
+                    reba_unified = reba_right.copy() if reba_right else None
+                    if reba_unified:
+                        reba_unified['side'] = 'Right'
+                else:
+                    reba_unified = reba_left.copy() if reba_left else None
+                    if reba_unified:
+                        reba_unified['side'] = 'Left'
+
             def safe_rula(s):
                 if s is None:
                     return {'final': 0, 'action': 'Acceptable', 'upper_arm_score': 0,
                             'forearm_score': 0, 'wrist_score': 0, 'neck_score': 0,
                             'trunk_score': 0, 'score_a': 0, 'score_b': 0,
-                            'score_c': 0, 'score_d': 0}
+                            'score_c': 0, 'score_d': 0, 'side': 'None'}
                 return s
 
             def safe_reba(s):
@@ -249,14 +275,14 @@ class DataProcessor:
                     return {'final': 0, 'action': 'Acceptable', 'trunk_score': 0,
                             'neck_score': 0, 'legs_score': 0, 'upper_arm_score': 0,
                             'forearm_score': 0, 'wrist_score': 0,
-                            'score_a': 0, 'score_b': 0, 'score_c': 0}
+                            'score_a': 0, 'score_b': 0, 'score_c': 0, 'side': 'None'}
                 return s
 
             payload = {
                 'angles':      angles,
                 'risk':        risk,
-                'rula':        {'right': safe_rula(rula_right), 'left': safe_rula(rula_left)},
-                'reba':        {'right': safe_reba(reba_right), 'left': safe_reba(reba_left)},
+                'rula':        safe_rula(rula_unified),
+                'reba':        safe_reba(reba_unified),
                 'trunk_angle': trunk_angle,
                 'legs_score':  self.config.REBA_LEGS_SCORE,
             }

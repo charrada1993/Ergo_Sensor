@@ -23,14 +23,11 @@ class RULAEngine:
         flexion: shoulder flexion angle (degrees). Negative = extension.
         abduction: shoulder abduction angle (degrees).
         """
-        a = abs(flexion)
-        if flexion < 0:          # any extension
-            s = 2
-        elif a < 20:
+        if -20 <= flexion <= 20:
             s = 1
-        elif a < 45:
+        elif flexion < -20 or 20 < flexion <= 45:
             s = 2
-        elif a < 90:
+        elif 45 < flexion <= 90:
             s = 3
         else:
             s = 4

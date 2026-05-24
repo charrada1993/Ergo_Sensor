@@ -85,16 +85,14 @@ for (const joint in jointComponents) {
     jointComponents[joint].forEach(comp => { history[comp] = []; });
 }
 
-const rulaRightHistory = [];
-const rulaLeftHistory = [];
-const rebaRightHistory = [];
-const rebaLeftHistory = [];
+const rulaHistory = [];
+const rebaHistory = [];
 
 const MAX_HISTORY = 6000;
 const trendCharts = {};
 
-let rulaChartRight, rulaChartLeft, rulaChartBoth;
-let rebaChartRight, rebaChartLeft, rebaChartBoth;
+let rulaChartUnified;
+let rebaChartUnified;
 
 function initTrendCharts() {
     for (const joint in jointComponents) {
@@ -130,61 +128,23 @@ function initTrendCharts() {
 }
 
 function initRulaCharts() {
-    const ctxRight = document.getElementById('trend-rula-right')?.getContext('2d');
-    if (ctxRight) {
-        rulaChartRight = new Chart(ctxRight, {
+    const ctxUnified = document.getElementById('trend-rula-unified')?.getContext('2d');
+    if (ctxUnified) {
+        rulaChartUnified = new Chart(ctxUnified, {
             type: 'line',
-            data: { labels: [], datasets: [{ label: 'Right RULA', data: [], borderColor: '#E84545', backgroundColor: 'rgba(232,69,69,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 1.5 }] },
+            data: { labels: [], datasets: [{ label: 'RULA Score', data: [], borderColor: '#00e5ff', backgroundColor: 'rgba(0,229,255,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 2 }] },
             options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { y: { min: 1, max: 7, ticks: { stepSize: 1 } }, x: { ticks: { display: false } } }, plugins: { legend: { display: false } } }
-        });
-    }
-    const ctxLeft = document.getElementById('trend-rula-left')?.getContext('2d');
-    if (ctxLeft) {
-        rulaChartLeft = new Chart(ctxLeft, {
-            type: 'line',
-            data: { labels: [], datasets: [{ label: 'Left RULA', data: [], borderColor: '#2980B9', backgroundColor: 'rgba(41,128,185,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 1.5 }] },
-            options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { y: { min: 1, max: 7, ticks: { stepSize: 1 } }, x: { ticks: { display: false } } }, plugins: { legend: { display: false } } }
-        });
-    }
-    const ctxBoth = document.getElementById('trend-rula-both')?.getContext('2d');
-    if (ctxBoth) {
-        rulaChartBoth = new Chart(ctxBoth, {
-            type: 'line',
-            data: { labels: [], datasets: [
-                { label: 'Right RULA', data: [], borderColor: '#E84545', backgroundColor: 'transparent', tension: 0, pointRadius: 0, borderWidth: 2 },
-                { label: 'Left RULA', data: [], borderColor: '#2980B9', backgroundColor: 'transparent', tension: 0, pointRadius: 0, borderWidth: 2 }
-            ] },
-            options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { y: { min: 1, max: 7, ticks: { stepSize: 1 } }, x: { ticks: { display: false } } }, plugins: { legend: { labels: { color: '#fff' } } } }
         });
     }
 }
 
 function initRebaCharts() {
-    const ctxRight = document.getElementById('trend-reba-right')?.getContext('2d');
-    if (ctxRight) {
-        rebaChartRight = new Chart(ctxRight, {
+    const ctxUnified = document.getElementById('trend-reba-unified')?.getContext('2d');
+    if (ctxUnified) {
+        rebaChartUnified = new Chart(ctxUnified, {
             type: 'line',
-            data: { labels: [], datasets: [{ label: 'Right REBA', data: [], borderColor: '#E84545', backgroundColor: 'rgba(232,69,69,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 1.5 }] },
+            data: { labels: [], datasets: [{ label: 'REBA Score', data: [], borderColor: '#00e5ff', backgroundColor: 'rgba(0,229,255,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 2 }] },
             options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { y: { min: 1, max: 15, ticks: { stepSize: 2 } }, x: { ticks: { display: false } } }, plugins: { legend: { display: false } } }
-        });
-    }
-    const ctxLeft = document.getElementById('trend-reba-left')?.getContext('2d');
-    if (ctxLeft) {
-        rebaChartLeft = new Chart(ctxLeft, {
-            type: 'line',
-            data: { labels: [], datasets: [{ label: 'Left REBA', data: [], borderColor: '#2980B9', backgroundColor: 'rgba(41,128,185,0.1)', fill: true, tension: 0, pointRadius: 0, borderWidth: 1.5 }] },
-            options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { y: { min: 1, max: 15, ticks: { stepSize: 2 } }, x: { ticks: { display: false } } }, plugins: { legend: { display: false } } }
-        });
-    }
-    const ctxBoth = document.getElementById('trend-reba-both')?.getContext('2d');
-    if (ctxBoth) {
-        rebaChartBoth = new Chart(ctxBoth, {
-            type: 'line',
-            data: { labels: [], datasets: [
-                { label: 'Right REBA', data: [], borderColor: '#E84545', backgroundColor: 'transparent', tension: 0, pointRadius: 0, borderWidth: 2 },
-                { label: 'Left REBA', data: [], borderColor: '#2980B9', backgroundColor: 'transparent', tension: 0, pointRadius: 0, borderWidth: 2 }
-            ] },
-            options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { y: { min: 1, max: 15, ticks: { stepSize: 2 } }, x: { ticks: { display: false } } }, plugins: { legend: { labels: { color: '#fff' } } } }
         });
     }
 }
@@ -434,57 +394,25 @@ socket.on('angles', data => {
     }
     // Update RULA/REBA trends
     if (data.rula) {
-        if (data.rula.right && data.rula.right.final !== undefined) {
-            rulaRightHistory.push(data.rula.right.final);
-            if (rulaRightHistory.length > 600) rulaRightHistory.shift();
+        if (data.rula.final !== undefined) {
+            rulaHistory.push(data.rula.final);
+            if (rulaHistory.length > 600) rulaHistory.shift();
         }
-        if (data.rula.left && data.rula.left.final !== undefined) {
-            rulaLeftHistory.push(data.rula.left.final);
-            if (rulaLeftHistory.length > 600) rulaLeftHistory.shift();
-        }
-        if (rulaChartRight) {
-            rulaChartRight.data.labels = Array.from({ length: rulaRightHistory.length }, (_, i) => i);
-            rulaChartRight.data.datasets[0].data = rulaRightHistory;
-        rulaChartRight.update('none');
-        }
-        if (rulaChartLeft) {
-            rulaChartLeft.data.labels = Array.from({ length: rulaLeftHistory.length }, (_, i) => i);
-            rulaChartLeft.data.datasets[0].data = rulaLeftHistory;
-            rulaChartLeft.update('none');
-        }
-        if (rulaChartBoth) {
-            const maxLen = Math.max(rulaRightHistory.length, rulaLeftHistory.length);
-            rulaChartBoth.data.labels = Array.from({ length: maxLen }, (_, i) => i);
-            rulaChartBoth.data.datasets[0].data = rulaRightHistory;
-            rulaChartBoth.data.datasets[1].data = rulaLeftHistory;
-            rulaChartBoth.update('none');
+        if (rulaChartUnified) {
+            rulaChartUnified.data.labels = Array.from({ length: rulaHistory.length }, (_, i) => i);
+            rulaChartUnified.data.datasets[0].data = rulaHistory;
+            rulaChartUnified.update('none');
         }
     }
     if (data.reba) {
-        if (data.reba.right && data.reba.right.final !== undefined) {
-            rebaRightHistory.push(data.reba.right.final);
-            if (rebaRightHistory.length > 600) rebaRightHistory.shift();
+        if (data.reba.final !== undefined) {
+            rebaHistory.push(data.reba.final);
+            if (rebaHistory.length > 600) rebaHistory.shift();
         }
-        if (data.reba.left && data.reba.left.final !== undefined) {
-            rebaLeftHistory.push(data.reba.left.final);
-            if (rebaLeftHistory.length > 600) rebaLeftHistory.shift();
-        }
-        if (rebaChartRight) {
-            rebaChartRight.data.labels = Array.from({ length: rebaRightHistory.length }, (_, i) => i);
-            rebaChartRight.data.datasets[0].data = rebaRightHistory;
-            rebaChartRight.update('none');
-        }
-        if (rebaChartLeft) {
-            rebaChartLeft.data.labels = Array.from({ length: rebaLeftHistory.length }, (_, i) => i);
-            rebaChartLeft.data.datasets[0].data = rebaLeftHistory;
-            rebaChartLeft.update('none');
-        }
-        if (rebaChartBoth) {
-            const maxLen = Math.max(rebaRightHistory.length, rebaLeftHistory.length);
-            rebaChartBoth.data.labels = Array.from({ length: maxLen }, (_, i) => i);
-            rebaChartBoth.data.datasets[0].data = rebaRightHistory;
-            rebaChartBoth.data.datasets[1].data = rebaLeftHistory;
-            rebaChartBoth.update('none');
+        if (rebaChartUnified) {
+            rebaChartUnified.data.labels = Array.from({ length: rebaHistory.length }, (_, i) => i);
+            rebaChartUnified.data.datasets[0].data = rebaHistory;
+            rebaChartUnified.update('none');
         }
     }
 });
