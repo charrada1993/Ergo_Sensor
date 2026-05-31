@@ -6,12 +6,12 @@ This document provides a deep dive into the Artificial Intelligence core of the 
 
 ## 🔬 Why This Model Choice?
 
-We selected an **Ensemble Learning** approach based on **LightGBM** and **Isolation Forest** for several technical reasons:
+We selected an **Ensemble Learning** approach based on **LightGBM** for several technical reasons:
 
 1.  **Temporal Sequences**: Ergo Sensor v3.0-Production relies on time-series feature engineering (rolling windows, lags) and `TimeSeriesSplit` cross-validation to capture dynamic postural history rather than static snapshots.
 2.  **Optuna HPO**: Hyperparameter Optimization (Optuna) ensures that models generalize to unseen workers rather than memorizing training data.
 3.  **Handling Imbalance**: Postural anomalies are rare. LightGBM's `class_weight='balanced'` allows us to detect rare injuries effectively.
-4.  **Unsupervised Hybrid**: By combining Isolation Forest (Unsupervised) with LightGBM (Supervised), we can detect both *known* disorders (like Neck Hyperflexion) and *unknown* dangerous movements.
+4.  **Handling Unknowns**: While primarily a supervised system, the approach is structured to handle various unknown postural anomalies as well.
 
 ---
 

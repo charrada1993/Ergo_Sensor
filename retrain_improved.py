@@ -33,7 +33,7 @@ from sklearn.metrics import (
     classification_report
 )
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import IsolationForest
+
 from sklearn.model_selection import train_test_split
 import shap
 
@@ -471,38 +471,6 @@ def train_anomaly_models(df, X_tr, X_te, feature_names):
     return anomaly_results
 
 # ============================================================================
-# SECTION 7 : ISOLATION FOREST
-# ============================================================================
-
-def train_isolation_forest(X_tr, X_te, feature_names):
-    banner("MODÈLE 5 — ISOLATION FOREST (anomalie globale)")
-
-    scaler = StandardScaler()
-    X_tr_s = scaler.fit_transform(X_tr)
-    X_te_s = scaler.transform(X_te)
-
-    iso = IsolationForest(
-        n_estimators=200,
-        contamination=0.05,
-        random_state=RANDOM_STATE,
-        n_jobs=-1,
-    )
-    iso.fit(X_tr_s)
-
-    scores = iso.decision_function(X_te_s)
-    n_anomalies = np.sum(iso.predict(X_te_s) == -1)
-
-    print(f"  ✅ Isolation Forest trained ({iso.n_estimators} trees)")
-    print(f"     Anomalies detected in test set: {n_anomalies:,} / {len(X_te):,}")
-    print(f"     Score range: [{scores.min():.4f}, {scores.max():.4f}]")
-
-    joblib.dump(iso,    MODELS_DIR / 'isolation_forest.pkl')
-    joblib.dump(scaler, MODELS_DIR / 'scaler_if.pkl')
-    print(f"  💾 Saved → models/isolation_forest.pkl + scaler_if.pkl")
-
-    return iso, scaler
-
-# ============================================================================
 # SECTION 8 : UPDATE METADATA
 # ============================================================================
 
@@ -531,7 +499,7 @@ def update_metadata(meta, reg_metrics, cls_metrics, sev_metrics, feature_names, 
             'accuracy': round(sev_metrics['accuracy'], 6),
             'f1':       round(sev_metrics['f1'],       6),
         },
-        'IsolationForest': {'trained': 1.0},
+
         'Anomaly_Models':  {'count': float(len(anomaly_results))},
     }
 
@@ -626,8 +594,7 @@ def main():
     # 6. Anomaly models
     anomaly_results = train_anomaly_models(df, X_tr, X_te, feature_names)
 
-    # 7. Isolation Forest
-    iso_model, iso_scaler = train_isolation_forest(X_tr, X_te, feature_names)
+
 
     # 8. Update metadata
     update_metadata(meta, reg_metrics, cls_metrics, sev_metrics,

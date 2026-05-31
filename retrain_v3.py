@@ -5,7 +5,7 @@ Key upgrades:
   2. TimeSeriesSplit Cross-Validation
   3. Optuna Hyperparameter Optimization (Max F1 / Min RMSE)
   4. Explainability with SHAP summary plots
-  5. LocalOutlierFactor + Isolation Forest comparison
+
 """
 import sys, io
 
@@ -22,7 +22,7 @@ from sklearn.metrics import (mean_absolute_error, mean_squared_error, r2_score,
     accuracy_score, precision_score, recall_score, f1_score,
     confusion_matrix, roc_curve, auc, precision_recall_curve)
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import IsolationForest
+
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.utils.class_weight import compute_sample_weight
 from sklearn.model_selection import TimeSeriesSplit
@@ -347,25 +347,6 @@ def train_anomaly_models(df, X_tr, X_te, feats, split_idx):
         results[col] = {'accuracy':acc,'f1':f1,'log':tree_log,'probs':probs,'y_te':y_te_b}
     return results
 
-# ─────────────── MODEL 5: GLOBAL ANOMALY ──────────────────────────────────────
-def train_iso_forest(X_tr, X_te, feats):
-    banner("MODEL 5 — Global Anomaly (LocalOutlierFactor / IsolationForest)")
-    scaler = StandardScaler()
-    Xts  = scaler.fit_transform(X_tr)
-    Xvs  = scaler.transform(X_te)
-    
-    # We keep Isolation Forest as it generalizes well to unseen data natively
-    iso  = IsolationForest(n_estimators=300, contamination=0.05, max_samples=256,
-                           random_state=SEED, n_jobs=-1)
-    iso.fit(Xts)
-    scores = iso.decision_function(Xvs)
-    n_anom = (iso.predict(Xvs)==-1).sum()
-    print(f"  Trees: 300  |  Anomalies in test: {n_anom}/{len(Xvs)} ({(n_anom/len(Xvs))*100:.2f}%)")
-    
-    joblib.dump(iso,    MODELS_DIR/'isolation_forest.pkl')
-    joblib.dump(scaler, MODELS_DIR/'scaler_if.pkl')
-    iso_stats = {'n_anom': n_anom, 'n_test': len(Xvs), 'min_score': scores.min(), 'max_score': scores.max(), 'scores': scores}
-    return iso, scaler, iso_stats
 
 # ─────────────── UPDATE METADATA ──────────────────────────────────────────────
 def update_meta(meta, feats, reg_m, cls_m, sev_m, n_anom):
@@ -379,14 +360,14 @@ def update_meta(meta, feats, reg_m, cls_m, sev_m, n_anom):
         'LightGBM_Regression': {k:round(v,6) for k,v in reg_m.items()},
         'LightGBM_Classifier': {k:round(v,6) for k,v in cls_m.items()},
         'LightGBM_Severity':   {k:round(v,6) for k,v in sev_m.items()},
-        'IsolationForest': {'trained':1.0},
+
         'Anomaly_Models':  {'count':float(n_anom)},
     }
     with open(META_PATH,'w') as f: json.dump(meta, f, indent=2)
     print("  model_metadata.json updated (v3.0-Production)")
 
 # ─────────────── FINAL REPORT ─────────────────────────────────────────────────
-def final_report(reg_m, cls_m, sev_m, reg_log, cls_log, sev_log, iso_stats):
+def final_report(reg_m, cls_m, sev_m, reg_log, cls_log, sev_log):
     banner("FINAL REPORT — ERGO SENSOR AI ENGINE v3.0-Production")
     print(f"  MODEL 1 — Regressor (Risk Score)")
     print(f"    MAE  : {reg_m['mae']:.6f} | RMSE : {reg_m['rmse']:.6f} | R2   : {reg_m['r2']:.6f}")
@@ -591,29 +572,6 @@ def plot_model4(anom_res):
     _style_ax(ax, 'M4 — Per-Joint Anomaly ROC Curves', 'FPR', 'TPR')
     _save(fig3, 'eval_model4_roc.png')
 
-# ─── MODEL 5: Score Distribution + Threshold ──────────────────────────────────
-def plot_model5(iso_stats):
-    scores = iso_stats.get('scores', np.array([]))
-    if len(scores) == 0: return
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5))
-
-    # 5a. Histogram
-    axes[0].hist(scores[scores >= 0], bins=40, color=STYLE['accent'], alpha=0.8, label='Normal')
-    axes[0].hist(scores[scores <  0], bins=40, color='#ff4444',       alpha=0.8, label='Anomaly')
-    axes[0].axvline(0, color='red', linestyle='--', linewidth=1.5, label='Threshold')
-    axes[0].legend(facecolor=STYLE['bg'], labelcolor=STYLE['text'])
-    _style_ax(axes[0], 'M5 — Isolation Forest Score Distribution', 'Anomaly Score', 'Count')
-
-    # 5b. Sorted score plot
-    sorted_scores = np.sort(scores)
-    axes[1].plot(sorted_scores, color=STYLE['train'], linewidth=1)
-    axes[1].axhline(0, color='red', linestyle='--', linewidth=1.5, label='Threshold')
-    axes[1].fill_between(range(len(sorted_scores)), sorted_scores, 0,
-                         where=(sorted_scores < 0), color='#ff4444', alpha=0.3, label='Anomaly zone')
-    axes[1].legend(facecolor=STYLE['bg'], labelcolor=STYLE['text'])
-    _style_ax(axes[1], 'M5 — Sorted Anomaly Scores', 'Sample Index (sorted)', 'Score')
-
-    _save(fig, 'eval_model5_isoforest.png')
 
 # ─────────────── MAIN ─────────────────────────────────────────────────────────
 def main():
@@ -635,17 +593,14 @@ def main():
     _, sev_m, sev_log, sev_probs, sev_yte = train_severity(X_tr, X_te, y_sev_tr, y_sev_te, feats)
 
     anom_res = train_anomaly_models(df, X_tr, X_te, feats, split_idx)
-    iso, scaler, iso_stats = train_iso_forest(X_tr, X_te, feats)
-
     update_meta(meta, feats, reg_m, cls_m, sev_m, len(anom_res))
-    final_report(reg_m, cls_m, sev_m, reg_log, cls_log, sev_log, iso_stats)
+    final_report(reg_m, cls_m, sev_m, reg_log, cls_log, sev_log)
 
     banner("GENERATING ALL EVALUATION PLOTS")
     plot_model1(reg_log, reg_pred, reg_yte)
     plot_model2(cls_log, cls_probs, cls_yte, meta)
     plot_model3(sev_log, sev_probs, sev_yte)
     plot_model4(anom_res)
-    plot_model5(iso_stats)
 
     import shutil, os
     plots_dir = Path('plots')

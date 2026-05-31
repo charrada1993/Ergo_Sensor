@@ -44,9 +44,7 @@ class AIModels:
         )
         self.severity_map = {v: k for k, v in self.meta.get('severity_to_code', {}).items()}
 
-        # ── Isolation Forest anomalie globale ─────────────────────────────
-        self.iso_forest = joblib.load(self.model_dir / 'isolation_forest.pkl')
-        self.scaler_if  = joblib.load(self.model_dir / 'scaler_if.pkl')
+
 
         # ── Anomaly models (5 articulations) ─────────────────────────────
         self.anomaly_models = {}
@@ -98,14 +96,7 @@ class AIModels:
             sev_code  = int(np.argmax(sev_probs))
             severity  = self.severity_map.get(sev_code, 'low')
 
-            import pandas as pd
-            if_cols = self.meta.get('if_features', self.feature_cols)
-            X_if = pd.DataFrame(
-                [[features_dict.get(c, 0.0) for c in if_cols]],
-                columns=if_cols
-            )
-            raw_if_score  = self.iso_forest.decision_function(self.scaler_if.transform(X_if))[0]
-            anomaly_score = round(float(1.0 - raw_if_score), 3)
+            anomaly_score = 0.0
 
             # ── Anomaly probs per articulation ────────────────────────────
             anomaly_probs = {}

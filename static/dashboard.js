@@ -439,6 +439,11 @@ function updateAngles(angles) {
             <div class="jval">${value.toFixed(1)}°</div>
             <div class="jwarn"><i class="fas fa-exclamation-triangle"></i> Threshold exceeded</div>
         </div>`;
+        // Update latest numeric display for this joint
+        const latestEl = document.getElementById(`latest-${joint}`);
+        if (latestEl) {
+            latestEl.innerText = `${value.toFixed(1)}°`;
+        }
     }
     if (!any) html = '<p style="color:var(--text-dim);">No joint data yet.</p>';
     const el = document.getElementById('angles');
@@ -447,6 +452,22 @@ function updateAngles(angles) {
 
 function updateTrends(angles, legs_score) {
     const merged = Object.assign({}, angles, { legs_score: legs_score ?? null });
+
+    // Component label shortcuts: strip joint prefix, keep meaningful suffix
+    const compLabel = {
+        Neck: 'Pitch', Neck_Roll: 'Roll', Neck_Yaw: 'Yaw',
+        R_Shoulder: 'Pitch', R_Shoulder_Abduction: 'Abd',
+        L_Shoulder: 'Pitch', L_Shoulder_Abduction: 'Abd',
+        R_Elbow: 'Pitch', R_Elbow_Roll: 'Roll',
+        L_Elbow: 'Pitch', L_Elbow_Roll: 'Roll',
+        R_Wrist: 'Pitch', R_Wrist_Roll: 'Roll', R_Wrist_Yaw: 'Yaw',
+        L_Wrist: 'Pitch', L_Wrist_Roll: 'Roll', L_Wrist_Yaw: 'Yaw',
+        Trunk_Pitch: 'Pitch', Trunk_Roll: 'Roll', Trunk_Yaw: 'Yaw',
+        R_Thigh: 'Pitch', R_Thigh_Roll: 'Roll', R_Thigh_Yaw: 'Yaw',
+        L_Thigh: 'Pitch', L_Thigh_Roll: 'Roll', L_Thigh_Yaw: 'Yaw',
+        R_Knee: 'Pitch', L_Knee: 'Pitch',
+    };
+
     for (const joint in jointComponents) {
         jointComponents[joint].forEach(comp => {
             const val = merged[comp];
@@ -455,7 +476,24 @@ function updateTrends(angles, legs_score) {
                 if (history[comp].length > MAX_HISTORY) history[comp].shift();
             }
         });
+
+        // Update colored pill badges beneath this joint's chart
+        const badgesEl = document.getElementById(`comp-${joint}`);
+        if (badgesEl) {
+            const comps = jointComponents[joint];
+            badgesEl.innerHTML = comps.map(comp => {
+                const val = merged[comp];
+                const label = compLabel[comp] || comp.split('_').pop();
+                const color = colorForComp(comp);
+                const display = (val !== undefined && val !== null) ? `${val.toFixed(1)}°` : '--';
+                return `<span class="comp-badge">
+                    <span class="badge-label" style="color:${color}">${label}</span>
+                    <span class="badge-val">${display}</span>
+                </span>`;
+            }).join('');
+        }
     }
+
     for (const joint in jointComponents) {
         const chart = trendCharts[joint];
         if (!chart) continue;

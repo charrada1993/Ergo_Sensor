@@ -1272,3 +1272,28 @@ body.light-mode #raw-debug-panel {
     flex-direction: column;
     align-items: center;
 }
+
+/* ── Light-mode: component angle badges ── */
+body.light-mode .comp-badge {
+    background: rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode .comp-badge:hover {
+    background: rgba(0, 0, 0, 0.12);
+}
+
+body.light-mode .comp-badge .badge-val {
+    color: #2c3e50;
+}
+
+body.light-mode .trend-card {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .trend-card:hover {
+    border-color: rgba(13, 115, 119, 0.4);
+    box-shadow: 0 12px 32px rgba(13, 115, 119, 0.15);
+}

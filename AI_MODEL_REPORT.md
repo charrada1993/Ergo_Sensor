@@ -77,20 +77,6 @@ The Ergo Sensor AI Engine **v3.0-Production** introduces **Time-Series Feature E
 
 ---
 
-## 🌲 Model 5 — Isolation Forest (Global Anomaly)
-
-> Unsupervised global anomaly detection across all 75 features.
-
-| Parameter | Value |
-|-----------|-------|
-| Estimators | **300** |
-| Contamination | **5%** |
-| Max Samples | `256` |
-| Scaler | `StandardScaler` |
-| Anomalies detected | **5.00%** of test set |
-
----
-
 ## 🔧 Feature Engineering (+37 features)
 
 v3.0-Production expands from **38 → 75 features**, transforming static snapshots into a dynamic time-series pipeline:
@@ -117,7 +103,6 @@ The pipeline now natively generates 10 diagnostic plots (saved to `models/` and 
 7. `eval_model4_bars.png`: F1 & Accuracy by joint
 8. `eval_model4_learning.png`: Anomaly learning curves
 9. `eval_model4_roc.png`: Anomaly ROC curves
-10. `eval_model5_isoforest.png`: Score distributions
 
 **Explainability:** `shap_regressor.png` and `shap_classifier.png` visually isolate exactly which of the 75 features are driving risk and pathology classifications.
 

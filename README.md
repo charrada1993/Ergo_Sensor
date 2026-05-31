@@ -30,9 +30,8 @@
 7. [Artificial Intelligence Ensemble (v3.0-Production)](#7-artificial-intelligence-ensemble)
     - 7.1 LightGBM 10-Day Risk Forecasting
     - 7.2 🚶‍♂️ 3D Digital Twin Visualization
-    - 7.3 Isolation Forest Anomaly Detection
-    - 7.4 Granular Postural Classifiers
-    - 7.5 Explainability via SHAP
+    - 7.3 Granular Postural Classifiers
+    - 7.4 Explainability via SHAP
 8. [Module-by-Module Technical Documentation](#8-module-by-module-technical-documentation)
 9. [Data Pipeline & Lifecycle](#9-data-pipeline--lifecycle)
 10. [Reporting & Clinical Insights](#10-reporting--clinical-insights)
@@ -119,7 +118,7 @@ For a full 12-sensor assessment, sensors should be placed:
 - **Database**: Firebase RTDB (Low-latency cloud sync).
 - **Machine Learning**: 
     - **LightGBM**: Fast gradient boosting for tabular data.
-    - **Scikit-learn**: Isolation Forest and preprocessing.
+    - **Scikit-learn**: Preprocessing.
     - **SHAP**: Model interpretability.
 - **Visualization**: 
     - **Matplotlib**: Static charts in PDF.
@@ -161,10 +160,7 @@ Ergo Sensor v3.0 includes a real-time **3D Humanoid Skeleton** rendered directly
 - Allows clinicians to observe worker posture from any angle (360° rotation).
 - Provides instant visual confirmation of AI-detected anomalies.
 
-### 7.3 Isolation Forest Global Anomaly Detection
-This unsupervised model (300 estimators, 5% contamination) identifies "Outliers" in kinematics across all 75 features. It is particularly effective at detecting sudden falls, unexpected collisions, or movements that the system hasn't seen before in its training set.
-
-### 7.4 Granular Postural Classifiers
+### 7.3 Granular Postural Classifiers
 Five dedicated binary LightGBM classifiers (avg F1=0.9906) provide real-time probability curves for:
 - **Neck Hyperflexion**
 - **Shoulder Overextension**
@@ -174,7 +170,7 @@ Five dedicated binary LightGBM classifiers (avg F1=0.9906) provide real-time pro
 
 Additionally, the **Condition Classifier** (Acc=99.60%) identifies 18 distinct pathological conditions, and the **Severity Classifier** tags the risk level.
 
-### 7.5 Explainability via SHAP
+### 7.4 Explainability via SHAP
 Using **SHAP TreeExplainer**, the system provides "Local Interpretability". For every high-risk alert, the system identifies the "Contribution" of each of the 75 features. 
 - *Clinician Insight*: "The risk is high primarily because of the extreme rotation of the Trunk, not the Shoulder angle."
 

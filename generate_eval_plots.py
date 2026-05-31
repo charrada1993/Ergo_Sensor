@@ -27,28 +27,35 @@ with open('condition_mappings.json') as f:
 # Feature Engineering (Same as retrain_v3.py)
 # ─────────────────────────────────────────────────────────────
 def engineer_features(df):
+    # Bilateral asymmetry
     for joint in ['shoulder','elbow','wrist','hip','knee']:
         r, l = f'r_{joint}', f'l_{joint}'
         if r in df.columns and l in df.columns:
             df[f'asym_{joint}'] = np.abs(df[r] - df[l])
+    # Composite loads
     if all(c in df.columns for c in ['neck','trunk','shoulder','elbow','wrist']):
         df['upper_load'] = (df['neck']*0.3 + df['trunk']*0.25 +
                             df['shoulder']*0.2 + df['elbow']*0.15 + df['wrist']*0.1)
     if all(c in df.columns for c in ['hip','knee']):
         df['lower_load'] = df['hip']*0.5 + df['knee']*0.5
+    # Energy interaction
     for jt in ['neck','trunk','shoulder','elbow','wrist','hip','knee']:
         v, d = f'{jt}_vel', f'{jt}_duration'
         if v in df.columns and d in df.columns:
             df[f'{jt}_energy'] = df[v] * df[d]
+    # Time-series: rolling stats, lags, acceleration
+    for jt in ['neck','trunk','shoulder','elbow','wrist']:
+        if jt in df.columns:
+            df[f'{jt}_roll_mean'] = df[jt].rolling(window=15, min_periods=1).mean()
+            df[f'{jt}_roll_std']  = df[jt].rolling(window=15, min_periods=1).std().fillna(0)
+            df[f'{jt}_lag_15']    = df[jt].shift(15).fillna(method='bfill')
+        v = f'{jt}_vel'
+        if v in df.columns:
+            df[f'{jt}_acc'] = df[v].diff().fillna(0)
+    # High-risk posture flags
     df['neck_hflex']    = (df['neck']     > 20).astype(float)
     df['trunk_hflex']   = (df['trunk']    > 20).astype(float)
     df['shoulder_hext'] = (df['shoulder'] > 60).astype(float)
-    raw_map = {
-        'Neck_Flexion_deg':'raw_neck','Trunk_Flexion_deg':'raw_trunk',
-        'R_Shoulder_Flexion_deg':'raw_r_shoulder','L_Shoulder_Flexion_deg':'raw_l_shoulder',
-    }
-    for src, dst in raw_map.items():
-        if src in df.columns: df[dst] = df[src]
     return df
 
 df = engineer_features(df)
@@ -69,8 +76,6 @@ Xs_te = X_te_raw.values.astype(np.float32)
 reg_model = lgb.Booster(model_file='models/lgb_regressor.txt')
 cls_model = lgb.Booster(model_file='models/lgb_classifier.txt')
 sev_model = lgb.Booster(model_file='models/lgb_severity.txt')
-iso       = joblib.load('models/isolation_forest.pkl')
-scif      = joblib.load('models/scaler_if.pkl')
 
 pred_reg  = reg_model.predict(Xs_te)
 pred_cls  = np.argmax(cls_model.predict(Xs_te), axis=1)
@@ -191,23 +196,7 @@ ax5.grid(True, axis='x', alpha=0.18)
 for i, (f_, g_) in enumerate(zip(fi_df['feature'], fi_df['gain'])):
     ax5.text(g_ + max_g * 0.005, i, f'{g_:,.0f}', va='center', color='#8890aa', fontsize=7)
 
-# ─────────────────────────────────────────────────────────────
-# 6. IsolationForest Score Distribution
-# ─────────────────────────────────────────────────────────────
-ax6 = fig.add_subplot(gs[2, 2])
-iso_scores  = iso.decision_function(scif.transform(Xs_te))
-iso_pred    = iso.predict(scif.transform(Xs_te))
-normal_mask = iso_pred == 1
-ax6.hist(iso_scores[normal_mask],  bins=50, color=OK,     alpha=0.75, label='Normal',  edgecolor='none')
-ax6.hist(iso_scores[~normal_mask], bins=25, color=DANGER, alpha=0.85, label='Anomaly', edgecolor='none')
-ax6.axvline(0, color='white', lw=1.2, ls='--', alpha=0.5)
-ax6.set_title('IsolationForest — Decision Score', color=ACCENT, fontsize=11, pad=10)
-ax6.set_xlabel('Score (negative = anomaly)'); ax6.set_ylabel('Count')
-ax6.legend(facecolor=BG, edgecolor='#2a2d4a')
-ax6.grid(True, alpha=0.18)
-n_anom = (~normal_mask).sum()
-ax6.text(0.98, 0.92, f'Anomalies: {n_anom} ({100*n_anom/len(iso_pred):.1f}%)',
-         transform=ax6.transAxes, ha='right', color=DANGER, fontsize=9)
+
 
 # ─────────────────────────────────────────────────────────────
 # 7. Anomaly Models — ROC Curves
@@ -260,7 +249,7 @@ summary = {
     "regression":   {"r2": round(r2, 4), "mae": round(mae, 4), "rmse": round(rmse, 4)},
     "condition":    {"accuracy": round(acc_cls, 4), "f1_macro": round(f1_cls, 4)},
     "severity":     {"accuracy": round(acc_sev, 4), "f1_macro": round(f1_sev, 4)},
-    "isolation_forest": {"anomaly_rate": round(n_anom / len(iso_pred), 4)},
+
     "n_features":   len(FEATURES),
     "n_test":       len(Xs_te),
 }

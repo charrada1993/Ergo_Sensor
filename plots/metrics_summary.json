@@ -1,20 +1,17 @@
 {
   "regression": {
-    "r2": 0.9966,
-    "mae": 0.0075,
-    "rmse": 0.0107
+    "r2": 0.9981,
+    "mae": 0.0056,
+    "rmse": 0.0079
   },
   "condition": {
-    "accuracy": 0.9952,
-    "f1_macro": 0.9661
+    "accuracy": 0.996,
+    "f1_macro": 0.9667
   },
   "severity": {
-    "accuracy": 0.9805,
-    "f1_macro": 0.9598
+    "accuracy": 0.9695,
+    "f1_macro": 0.9411
   },
-  "isolation_forest": {
-    "anomaly_rate": 0.051
-  },
-  "n_features": 59,
+  "n_features": 75,
   "n_test": 4000
 }

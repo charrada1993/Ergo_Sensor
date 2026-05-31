@@ -7,8 +7,7 @@ Sans TensorFlow (incompatible). Modeles entraine:
    1. LightGBM Regression  -> risk_score       (lgb_regressor.txt)
    2. LightGBM Classifier  -> main_condition    (lgb_classifier.txt)
    3. LightGBM Severite    -> severity_code     (lgb_severity.txt)
-   4. IsolationForest      -> anomaly global    (isolation_forest.pkl)
-   5. LightGBM x5 anomaly  -> par articulation  (lgbm_anomaly_*.txt)
+   4. LightGBM x5 anomaly  -> par articulation  (lgbm_anomaly_*.txt)
    + model_metadata.json compatible avec ai_engine.py
 =============================================================================
 """
@@ -27,7 +26,7 @@ from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score
 )
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import IsolationForest
+
 import joblib
 import shap
 import matplotlib
@@ -251,38 +250,6 @@ def train_lgb_severity(X_train, X_test, y_train, y_test):
     return model, {'accuracy': acc, 'f1': f1}
 
 
-# ============================================================================
-# SECTION 6: MODELE 4 - ISOLATION FOREST (anomalie globale)
-# ============================================================================
-
-def train_isolation_forest(X_train, X_test, features):
-    print("\n" + "="*70)
-    print("MODELE 4: IsolationForest (anomalie globale)")
-    print("="*70)
-
-    # IsolationForest s'entraîne sur X brut (pas normalisé de la même façon)
-    scaler_if = StandardScaler()
-    Xif_train = scaler_if.fit_transform(X_train)
-    Xif_test  = scaler_if.transform(X_test)
-
-    iso = IsolationForest(
-        n_estimators=200,
-        contamination=0.05,
-        random_state=42,
-        n_jobs=-1
-    )
-    iso.fit(Xif_train)
-
-    scores_train = iso.decision_function(Xif_train)
-    scores_test  = iso.decision_function(Xif_test)
-    n_anom = (iso.predict(Xif_test) == -1).sum()
-    print(f"\n  [OK] Anomalies detectees dans test: {n_anom} ({100*n_anom/len(Xif_test):.1f}%)")
-
-    joblib.dump(iso,       f'{MODELS_DIR}/isolation_forest.pkl')
-    joblib.dump(scaler_if, f'{MODELS_DIR}/scaler_if.pkl')
-    print(f"  [SAVE] isolation_forest.pkl + scaler_if.pkl")
-    return iso, scaler_if
-
 
 # ============================================================================
 # SECTION 7: MODELES 5-9 - ANOMALIES PAR ARTICULATION
@@ -379,11 +346,8 @@ def compute_shap(model_lgb_reg, X_test_scaled, features):
 # SECTION 9: METADATA JSON (compatible ai_engine.py)
 # ============================================================================
 
-def save_metadata(mappings, features, scaler_if, thresholds, results):
+def save_metadata(mappings, features, thresholds, results):
     print("\n[7/7] Sauvegarde model_metadata.json...")
-
-    # Features pour IsolationForest (toutes les features de base)
-    if_features = features
 
     meta = {
         "version":       "2.0",
@@ -391,7 +355,6 @@ def save_metadata(mappings, features, scaler_if, thresholds, results):
         "n_samples":     20000,
         "n_features":    len(features),
         "feature_cols":  features,
-        "if_features":   if_features,
         "seq_len":       60,
         "condition_to_code": mappings['condition_to_code'],
         "severity_to_code":  mappings['severity_to_code'],
@@ -474,9 +437,6 @@ if __name__ == "__main__":
     lgb_sev, res_sev = train_lgb_severity(Xs_train, Xs_test, y_tr_sev, y_te_sev)
     results['LightGBM_Severity'] = res_sev
 
-    # 7. Modele 4 : IsolationForest
-    iso, scaler_if = train_isolation_forest(X_train, X_test, FEATURES_BASIC)
-    results['IsolationForest'] = {'trained': 1.0}
 
     # 8. Modeles 5-9 : anomalie par articulation
     anomaly_models, anom_thresholds = train_anomaly_models(
@@ -492,7 +452,7 @@ if __name__ == "__main__":
     print(f"  [SAVE] {MODELS_DIR}/feature_scaler.pkl")
 
     # 11. Metadata JSON
-    meta = save_metadata(mappings, FEATURES_BASIC, scaler_if, anom_thresholds, results)
+    meta = save_metadata(mappings, FEATURES_BASIC, anom_thresholds, results)
 
     # 12. Rapport
     print_report(results)

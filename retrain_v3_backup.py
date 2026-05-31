@@ -6,7 +6,7 @@ Key upgrades vs v2.1:
   3. Synthesized anomaly binary labels from angle thresholds
   4. Lower LR + more trees + DART booster (classifier)
   5. Better regularisation (min_gain_to_split, path_smooth)
-  6. Isolation Forest with 300 trees
+
 """
 import sys, io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
@@ -23,7 +23,7 @@ from datetime import datetime
 from sklearn.metrics import (mean_absolute_error, mean_squared_error, r2_score,
     accuracy_score, precision_score, recall_score, f1_score)
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import IsolationForest
+
 from sklearn.utils.class_weight import compute_sample_weight
 
 # ─────────────── CONFIG ───────────────────────────────────────────────────────
@@ -314,30 +314,6 @@ def train_anomaly_models(df, X_tr, X_te, feats, split_idx):
         results[col] = {'accuracy':acc,'f1':f1,'log':tree_log}
     return results
 
-# ─────────────── MODEL 5: ISOLATION FOREST ────────────────────────────────────
-def train_iso_forest(X_tr, X_te, feats):
-    banner("MODEL 5 — Isolation Forest (global anomaly)")
-    scaler = StandardScaler()
-    Xts  = scaler.fit_transform(X_tr)
-    Xvs  = scaler.transform(X_te)
-    iso  = IsolationForest(n_estimators=300, contamination=0.05,
-                           random_state=SEED, n_jobs=-1)
-    iso.fit(Xts)
-    scores = iso.decision_function(Xvs)
-    n_anom = (iso.predict(Xvs)==-1).sum()
-    print(f"  Trees: 300  |  Anomalies in test: {n_anom}/{len(Xvs)}"
-          f"  |  Score range [{scores.min():.4f}, {scores.max():.4f}]")
-    joblib.dump(iso,    MODELS_DIR/'isolation_forest.pkl')
-    joblib.dump(scaler, MODELS_DIR/'scaler_if.pkl')
-    print("  Saved -> isolation_forest.pkl + scaler_if.pkl")
-    iso_stats = {
-        'n_anom': n_anom,
-        'n_test': len(Xvs),
-        'min_score': scores.min(),
-        'max_score': scores.max()
-    }
-    return iso, scaler, iso_stats
-
 # ─────────────── UPDATE METADATA ──────────────────────────────────────────────
 def update_meta(meta, feats, reg_m, cls_m, sev_m, n_anom):
     banner("STEP 8/8 — Update model_metadata.json")
@@ -350,14 +326,14 @@ def update_meta(meta, feats, reg_m, cls_m, sev_m, n_anom):
         'LightGBM_Regression': {k:round(v,6) for k,v in reg_m.items()},
         'LightGBM_Classifier': {k:round(v,6) for k,v in cls_m.items()},
         'LightGBM_Severity':   {k:round(v,6) for k,v in sev_m.items()},
-        'IsolationForest': {'trained':1.0},
+
         'Anomaly_Models':  {'count':float(n_anom)},
     }
     with open(META_PATH,'w') as f: json.dump(meta, f, indent=2)
     print("  model_metadata.json updated (v3.0)")
 
 # ─────────────── FINAL REPORT ─────────────────────────────────────────────────
-def final_report(reg_m, cls_m, sev_m, reg_log, cls_log, sev_log, iso_stats):
+def final_report(reg_m, cls_m, sev_m, reg_log, cls_log, sev_log):
     banner("FINAL REPORT — ERGO SENSOR AI ENGINE v3.0")
     first_rmse = reg_log[0]['valid_rmse']  if reg_log else 0
     last_rmse  = reg_log[-1]['valid_rmse'] if reg_log else 0
@@ -382,11 +358,6 @@ def final_report(reg_m, cls_m, sev_m, reg_log, cls_log, sev_log, iso_stats):
     Accuracy : {sev_m['accuracy']:.4f}
     F1       : {sev_m['f1']:.4f}
     Trees    : {len(sev_log)}
-
-  MODEL 5 — Isolation Forest (Global Anomaly)
-    Trees            : 300
-    Anomalies Found  : {iso_stats['n_anom']} / {iso_stats['n_test']} test samples ({(iso_stats['n_anom']/iso_stats['n_test'])*100:.2f}%)
-    Score Range      : [{iso_stats['min_score']:.4f}, {iso_stats['max_score']:.4f}]
 """)
 
 # ─────────────── PLOT CURVES ──────────────────────────────────────────────────
@@ -461,20 +432,6 @@ def plot_anomaly_curves(anom_res):
     plt.savefig(str(MODELS_DIR / 'anomaly_curves.png'), dpi=150)
     print("  [OK] Saved anomaly learning curves to models/anomaly_curves.png")
 
-def plot_isolation_forest(iso_stats):
-    scores = iso_stats.get('scores', [])
-    if len(scores) == 0: return
-    plt.figure(figsize=(6, 4))
-    plt.hist(scores, bins=50, color='#00ffaa', alpha=0.7)
-    plt.axvline(0, color='red', linestyle='dashed', linewidth=2, label='Anomaly Threshold (0)')
-    plt.title('Model 5: Isolation Forest Scores')
-    plt.xlabel('Anomaly Score')
-    plt.ylabel('Frequency')
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(str(MODELS_DIR / 'isolation_forest_dist.png'), dpi=150)
-    print("  [OK] Saved Isolation Forest distribution to models/isolation_forest_dist.png")
-
 # ─────────────── MAIN ─────────────────────────────────────────────────────────
 def main():
     print("\n" + "="*72)
@@ -496,13 +453,10 @@ def main():
     sev_m, sev_log = train_severity(X_tr, X_te, y_sev_tr, y_sev_te, feats)[1:]
 
     anom_res = train_anomaly_models(df, X_tr, X_te, feats, split_idx)
-    iso, scaler, iso_stats = train_iso_forest(X_tr, X_te, feats)
-
     update_meta(meta, feats, reg_m, cls_m, sev_m, len(anom_res))
-    final_report(reg_m, cls_m, sev_m, reg_log, cls_log, sev_log, iso_stats)
+    final_report(reg_m, cls_m, sev_m, reg_log, cls_log, sev_log)
     plot_learning_curves(reg_log, cls_log, sev_log)
     plot_anomaly_curves(anom_res)
-    plot_isolation_forest(iso_stats)
 
     print(f"  Total time: {(datetime.now()-t0).total_seconds()/60:.1f} min\n")
 

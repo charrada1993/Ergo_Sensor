@@ -19,7 +19,6 @@ The "Ergo Sensor AI Engine v3.0-Production" is a multi-model ensemble built to p
     *   *Condition Classifier*: Uses the GBDT/DART booster to classify 18 distinct medical pathologies (e.g., Carpal Tunnel, Lumbar Disc Herniation).
     *   *Severity & Per-Joint Classifiers*: Used for granular anomaly detection per body part.
 *   **Scikit-Learn (sklearn)**: Provides the foundational machine learning utilities.
-    *   *Isolation Forest*: An unsupervised learning model used for global anomaly detection (detecting irregular, unseen postural movements).
     *   *TimeSeriesSplit*: Used for cross-validation during training to ensure temporal data leakage is prevented.
     *   *Metrics*: Generates confusion matrices, ROC curves, and F1/Accuracy/RMSE scores.
 *   **Optuna**: A hyperparameter optimization (HPO) framework used in `retrain_v3.py` to automatically search for the most optimal parameters for the LightGBM models.

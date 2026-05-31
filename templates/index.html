@@ -504,6 +504,37 @@
     height: 130px !important;
   }
 
+  /* Component badges under each chart — Pitch/Roll/Yaw colored pills */
+  .comp-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 6px;
+    padding: 0 2px 4px;
+  }
+  .comp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .comp-badge:hover { background: rgba(255,255,255,0.1); }
+  .comp-badge .badge-label {
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  .comp-badge .badge-val {
+    color: rgba(255,255,255,0.85);
+    font-weight: 500;
+  }
+
   .full-width {
     grid-column: span 2;
   }
@@ -717,50 +748,62 @@
       <div class="card trend-card" data-joint="Neck">
         <div class="card-title">Neck</div>
         <canvas id="trend-Neck"></canvas>
+        <div class="comp-badges" id="comp-Neck"></div>
       </div>
       <div class="card trend-card" data-joint="Back">
         <div class="card-title">Back / Trunk</div>
         <canvas id="trend-Back"></canvas>
+        <div class="comp-badges" id="comp-Back"></div>
       </div>
       <div class="card trend-card" data-joint="R_Shoulder">
         <div class="card-title">Right Shoulder</div>
         <canvas id="trend-R_Shoulder"></canvas>
+        <div class="comp-badges" id="comp-R_Shoulder"></div>
       </div>
       <div class="card trend-card" data-joint="L_Shoulder">
         <div class="card-title">Left Shoulder</div>
         <canvas id="trend-L_Shoulder"></canvas>
+        <div class="comp-badges" id="comp-L_Shoulder"></div>
       </div>
       <div class="card trend-card" data-joint="R_Elbow">
         <div class="card-title">Right Elbow</div>
         <canvas id="trend-R_Elbow"></canvas>
+        <div class="comp-badges" id="comp-R_Elbow"></div>
       </div>
       <div class="card trend-card" data-joint="L_Elbow">
         <div class="card-title">Left Elbow</div>
         <canvas id="trend-L_Elbow"></canvas>
+        <div class="comp-badges" id="comp-L_Elbow"></div>
       </div>
       <div class="card trend-card" data-joint="R_Wrist">
         <div class="card-title">Right Wrist</div>
         <canvas id="trend-R_Wrist"></canvas>
+        <div class="comp-badges" id="comp-R_Wrist"></div>
       </div>
       <div class="card trend-card" data-joint="L_Wrist">
         <div class="card-title">Left Wrist</div>
         <canvas id="trend-L_Wrist"></canvas>
+        <div class="comp-badges" id="comp-L_Wrist"></div>
       </div>
       <div class="card trend-card" data-joint="R_Thigh">
         <div class="card-title">Right Thigh</div>
         <canvas id="trend-R_Thigh"></canvas>
+        <div class="comp-badges" id="comp-R_Thigh"></div>
       </div>
       <div class="card trend-card" data-joint="L_Thigh">
         <div class="card-title">Left Thigh</div>
         <canvas id="trend-L_Thigh"></canvas>
+        <div class="comp-badges" id="comp-L_Thigh"></div>
       </div>
       <div class="card trend-card" data-joint="R_Knee">
         <div class="card-title">Right Knee</div>
         <canvas id="trend-R_Knee"></canvas>
+        <div class="comp-badges" id="comp-R_Knee"></div>
       </div>
       <div class="card trend-card" data-joint="L_Knee">
         <div class="card-title">Left Knee</div>
         <canvas id="trend-L_Knee"></canvas>
+        <div class="comp-badges" id="comp-L_Knee"></div>
       </div>
     </div>
   </div>

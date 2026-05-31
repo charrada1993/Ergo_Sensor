@@ -42,7 +42,7 @@ graph TD
         DP[DataProcessor Singleton]
         AM[Angle Math Engine]
         RE[RULA/REBA Scoring Engines]
-        AI[AI Models: LightGBM / Isolation Forest]
+        AI[AI Models: LightGBM]
     end
 
     subgraph "Presentation Layer"
@@ -153,13 +153,7 @@ The system uses a **LightGBM (Light Gradient Boosting Machine)** model for its s
 - **Feature Window**: 60 frames (6 seconds of history)
 - **Feature Vector**: 59-dimensional (engineered for asymmetry, energy, and load)
 
-### 6.2 Isolation Forest Anomaly Detection
-Used for unsupervised detection of "Jerky" or "Atypical" movements.
-- **Input**: Feature vector of 24 joint angles.
-- **Output**: Anomaly score (0 to 1).
-- **Threshold**: >0.6 flags a potential movement hazard.
-
-### 6.3 SHAP Explainability
+### 6.2 SHAP Explainability
 SHAP (SHapley Additive exPlanations) is used to satisfy clinical transparency requirements. It breaks down the 90% risk score into specific joint contributions (e.g., "Left Shoulder: +15%").
 
 ---
@@ -250,8 +244,8 @@ The Ergo Sensor project relies on a carefully curated set of Python libraries, e
 
 ### 6. **Scikit-Learn (1.3.1)**
 - **Role**: Machine learning utilities.
-- **Why**: Provides the infrastructure for the Isolation Forest anomaly detector and data scaling.
-- **Key Features Used**: IsolationForest, StandardScaler, and Pipeline objects.
+- **Why**: Provides the infrastructure for data scaling.
+- **Key Features Used**: StandardScaler and Pipeline objects.
 
 ### 7. **SHAP (0.42.1)**
 - **Role**: Model explainability.
@@ -440,7 +434,7 @@ Ergo Sensor is more than just a collection of scripts; it is a carefully enginee
 *Technical Appendix C: Directory Structure Justification*
 - `/csv_data`: Segmented by session ID for fast retrieval.
 - `/reports`: PDF reports stored as static assets for rapid download.
-- `/models`: Houses the trained weights for LightGBM and Isolation Forest.
+- `/models`: Houses the trained weights for LightGBM.
 - `/templates`: Jinja2 templates for the Flask routing engine.
 
 ---

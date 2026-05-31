@@ -13,317 +13,280 @@
     --purple:  #c97fff;
     --border:  rgba(255,255,255,0.08);
     --card-bg: rgba(18,20,40,0.55);
-    --tab-bg:  rgba(10,12,25,0.8);
   }
+  body { font-family: 'Inter', sans-serif; }
 
-  body {
-    font-family: 'Inter', sans-serif;
-  }
+  /* ── Layout ──────────────────────────────────────────────── */
+  .ai-wrap { padding: 0 1.2rem 3rem; max-width: 1440px; margin: 0 auto; }
 
-  /* ── Layout ─────────────────────────────────────────────── */
-  .ai-wrap { padding: 0 1.2rem 3rem; max-width: 1400px; margin: 0 auto; }
-
+  /* ── Header ──────────────────────────────────────────────── */
   .dash-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 1.5rem 1.6rem 1.2rem;
+    padding: 1.5rem 1.8rem 1.3rem;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 1.8rem;
-    background: linear-gradient(90deg, rgba(0,229,255,0.05) 0%, transparent 50%);
-    border-radius: 16px;
+    margin-bottom: 2rem;
+    background: linear-gradient(100deg, rgba(0,229,255,0.06) 0%, rgba(201,127,255,0.04) 60%, transparent 100%);
+    border-radius: 20px;
+    position: relative; overflow: hidden;
+  }
+  .dash-header::before {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, var(--accent), var(--purple), transparent);
   }
   .dash-header h1 {
-    font-size: 1.6rem; font-weight: 800; font-family: 'Syne', sans-serif;
-    letter-spacing: .05em; color: #fff; margin: 0;
-    text-shadow: 0 0 20px rgba(0,229,255,0.4);
+    font-size: 1.65rem; font-weight: 800; font-family: 'Syne', sans-serif;
+    letter-spacing: .04em; color: #fff; margin: 0;
+    text-shadow: 0 0 24px rgba(0,229,255,0.45);
   }
-  .dash-header h1 i { color: var(--accent); }
-  
+  .dash-header h1 i { color: var(--accent); margin-right: 0.4rem; }
   .badge-version {
-    background: rgba(201,127,255,0.15); color: #eebbff;
-    border: 1px solid rgba(201,127,255,0.4);
-    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
-    padding: 0.35rem 0.8rem; border-radius: 20px; margin-left: 1rem;
-    box-shadow: 0 0 10px rgba(201,127,255,0.2);
+    background: rgba(201,127,255,0.13); color: #ddb8ff;
+    border: 1px solid rgba(201,127,255,0.35);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.73rem;
+    padding: 0.3rem 0.75rem; border-radius: 20px; margin-left: 1rem;
   }
   .badge-live {
-    background: rgba(0,229,160,0.15); color: var(--ok);
-    border: 1px solid rgba(0,229,160,0.4);
-    font-size: 0.8rem; font-weight: 600; padding: 0.35rem 0.8rem; border-radius: 20px;
+    background: rgba(0,229,160,0.13); color: var(--ok);
+    border: 1px solid rgba(0,229,160,0.35);
+    font-size: 0.8rem; font-weight: 600; padding: 0.35rem 0.9rem; border-radius: 20px;
     animation: pulse 2s infinite;
-    box-shadow: 0 0 15px rgba(0,229,160,0.2);
   }
-  @keyframes pulse { 0%,100%{opacity:1; box-shadow: 0 0 15px rgba(0,229,160,0.2);} 50%{opacity:.6; box-shadow: none;} }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.55;} }
 
-  /* ── AI Description Box ───────────────────────────────────── */
+  /* ── Description box ─────────────────────────────────────── */
   .ai-desc-box {
-    background: linear-gradient(135deg, rgba(20,22,45,0.7) 0%, rgba(10,12,25,0.9) 100%);
-    border: 1px solid rgba(0,229,255,0.2);
-    border-radius: 16px; padding: 1.5rem 2rem; margin-bottom: 2rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3), inset 0 0 20px rgba(0,229,255,0.03);
+    background: linear-gradient(135deg, rgba(20,22,45,0.75), rgba(10,12,25,0.92));
+    border: 1px solid rgba(0,229,255,0.18);
+    border-radius: 18px; padding: 1.5rem 2rem; margin-bottom: 2rem;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3), inset 0 0 20px rgba(0,229,255,0.025);
     position: relative; overflow: hidden;
   }
   .ai-desc-box::before {
     content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
     background: linear-gradient(to bottom, var(--accent), var(--purple));
+    border-radius: 4px 0 0 4px;
   }
   .ai-desc-box h3 {
-    font-family: 'Syne', sans-serif; font-size: 1.2rem; color: #fff; margin-top: 0; margin-bottom: 0.8rem;
-    display: flex; align-items: center; gap: 0.5rem;
+    font-family: 'Syne', sans-serif; font-size: 1.15rem; color: #fff;
+    margin: 0 0 0.8rem; display: flex; align-items: center; gap: 0.5rem;
   }
   .ai-desc-box h3 i { color: var(--accent); }
-  .ai-desc-box p {
-    color: #a0a8c0; font-size: 0.92rem; line-height: 1.6; margin-bottom: 0.5rem;
-  }
+  .ai-desc-box p { color: #9aa2bc; font-size: 0.91rem; line-height: 1.65; margin-bottom: 0.5rem; }
   .ai-desc-box p:last-child { margin-bottom: 0; }
-  .ai-desc-box b { color: #e4e8f4; font-weight: 600; }
+  .ai-desc-box b { color: #dde3f8; font-weight: 600; }
 
-  /* ── Card ─────────────────────────────────────────────────── */
+  /* ── Cards ───────────────────────────────────────────────── */
   .card {
     background: var(--card-bg);
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border);
-    border-radius: 20px; padding: 1.6rem;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.25);
-    transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 20px; padding: 1.5rem;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+    transition: border-color .3s, box-shadow .3s, transform .3s;
     position: relative; overflow: hidden;
   }
   .card::after {
     content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-    background: linear-gradient(to right, transparent, rgba(255,255,255,0.03), transparent);
-    transform: skewX(-20deg); transition: 0.5s;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.025), transparent);
+    transform: skewX(-20deg); transition: 0.6s;
   }
-  .card:hover::after { left: 150%; }
-  .card:hover { 
-    border-color: rgba(0,229,255,0.3); 
-    box-shadow: 0 15px 40px rgba(0,229,255,0.1), inset 0 0 15px rgba(0,229,255,0.05); 
-    transform: translateY(-2px);
-  }
+  .card:hover::after { left: 160%; }
+  .card:hover { border-color: rgba(0,229,255,0.28); box-shadow: 0 18px 42px rgba(0,229,255,0.09); transform: translateY(-2px); }
   .card h3 {
     color: #fff; margin: 0 0 1.2rem; font-weight: 700;
-    font-family: 'Syne', sans-serif; font-size: 1.05rem;
-    border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.8rem;
-    display: flex; align-items: center; gap: 0.6rem;
+    font-family: 'Syne', sans-serif; font-size: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.75rem;
+    display: flex; align-items: center; gap: 0.5rem;
   }
   .card h3 i { color: var(--accent); }
 
-  /* ── Grids ─────────────────────────────────────────────────── */
-  .g2 { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem; }
-  .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem; margin-bottom:1.5rem; }
+  /* ── Grids ───────────────────────────────────────────────── */
+  .g2 { display:grid; grid-template-columns:1fr 1fr; gap:1.4rem; margin-bottom:1.5rem; }
+  .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.4rem; margin-bottom:1.5rem; }
   .g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:1.2rem; margin-bottom:1.5rem; }
   @media(max-width:1200px){ .g4{grid-template-columns:1fr 1fr;} }
   @media(max-width:1000px){ .g3{grid-template-columns:1fr 1fr;} }
   @media(max-width:768px) { .g2,.g3,.g4{grid-template-columns:1fr;} }
 
-  /* ── Metric big ─────────────────────────────────────────────── */
+  /* ── KPI numbers ─────────────────────────────────────────── */
   .ai-big {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 2.8rem; font-weight: 700; color: #fff; margin: 0.4rem 0 0.2rem;
-    transition: color .4s, text-shadow .4s;
-    text-shadow: 0 0 10px rgba(255,255,255,0.1);
+    font-size: 2.7rem; font-weight: 700; color: #fff; margin: 0.4rem 0 0.2rem;
+    transition: color .35s, text-shadow .35s;
   }
-  .ai-label { font-size: 0.75rem; color: #7a84a5; text-transform: uppercase; letter-spacing:.1em; font-weight: 600; }
-  .ai-sub   { color: #8890aa; font-size: 0.85rem; line-height: 1.5; margin-top:.6rem; }
+  .ai-label { font-size: 0.72rem; color: #6a74a0; text-transform: uppercase; letter-spacing:.12em; font-weight: 600; }
+  .ai-sub   { color: #808ab2; font-size: 0.84rem; line-height: 1.55; margin-top:.55rem; }
 
-  /* ── Progress bar ───────────────────────────────────────────── */
-  .pbar { 
-    background: rgba(0,0,0,0.4); border-radius: 10px; height: 12px; 
-    margin-top: 1rem; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); 
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-  }
-  .pfill { 
-    height: 100%; width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s; 
-    border-radius: 10px; position: relative;
-  }
-  .pfill::after {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    animation: shimmer 2s infinite;
-  }
-  @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+  /* ── Progress bar ────────────────────────────────────────── */
+  .pbar { background: rgba(0,0,0,0.4); border-radius:10px; height:10px; margin-top:1rem; overflow:hidden; border:1px solid rgba(255,255,255,0.05); }
+  .pfill { height:100%; width:0%; transition:width 0.9s cubic-bezier(0.4,0,0.2,1), background 0.4s; border-radius:10px; position:relative; }
+  .pfill::after { content:''; position:absolute; top:0; left:0; right:0; bottom:0; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); animation:shimmer 2s infinite; }
+  @keyframes shimmer { 0%{transform:translateX(-100%);} 100%{transform:translateX(100%);} }
 
-  /* ── Anomaly list ───────────────────────────────────────────── */
-  .anom-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:.55rem; font-family:'JetBrains Mono',monospace; font-size:.85rem; }
-  .anom-bar-wrap { height:6px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; margin-top:4px; margin-bottom:12px; }
+  /* ── Anomaly rows ────────────────────────────────────────── */
+  .anom-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem; font-family:'JetBrains Mono',monospace; font-size:.84rem; }
+  .anom-bar-wrap { height:5px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; margin-top:3px; margin-bottom:11px; }
 
-  /* ── Model metrics table ────────────────────────────────────── */
-  .metrics-grid {
-    display: grid; grid-template-columns: repeat(4,1fr); gap:.8rem;
-    margin-top: 1rem;
-  }
+  /* ── Metric pills ────────────────────────────────────────── */
+  .metrics-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.75rem; margin-top:.9rem; }
   .metric-pill {
-    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.2) 100%); 
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px; padding: .8rem .5rem; text-align:center;
+    background: linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(0,0,0,0.18) 100%);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px; padding: .85rem .5rem; text-align:center;
     transition: transform .2s, border-color .2s;
   }
-  .metric-pill:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.2); }
-  .metric-pill .mv { font-family:'JetBrains Mono',monospace; font-size:1.25rem; font-weight:700; }
-  .metric-pill .mk { font-size:.7rem; color:#8890aa; text-transform:uppercase; letter-spacing:.08em; margin-top:.4rem; font-weight:600;}
+  .metric-pill:hover { transform:translateY(-3px); border-color:rgba(255,255,255,0.18); }
+  .metric-pill .mv { font-family:'JetBrains Mono',monospace; font-size:1.2rem; font-weight:700; }
+  .metric-pill .mk { font-size:.68rem; color:#808ab2; text-transform:uppercase; letter-spacing:.08em; margin-top:.35rem; font-weight:600; }
 
-  /* ── Console ────────────────────────────────────────────────── */
-  .console-wrapper {
-    background: #04050a; border: 1px solid #1e2038; border-radius: 16px;
-    overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-    position: relative;
-  }
-  .console-header {
-    background: #0f111a; border-bottom: 1px solid #1e2038; padding: 8px 15px;
-    display: flex; gap: 6px; align-items: center;
-  }
-  .console-dot { width: 10px; height: 10px; border-radius: 50%; }
-  .console-dot.r { background: #ff4d6d; } .console-dot.y { background: #ffaa00; } .console-dot.g { background: #00e5a0; }
-  
-  .console {
-    padding: 1.2rem 1.4rem; font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem; color: #00e5a0; height: 300px; overflow-y: auto;
-    line-height: 1.7;
-  }
-  .console::-webkit-scrollbar { width:8px; }
-  .console::-webkit-scrollbar-track { background:#04050a; }
-  .console::-webkit-scrollbar-thumb { background:#2a2d4a; border-radius:4px; border: 2px solid #04050a;}
-  .console::-webkit-scrollbar-thumb:hover { background: #4a5275; }
-  
-  .c-time { color: #5a658f; }
-  .c-key  { color: var(--accent); text-shadow: 0 0 5px rgba(0,229,255,0.3); }
-  .c-val  { color: #e4e8f4; }
-  .c-warn { color: var(--warn); }
-  .c-err  { color: var(--danger); text-shadow: 0 0 5px rgba(255,77,109,0.4); }
-  .c-ok   { color: var(--ok); }
+  /* ── Console ─────────────────────────────────────────────── */
+  .console-wrapper { background:#04050a; border:1px solid #1a1c30; border-radius:16px; overflow:hidden; box-shadow:inset 0 0 20px rgba(0,0,0,0.8); }
+  .console-header { background:#0d0f1c; border-bottom:1px solid #1a1c30; padding:8px 14px; display:flex; gap:6px; align-items:center; }
+  .console-dot { width:10px; height:10px; border-radius:50%; }
+  .console-dot.r{background:#ff4d6d;} .console-dot.y{background:#ffaa00;} .console-dot.g{background:#00e5a0;}
+  .console { padding:1.1rem 1.3rem; font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:#00e5a0; height:280px; overflow-y:auto; line-height:1.75; }
+  .console::-webkit-scrollbar{width:6px;} .console::-webkit-scrollbar-track{background:#04050a;} .console::-webkit-scrollbar-thumb{background:#222440; border-radius:3px;}
+  .c-time{color:#404870;} .c-key{color:var(--accent);} .c-val{color:#dde3f8;} .c-warn{color:var(--warn);} .c-err{color:var(--danger);} .c-ok{color:var(--ok);}
 
-  /* ── Architecture diagram ───────────────────────────────────── */
+  /* ── Architecture boxes ──────────────────────────────────── */
   .arch-box {
-    display:flex; flex-direction:column; align-items:center; gap:.4rem;
-    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1);
-    border-radius:16px; padding:1rem .8rem; text-align:center;
-    font-size:.75rem; transition: all .3s;
-    backdrop-filter: blur(10px);
+    display:flex; flex-direction:column; align-items:center; gap:.35rem;
+    background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.08);
+    border-radius:14px; padding:.9rem .7rem; text-align:center; font-size:.72rem;
+    transition:all .3s; backdrop-filter:blur(8px); min-width: 100px;
   }
-  .arch-box:hover { border-color: var(--accent); background: rgba(0,229,255,0.05); transform: translateY(-3px); }
-  .arch-icon { font-size:1.8rem; margin-bottom:.3rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
-  .arch-title { color: #fff; font-weight:700; font-family:'Syne',sans-serif; font-size:.85rem; }
-  .arch-sub   { color:#8890aa; font-size:.7rem; line-height:1.4; }
-  .arch-arrow { color:#4a5275; font-size:1.4rem; display:flex; align-items:center; padding: 0 0.5rem; }
+  .arch-box:hover { border-color:var(--accent); background:rgba(0,229,255,0.05); transform:translateY(-3px); }
+  .arch-icon { font-size:1.75rem; margin-bottom:.25rem; }
+  .arch-title { color:#fff; font-weight:700; font-family:'Syne',sans-serif; font-size:.82rem; }
+  .arch-sub { color:#808ab2; font-size:.67rem; line-height:1.4; }
+  .arch-arrow { color:#363a60; font-size:1.3rem; display:flex; align-items:center; padding:0 .4rem; }
 
-  /* ── Section titles ─────────────────────────────────────────── */
+  /* ── Section titles ──────────────────────────────────────── */
   .sec-title {
-    font-family:'Syne',sans-serif; font-size:1.15rem; font-weight:700;
-    color: #fff; margin: 2rem 0 1.2rem;
-    display:flex; align-items:center; gap:.8rem; text-transform: uppercase; letter-spacing: .05em;
+    font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700;
+    color:#fff; margin:2rem 0 1.2rem;
+    display:flex; align-items:center; gap:.75rem; text-transform:uppercase; letter-spacing:.06em;
   }
-  .sec-title i { color: var(--accent); }
+  .sec-title i { color:var(--accent); }
   .sec-title::after { content:''; flex:1; height:1px; background:linear-gradient(90deg, var(--border), transparent); }
 
-  /* ── Tabs ───────────────────────────────────────────────────── */
+  /* ── Tabs ────────────────────────────────────────────────── */
   .tabs-container {
     background: var(--card-bg); border: 1px solid var(--border);
-    border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    border-radius: 22px; overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,0.3);
     margin-bottom: 2rem;
   }
   .tabs-nav {
-    display: flex; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border);
-    overflow-x: auto; padding: 0 1rem;
+    display:flex; background:rgba(0,0,0,0.3); border-bottom:1px solid var(--border);
+    overflow-x:auto; padding:0 1rem;
+    scrollbar-width: thin;
   }
-  .tabs-nav::-webkit-scrollbar { height: 4px; }
   .tab-btn {
-    background: none; border: none; padding: 1.2rem 1.5rem;
-    color: #7a84a5; font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 600;
-    cursor: pointer; position: relative; transition: color 0.3s;
-    white-space: nowrap; outline: none;
+    background:none; border:none; padding:1.1rem 1.4rem;
+    color:#6a74a0; font-family:'Syne',sans-serif; font-size:.9rem; font-weight:600;
+    cursor:pointer; position:relative; transition:color .25s; white-space:nowrap; outline:none;
+    display: flex; align-items: center; gap: 0.4rem;
   }
-  .tab-btn:hover { color: #e4e8f4; }
-  .tab-btn.active { color: var(--accent); }
+  .tab-btn:hover { color:#c8d0e8; }
+  .tab-btn.active { color:var(--accent); }
   .tab-btn::after {
-    content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px;
-    background: var(--accent); transform: scaleX(0); transition: transform 0.3s;
-    box-shadow: 0 -2px 10px rgba(0,229,255,0.5);
+    content:''; position:absolute; bottom:-1px; left:0; width:100%; height:2px;
+    background:var(--accent); transform:scaleX(0); transition:transform .3s;
+    box-shadow: 0 -1px 8px rgba(0,229,255,0.5);
   }
-  .tab-btn.active::after { transform: scaleX(1); }
-  
-  .tab-content { padding: 2rem; display: none; animation: fadeIn 0.4s ease; }
-  .tab-content.active { display: block; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .tab-btn.active::after { transform:scaleX(1); }
+  .tab-content { padding:2rem; display:none; animation:fadeIn .35s ease; }
+  .tab-content.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+  .tab-desc { color:#808ab2; font-size:.88rem; line-height:1.6; margin-bottom:1.5rem; }
+  .tab-desc b { color:#c8d0e8; }
 
+  /* ── Plot images ─────────────────────────────────────────── */
   .plot-img {
-    width: 100%; border-radius: 12px; border: 1px solid var(--border);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.4); display: block; transition: border-color .3s;
+    width:100%; border-radius:14px; border:1px solid var(--border);
+    box-shadow:0 10px 28px rgba(0,0,0,0.45); display:block; transition:border-color .3s, transform .3s;
   }
-  .plot-img:hover { border-color: rgba(255,255,255,0.2); }
+  .plot-img:hover { border-color:rgba(0,229,255,0.25); transform:scale(1.005); }
+
+  /* ── Stat badge inline ───────────────────────────────────── */
+  .stat-badge {
+    display:inline-flex; align-items:center; gap:.4rem;
+    background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.2);
+    border-radius:8px; padding:.25rem .65rem; font-family:'JetBrains Mono',monospace;
+    font-size:.78rem; color:var(--accent); margin:0 .3rem;
+  }
+  .stat-badge.ok { background:rgba(0,229,160,0.08); border-color:rgba(0,229,160,0.2); color:var(--ok); }
+  .stat-badge.warn { background:rgba(255,170,0,0.08); border-color:rgba(255,170,0,0.2); color:var(--warn); }
+  .stat-badge.purple { background:rgba(201,127,255,0.08); border-color:rgba(201,127,255,0.2); color:var(--purple); }
 </style>
 
 <div class="ai-wrap">
 
-<!-- ══ HEADER ══════════════════════════════════════════════════════════════ -->
+<!-- ══ HEADER ═══════════════════════════════════════════════════════════════ -->
 <div class="dash-header">
   <div style="display:flex;align-items:center;">
-    <h1><i class="fas fa-brain"></i>&nbsp; Ergo Sensor — AI Engine</h1>
+    <h1><i class="fas fa-brain"></i> Ergo Sensor — AI Engine</h1>
     <span class="badge-version">v3.0 Production</span>
   </div>
   <span id="live-badge" class="badge-live">● LIVE</span>
 </div>
 
-<!-- ══ AI DESCRIPTION ══════════════════════════════════════════════════════ -->
+<!-- ══ DESCRIPTION ══════════════════════════════════════════════════════════ -->
 <div class="ai-desc-box">
   <h3><i class="fas fa-network-wired"></i> Predictive Biomechanics Architecture</h3>
-  <p>The Ergo Sensor AI Engine leverages a highly optimized machine learning pipeline to perform real-time ergonomic risk assessment and musculoskeletal disorder (MSD) classification. The system extracts <b>75 kinematic features</b>—including raw joint angles, rolling means/standard deviations, frame-lagged histories, and dynamic joint accelerations—from 12 bilateral body joints captured at 30 FPS.</p>
-  <p>Our ensemble architecture combines <b>LightGBM Regressors</b> for continuous risk scoring (R²=0.9981), <b>Gradient Boosting Classifiers</b> for 18-class clinical diagnosis (99.60% accuracy), and <b>Isolation Forests</b> integrated with 5 localized joint anomaly detectors to instantly identify anomalous biomechanical stress points. All hyperparameters were rigorously tuned via Optuna utilizing a TimeSeriesSplit strategy to strictly prevent temporal data leakage.</p>
+  <p>The Ergo Sensor AI Engine uses a production-grade machine learning ensemble to deliver real-time ergonomic risk assessment and musculoskeletal disorder (MSD) classification. The system extracts <b>75 kinematic features</b>—raw joint angles, bilateral asymmetry, rolling statistics, frame-lagged histories, and dynamic accelerations—from 12 body joints captured at 30 FPS.</p>
+  <p>The pipeline combines a <b>LightGBM Regressor</b> (R²=0.9981) for continuous risk scoring, a <b>multi-class Condition Classifier</b> identifying 18 clinical diagnoses (99.60% accuracy), a <b>Severity Classifier</b> (96.95% accuracy), and <b>5 per-joint anomaly detectors</b> monitoring Neck, Shoulder, Wrist, Trunk, and Elbow in real time. All hyperparameters are tuned via <b>Optuna</b> with TimeSeriesSplit cross-validation to prevent temporal data leakage.</p>
 </div>
 
-<!-- ══ LIVE PREDICTIONS ════════════════════════════════════════════════════ -->
+<!-- ══ LIVE KPI ROW ══════════════════════════════════════════════════════════ -->
 <div class="sec-title"><i class="fas fa-satellite-dish"></i> Live Stream Analysis</div>
 
-<div class="g4">
+<div class="g3">
   <!-- Risk Score -->
   <div class="card">
-    <h3><i class="fas fa-exclamation-triangle"></i> Risk Score (10-day)</h3>
-    <div class="ai-label">Predicted probability</div>
+    <h3><i class="fas fa-exclamation-triangle"></i> Risk Score</h3>
+    <div class="ai-label">10-day predicted probability</div>
     <div id="ai-risk-10d" class="ai-big">—</div>
-    <div id="ai-risk-level" style="font-weight:800;font-family:'Syne';font-size:1rem; letter-spacing:.05em; margin-top:.4rem;">WAITING…</div>
+    <div id="ai-risk-level" style="font-weight:800;font-family:'Syne';font-size:1rem;letter-spacing:.05em;margin-top:.4rem;">WAITING…</div>
     <div class="pbar"><div id="ai-risk-bar" class="pfill" style="background:var(--accent)"></div></div>
   </div>
   <!-- Condition -->
   <div class="card">
     <h3><i class="fas fa-stethoscope"></i> Clinical Diagnosis</h3>
     <div class="ai-label">Primary MSD classification</div>
-    <div id="ai-condition" class="ai-big" style="font-size:1.3rem;margin-top:.8rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="Waiting for data...">—</div>
-    <div id="ai-severity" style="margin-top:1rem;font-weight:700;font-family:'JetBrains Mono';font-size:.9rem;background:rgba(255,255,255,0.05);display:inline-block;padding:.3rem .8rem;border-radius:8px;">—</div>
+    <div id="ai-condition" class="ai-big" style="font-size:1.25rem;margin-top:.7rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="Waiting…">—</div>
+    <div id="ai-severity" style="margin-top:.9rem;font-weight:700;font-family:'JetBrains Mono';font-size:.88rem;background:rgba(255,255,255,0.05);display:inline-block;padding:.3rem .8rem;border-radius:8px;">—</div>
   </div>
-  <!-- Critical Joint (SHAP) -->
+  <!-- SHAP Root Cause -->
   <div class="card">
     <h3><i class="fas fa-search"></i> SHAP Root Cause</h3>
-    <div class="ai-label">Highest impact feature</div>
+    <div class="ai-label">Highest impact joint</div>
     <div id="ai-critical-joint" class="ai-big" style="font-size:1.3rem;margin-top:.8rem;">—</div>
     <div class="ai-sub">TreeExplainer localized the joint driving the current risk prediction.</div>
   </div>
-  <!-- Anomaly Score -->
-  <div class="card">
-    <h3><i class="fas fa-radar"></i> Global Anomaly</h3>
-    <div class="ai-label">IsolationForest Index</div>
-    <div id="ai-anomaly-score" class="ai-big">—</div>
-    <div class="pbar"><div id="ai-anomaly-bar" class="pfill" style="background:var(--warn)"></div></div>
-  </div>
 </div>
 
-<!-- ══ ANOMALY & CONSOLE ═══════════════════════════════════════════════════ -->
+<!-- ══ ANOMALY + CONSOLE ══════════════════════════════════════════════════════ -->
 <div class="g2">
   <div class="card">
     <h3><i class="fas fa-project-diagram"></i> Localized Joint Stress Probabilities</h3>
-    <div class="ai-sub" style="margin-bottom: 1.2rem;">Real-time probabilities from 5 independent binary classifiers monitoring regional biomechanical strain.</div>
-    <div id="ai-anomaly-top5"><div style="color:#667;font-style:italic;padding:1rem 0;">Awaiting sensor telemetry…</div></div>
+    <div class="ai-sub" style="margin-bottom:1.2rem;">Real-time probabilities from 5 independent binary classifiers monitoring regional biomechanical strain.</div>
+    <div id="ai-anomaly-top5"><div style="color:#445;font-style:italic;padding:1rem 0;">Awaiting sensor telemetry…</div></div>
   </div>
 
-  <!-- AI Console -->
-  <div class="card" style="padding: 1.2rem;">
-    <h3 style="margin-bottom: 0.8rem; padding-left: 0.4rem; border:none;"><i class="fas fa-terminal"></i> Terminal — System Log</h3>
+  <!-- Console -->
+  <div class="card" style="padding:1.2rem;">
+    <h3 style="margin-bottom:.8rem;padding-left:.3rem;border:none;"><i class="fas fa-terminal"></i> System Log</h3>
     <div class="console-wrapper">
       <div class="console-header">
         <div class="console-dot r"></div><div class="console-dot y"></div><div class="console-dot g"></div>
-        <span style="color:#5a658f; font-family:'JetBrains Mono'; font-size:0.7rem; margin-left:8px;">root@ergo-ai:~#</span>
+        <span style="color:#404870;font-family:'JetBrains Mono';font-size:.68rem;margin-left:8px;">root@ergo-ai:~#</span>
       </div>
       <div id="ai-console" class="console">
         <span class="c-time">[boot]</span> <span class="c-ok">Ergo Sensor AI v3.0-Production initialized</span><br>
-        <span class="c-time">[boot]</span> <span class="c-key">Optuna HPO:</span> <span class="c-val">10 trials × TimeSeriesSplit(3-fold) — Models tuned</span><br>
-        <span class="c-time">[boot]</span> <span class="c-key">Ensemble:</span> <span class="c-val">LightGBM(Reg+Cls) · Severity · IsolationForest(300) · 5× Anomaly</span><br>
-        <span class="c-time">[boot]</span> <span class="c-key">Features:</span> <span class="c-val">75 total (38 base + 37 engineered kinematics)</span><br>
+        <span class="c-time">[boot]</span> <span class="c-key">Optuna HPO:</span> <span class="c-val">10 trials × TimeSeriesSplit(3-fold)</span><br>
+        <span class="c-time">[boot]</span> <span class="c-key">Ensemble:</span> <span class="c-val">LightGBM(Reg+Cls) · Severity · 5× Anomaly</span><br>
+        <span class="c-time">[boot]</span> <span class="c-key">Features:</span> <span class="c-val">75 (38 base + 37 engineered kinematics)</span><br>
         <span class="c-time">[boot]</span> <span class="c-key">SHAP Explainer:</span> <span class="c-ok">Active ✓</span><br>
         <span class="c-time">[boot]</span> Listening for Firebase websocket stream...<br>
       </div>
@@ -331,7 +294,7 @@
   </div>
 </div>
 
-<!-- ══ METRICS SUMMARY ═════════════════════════════════════════════════════ -->
+<!-- ══ PERFORMANCE METRICS ════════════════════════════════════════════════════ -->
 <div class="sec-title"><i class="fas fa-clipboard-check"></i> Ensemble Performance Metrics</div>
 
 <div class="g3">
@@ -342,7 +305,6 @@
       <div class="metric-pill"><div class="mv" style="color:var(--ok)" id="m-r2">—</div><div class="mk">R² Score</div></div>
       <div class="metric-pill"><div class="mv" style="color:var(--accent)" id="m-mae">—</div><div class="mk">MAE</div></div>
       <div class="metric-pill"><div class="mv" style="color:var(--warn)" id="m-rmse">—</div><div class="mk">RMSE</div></div>
-      <div class="metric-pill"><div class="mv" style="color:#c97fff">75</div><div class="mk">Features</div></div>
     </div>
   </div>
   <!-- Classifier -->
@@ -351,180 +313,220 @@
     <div class="metrics-grid">
       <div class="metric-pill"><div class="mv" style="color:var(--ok)" id="m-acc-cls">—</div><div class="mk">Accuracy</div></div>
       <div class="metric-pill"><div class="mv" style="color:var(--accent)" id="m-f1-cls">—</div><div class="mk">F1 Macro</div></div>
-      <div class="metric-pill"><div class="mv" style="color:#c97fff">18</div><div class="mk">Classes</div></div>
-      <div class="metric-pill"><div class="mv" style="color:var(--warn)">GBDT</div><div class="mk">Booster</div></div>
+      <div class="metric-pill"><div class="mv" style="color:var(--purple)">18</div><div class="mk">Classes</div></div>
     </div>
   </div>
-  <!-- Severity + IF -->
+  <!-- Severity -->
   <div class="card">
-    <h3><i class="fas fa-tachometer-alt"></i> Severity &amp; IsolationForest</h3>
+    <h3><i class="fas fa-tachometer-alt"></i> Severity Classifier</h3>
     <div class="metrics-grid">
-      <div class="metric-pill"><div class="mv" style="color:var(--ok)" id="m-acc-sev">—</div><div class="mk">Sev. Acc.</div></div>
-      <div class="metric-pill"><div class="mv" style="color:var(--accent)" id="m-f1-sev">—</div><div class="mk">Sev. F1</div></div>
-      <div class="metric-pill"><div class="mv" style="color:var(--warn)">300</div><div class="mk">IF Trees</div></div>
+      <div class="metric-pill"><div class="mv" style="color:var(--ok)" id="m-acc-sev">—</div><div class="mk">Accuracy</div></div>
+      <div class="metric-pill"><div class="mv" style="color:var(--accent)" id="m-f1-sev">—</div><div class="mk">F1 Macro</div></div>
       <div class="metric-pill"><div class="mv" style="color:var(--ok)">5/5</div><div class="mk">Anomalies</div></div>
     </div>
   </div>
 </div>
 
-<!-- ══ TABBED EVALUATION CHARTS ════════════════════════════════════════════ -->
-<div class="sec-title"><i class="fas fa-chart-line"></i> Deep Dive Evaluation Suite</div>
+<!-- ══ EVALUATION DASHBOARD ═══════════════════════════════════════════════════ -->
+<div class="sec-title"><i class="fas fa-chart-line"></i> Model Evaluation Suite</div>
 
 <div class="tabs-container">
   <div class="tabs-nav">
-    <button class="tab-btn active" onclick="openTab(event, 'tab-m1')"><i class="fas fa-wave-square"></i> Risk Regressor</button>
-    <button class="tab-btn" onclick="openTab(event, 'tab-m2')"><i class="fas fa-tags"></i> Condition Classifier</button>
-    <button class="tab-btn" onclick="openTab(event, 'tab-m3')"><i class="fas fa-tachometer-alt"></i> Severity</button>
-    <button class="tab-btn" onclick="openTab(event, 'tab-m4')"><i class="fas fa-project-diagram"></i> Joint Anomalies</button>
-    <button class="tab-btn" onclick="openTab(event, 'tab-m5')"><i class="fas fa-radar"></i> IsolationForest</button>
-    <button class="tab-btn" onclick="openTab(event, 'tab-shap')"><i class="fas fa-lightbulb"></i> SHAP XAI</button>
+    <button class="tab-btn active" id="btn-overview" onclick="openTab(event,'tab-overview')"><i class="fas fa-th-large"></i> Full Dashboard</button>
+    <button class="tab-btn" id="btn-m1" onclick="openTab(event,'tab-m1')"><i class="fas fa-wave-square"></i> Risk Regressor</button>
+    <button class="tab-btn" id="btn-m2" onclick="openTab(event,'tab-m2')"><i class="fas fa-tags"></i> Condition Classifier</button>
+    <button class="tab-btn" id="btn-m3" onclick="openTab(event,'tab-m3')"><i class="fas fa-tachometer-alt"></i> Severity</button>
+    <button class="tab-btn" id="btn-m4" onclick="openTab(event,'tab-m4')"><i class="fas fa-project-diagram"></i> Joint Anomalies</button>
+    <button class="tab-btn" id="btn-curves" onclick="openTab(event,'tab-curves')"><i class="fas fa-chart-area"></i> Learning Curves</button>
+    <button class="tab-btn" id="btn-shap" onclick="openTab(event,'tab-shap')"><i class="fas fa-lightbulb"></i> SHAP XAI</button>
   </div>
 
-  <!-- TAB 1: Regressor -->
-  <div id="tab-m1" class="tab-content active">
-    <h3 style="color:#fff; font-family:'Syne'; margin-top:0;">Model 1 — Continuous Risk Regressor</h3>
-    <p class="ai-sub" style="margin-bottom:1.5rem;">Optuna-optimized gradient boosting. R²=<b>0.9981</b> · RMSE=<b>0.0079</b> · MAE=<b>0.0056</b>. Residuals remain centered at zero confirming minimal bias.</p>
-    <img src="/plots/eval_model1_regressor.png" class="plot-img" alt="Model 1 Evaluation" onerror="this.style.display='none'">
+  <!-- TAB: Full Dashboard -->
+  <div id="tab-overview" class="tab-content active">
+    <p class="tab-desc">
+      Complete evaluation dashboard generated from the held-out test set (20% temporal split — <b>4,000 samples</b>).
+      Covers regression accuracy, 18-class condition confusion matrix, severity categorization, feature importance, and all 5 anomaly ROC curves.
+    </p>
+    <img src="/plots/model_evaluation.png" class="plot-img" alt="Full AI Evaluation Dashboard" onerror="this.style.display='none'">
   </div>
 
-  <!-- TAB 2: Classifier -->
+  <!-- TAB: Risk Regressor -->
+  <div id="tab-m1" class="tab-content">
+    <p class="tab-desc">
+      <b>LightGBM Regressor</b> predicting continuous ergonomic risk score (0–1).
+      Achieved <span class="stat-badge ok">R²=0.9981</span> <span class="stat-badge">RMSE=0.0079</span> <span class="stat-badge warn">MAE=0.0056</span> on the test set.
+      Residuals are tightly centered at zero, confirming minimal systematic bias.
+    </p>
+    <img src="/plots/eval_model1_regressor.png" class="plot-img" alt="Model 1 — Risk Regressor Evaluation" onerror="this.style.display='none'">
+  </div>
+
+  <!-- TAB: Condition Classifier -->
   <div id="tab-m2" class="tab-content">
-    <h3 style="color:#fff; font-family:'Syne'; margin-top:0;">Model 2 — 18-Class Condition Classifier</h3>
-    <p class="ai-sub" style="margin-bottom:1.5rem;">Accuracy=<b>99.60%</b> · F1=<b>96.67%</b>. Evaluates 18 distinct TMS pathologies. Visualizing LogLoss convergence, confusion matrix, ROC-AUC per class, and Precision-Recall curves.</p>
+    <p class="tab-desc">
+      <b>18-class Gradient Boosting Classifier</b> identifying TMS pathologies.
+      <span class="stat-badge ok">Accuracy=99.60%</span> <span class="stat-badge purple">F1 Macro=96.67%</span>.
+      Plots include LogLoss convergence, confusion matrix, per-class ROC-AUC, and Precision-Recall curves.
+    </p>
     <div class="g2" style="margin-bottom:1.5rem;">
-      <img src="/plots/eval_model2_learning.png" class="plot-img" alt="M2 Learning" onerror="this.style.display='none'">
-      <img src="/plots/eval_model2_confusion.png" class="plot-img" alt="M2 Confusion" onerror="this.style.display='none'">
+      <img src="/plots/eval_model2_learning.png" class="plot-img" alt="M2 Learning Curve" onerror="this.style.display='none'">
+      <img src="/plots/eval_model2_confusion.png" class="plot-img" alt="M2 Confusion Matrix" onerror="this.style.display='none'">
     </div>
     <div class="g2">
-      <img src="/plots/eval_model2_roc.png" class="plot-img" alt="M2 ROC" onerror="this.style.display='none'">
-      <img src="/plots/eval_model2_pr.png" class="plot-img" alt="M2 PR" onerror="this.style.display='none'">
+      <img src="/plots/eval_model2_roc.png" class="plot-img" alt="M2 ROC Curves" onerror="this.style.display='none'">
+      <img src="/plots/eval_model2_pr.png" class="plot-img" alt="M2 PR Curves" onerror="this.style.display='none'">
     </div>
   </div>
 
-  <!-- TAB 3: Severity -->
+  <!-- TAB: Severity -->
   <div id="tab-m3" class="tab-content">
-    <h3 style="color:#fff; font-family:'Syne'; margin-top:0;">Model 3 — Severity Categorization</h3>
-    <p class="ai-sub" style="margin-bottom:1.5rem;">Classifies risk into Low/Medium/High severity bands. Accuracy=<b>96.95%</b> · Macro-F1=<b>0.9411</b>.</p>
-    <img src="/plots/eval_model3_severity.png" class="plot-img" alt="Model 3 Evaluation" onerror="this.style.display='none'">
+    <p class="tab-desc">
+      <b>Severity Classifier</b> categorizing risk into Low / Medium / High bands.
+      <span class="stat-badge ok">Accuracy=96.95%</span> <span class="stat-badge purple">F1 Macro=0.9411</span>.
+      Learning curve and confusion matrix shown below.
+    </p>
+    <img src="/plots/eval_model3_severity.png" class="plot-img" alt="Model 3 — Severity Evaluation" onerror="this.style.display='none'">
   </div>
 
-  <!-- TAB 4: Per-Joint Anomalies -->
+  <!-- TAB: Joint Anomalies -->
   <div id="tab-m4" class="tab-content">
-    <h3 style="color:#fff; font-family:'Syne'; margin-top:0;">Model 4 — Localized Joint Anomaly Classifiers</h3>
-    <p class="ai-sub" style="margin-bottom:1.5rem;">5 independent models monitoring Neck, Shoulder, Wrist, Trunk, and Elbow. Average F1 Score=<b>0.9906</b>.</p>
-    <img src="/plots/eval_model4_bars.png" class="plot-img" style="margin-bottom:1.5rem;" alt="M4 Bars" onerror="this.style.display='none'">
+    <p class="tab-desc">
+      <b>5 independent per-joint binary classifiers</b> monitoring Neck Hyperflexion, Shoulder Overextension, Wrist Strain, Trunk Torsion, and Elbow Hyperextension.
+      Average F1 across all joints: <span class="stat-badge ok">≥ 0.99</span>. ROC-AUC near-perfect on all articular regions.
+    </p>
+    <img src="/plots/eval_model4_bars.png" class="plot-img" style="margin-bottom:1.5rem;" alt="M4 F1 Bars" onerror="this.style.display='none'">
     <div class="g2">
-      <img src="/plots/eval_model4_learning.png" class="plot-img" alt="M4 Learning" onerror="this.style.display='none'">
-      <img src="/plots/eval_model4_roc.png" class="plot-img" alt="M4 ROC" onerror="this.style.display='none'">
+      <img src="/plots/eval_model4_learning.png" class="plot-img" alt="M4 Learning Curves" onerror="this.style.display='none'">
+      <img src="/plots/eval_model4_roc.png" class="plot-img" alt="M4 ROC Curves" onerror="this.style.display='none'">
     </div>
   </div>
 
-  <!-- TAB 5: IsolationForest -->
-  <div id="tab-m5" class="tab-content">
-    <h3 style="color:#fff; font-family:'Syne'; margin-top:0;">Model 5 — Global IsolationForest</h3>
-    <p class="ai-sub" style="margin-bottom:1.5rem;">Unsupervised anomaly detection using 300 estimators (max_samples=256). Identifies complex multivariate outliers in kinematic chains.</p>
-    <img src="/plots/eval_model5_isoforest.png" class="plot-img" alt="Model 5 IsoForest" onerror="this.style.display='none'">
+  <!-- TAB: Learning Curves -->
+  <div id="tab-curves" class="tab-content">
+    <p class="tab-desc">
+      Training convergence curves for the <b>Risk Regressor</b> (RMSE vs. boosting iteration) and <b>Condition Classifier</b> (LogLoss vs. boosting iteration).
+      Both models converged stably with no overfitting detected.
+    </p>
+    <img src="/plots/learning_curves.png" class="plot-img" alt="Learning Curves" onerror="this.style.display='none'">
   </div>
 
-  <!-- TAB 6: SHAP -->
+  <!-- TAB: SHAP -->
   <div id="tab-shap" class="tab-content">
-    <h3 style="color:#fff; font-family:'Syne'; margin-top:0;">SHAP — Explainable AI (XAI)</h3>
-    <p class="ai-sub" style="margin-bottom:1.5rem;">TreeExplainer applied to test samples to decode model decision-making and pinpoint exact root causes driving risk.</p>
+    <p class="tab-desc">
+      <b>SHAP TreeExplainer</b> applied to 500 test samples to decode model decision-making.
+      Identifies which kinematic features (rolling means, accelerations, bilateral asymmetry) most strongly drive risk predictions and condition diagnoses.
+    </p>
     <div class="g2">
       <div>
-        <h4 style="color:#a0a8c0; margin:0 0 10px; font-size:0.9rem;">Regressor Feature Importance</h4>
+        <h4 style="color:#9aa2bc;margin:0 0 10px;font-size:.88rem;">Regressor — Feature Importance</h4>
         <img src="/plots/shap_regressor.png" class="plot-img" alt="SHAP Regressor" onerror="this.style.display='none'">
       </div>
       <div>
-        <h4 style="color:#a0a8c0; margin:0 0 10px; font-size:0.9rem;">Classifier Feature Importance</h4>
+        <h4 style="color:#9aa2bc;margin:0 0 10px;font-size:.88rem;">Classifier — Feature Importance</h4>
         <img src="/plots/shap_classifier.png" class="plot-img" alt="SHAP Classifier" onerror="this.style.display='none'">
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ ARCHITECTURE DIAGRAM ════════════════════════════════════════════════ -->
+<!-- ══ ARCHITECTURE DIAGRAM ═══════════════════════════════════════════════════ -->
 <div class="card" style="margin-bottom:2rem;">
   <h3><i class="fas fa-sitemap"></i> Data Flow Architecture</h3>
-  <div style="display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;justify-content:center;margin-top:1rem; padding: 1rem 0;">
-    <div class="arch-box" style="width:110px;"><div class="arch-icon">📡</div><div class="arch-title">Sensors</div><div class="arch-sub">IMU / ESP32<br>Firebase RTDB</div></div>
+  <div style="display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;justify-content:center;margin-top:1rem;padding:.8rem 0;">
+    <div class="arch-box"><div class="arch-icon">📡</div><div class="arch-title">Sensors</div><div class="arch-sub">IMU / ESP32<br>Firebase RTDB</div></div>
     <div class="arch-arrow"><i class="fas fa-chevron-right"></i></div>
-    <div class="arch-box" style="width:120px;"><div class="arch-icon">⚙️</div><div class="arch-title">DataProcessor</div><div class="arch-sub">Kinematics<br>RULA / REBA</div></div>
+    <div class="arch-box"><div class="arch-icon">⚙️</div><div class="arch-title">DataProcessor</div><div class="arch-sub">Kinematics<br>RULA / REBA</div></div>
     <div class="arch-arrow"><i class="fas fa-chevron-right"></i></div>
-    <div class="arch-box" style="width:150px;border-color:var(--accent);background:rgba(0,229,255,0.08);box-shadow:0 0 15px rgba(0,229,255,0.15);"><div class="arch-icon">🤖</div><div class="arch-title">AI Engine v3.0</div><div class="arch-sub">75 Features<br>Optuna+SHAP<br>Ensemble ML</div></div>
+    <div class="arch-box" style="border-color:var(--accent);background:rgba(0,229,255,0.07);box-shadow:0 0 18px rgba(0,229,255,0.12);min-width:140px;">
+      <div class="arch-icon">🤖</div>
+      <div class="arch-title">AI Engine v3.0</div>
+      <div class="arch-sub">75 Features<br>Optuna + SHAP<br>LightGBM Ensemble</div>
+    </div>
     <div class="arch-arrow"><i class="fas fa-chevron-right"></i></div>
-    <div class="arch-box" style="width:110px;"><div class="arch-icon">🌐</div><div class="arch-title">Flask + WS</div><div class="arch-sub">SocketIO<br>REST API</div></div>
+    <div class="arch-box"><div class="arch-icon">🌐</div><div class="arch-title">Flask + WS</div><div class="arch-sub">SocketIO<br>REST API</div></div>
     <div class="arch-arrow"><i class="fas fa-chevron-right"></i></div>
-    <div class="arch-box" style="width:110px;"><div class="arch-icon">📊</div><div class="arch-title">Dashboard</div><div class="arch-sub">Real-time<br>UI / UX</div></div>
+    <div class="arch-box"><div class="arch-icon">📊</div><div class="arch-title">Dashboard</div><div class="arch-sub">Real-time<br>UI / UX</div></div>
+  </div>
+  <!-- Model cards row -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-top:1.4rem;">
+    <div style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.18);border-radius:12px;padding:.9rem;text-align:center;">
+      <div style="font-size:1.3rem;margin-bottom:.3rem;">📈</div>
+      <div style="color:var(--accent);font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;">Risk Regressor</div>
+      <div style="color:#606880;font-size:.7rem;margin-top:.3rem;">R²=0.9981 · RMSE=0.0079</div>
+    </div>
+    <div style="background:rgba(201,127,255,0.06);border:1px solid rgba(201,127,255,0.18);border-radius:12px;padding:.9rem;text-align:center;">
+      <div style="font-size:1.3rem;margin-bottom:.3rem;">🏥</div>
+      <div style="color:var(--purple);font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;">Condition Classifier</div>
+      <div style="color:#606880;font-size:.7rem;margin-top:.3rem;">18 classes · Acc=99.60%</div>
+    </div>
+    <div style="background:rgba(255,170,0,0.06);border:1px solid rgba(255,170,0,0.18);border-radius:12px;padding:.9rem;text-align:center;">
+      <div style="font-size:1.3rem;margin-bottom:.3rem;">⚡</div>
+      <div style="color:var(--warn);font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;">Severity Model</div>
+      <div style="color:#606880;font-size:.7rem;margin-top:.3rem;">Low/Med/High · Acc=96.95%</div>
+    </div>
+    <div style="background:rgba(0,229,160,0.06);border:1px solid rgba(0,229,160,0.18);border-radius:12px;padding:.9rem;text-align:center;">
+      <div style="font-size:1.3rem;margin-bottom:.3rem;">🔬</div>
+      <div style="color:var(--ok);font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;">Joint Anomaly ×5</div>
+      <div style="color:#606880;font-size:.7rem;margin-top:.3rem;">Neck·Shoulder·Wrist·Trunk·Elbow</div>
+    </div>
   </div>
 </div>
 
 </div><!-- end ai-wrap -->
-
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 <script>
-// ── Tabs Logic ──────────────────────────────────────────────
+// ── Tab Logic ─────────────────────────────────────────────
 function openTab(evt, tabId) {
-  const contents = document.querySelectorAll('.tab-content');
-  contents.forEach(c => c.classList.remove('active'));
-  
-  const btns = document.querySelectorAll('.tab-btn');
-  btns.forEach(b => b.classList.remove('active'));
-  
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
   evt.currentTarget.classList.add('active');
 }
 
-// ── WebSocket & Dynamic Updates ──────────────────────────────
+// ── WebSocket ─────────────────────────────────────────────
 const socket = io();
 const cons   = document.getElementById('ai-console');
 
-function ts() {
-  return new Date().toTimeString().slice(0,8);
-}
+function ts() { return new Date().toTimeString().slice(0,8); }
 function log(line) {
   cons.innerHTML += line + '<br>';
   cons.scrollTop  = cons.scrollHeight;
+  const lines = cons.innerHTML.split('<br>');
+  if (lines.length > 100) cons.innerHTML = lines.slice(-100).join('<br>');
 }
 
+// ── Load static metrics from JSON ─────────────────────────
 fetch('/api/ai-metrics')
   .then(r => r.json())
   .then(m => {
     if (m.error) return;
-    const fmt = (v, dec=4) => typeof v === 'number' ? v.toFixed(dec) : v;
-    const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent = val; };
+    const fmt = (v, d=4) => typeof v === 'number' ? v.toFixed(d) : v;
+    const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
     set('m-r2',      fmt(m.regression?.r2,   4));
     set('m-mae',     fmt(m.regression?.mae,   6));
     set('m-rmse',    fmt(m.regression?.rmse,  6));
-    set('m-acc-cls', fmt(m.condition?.accuracy, 4));
-    set('m-f1-cls',  fmt(m.condition?.f1_macro, 4));
-    set('m-acc-sev', fmt(m.severity?.accuracy,  4));
-    set('m-f1-sev',  fmt(m.severity?.f1_macro,  4));
-    const ver  = m.version    ?? '?';
-    const nf   = m.n_features ?? '?';
-    const ns   = m.n_samples  ?? '?';
-    log(`<span class="c-time">[${ts()}]</span> <span class="c-ok">Metrics loaded — v${ver}</span>`);
-    log(`<span class="c-time">[${ts()}]</span> <span class="c-key">Features:</span> <span class="c-val">${nf}</span>  <span class="c-key">Samples:</span> <span class="c-val">${ns}</span>`);
+    set('m-acc-cls', fmt(m.condition?.accuracy,  4));
+    set('m-f1-cls',  fmt(m.condition?.f1_macro,  4));
+    set('m-acc-sev', fmt(m.severity?.accuracy,   4));
+    set('m-f1-sev',  fmt(m.severity?.f1_macro,   4));
+    log(`<span class="c-time">[${ts()}]</span> <span class="c-ok">Metrics loaded — v${m.version ?? '?'}</span>`);
+    log(`<span class="c-time">[${ts()}]</span> <span class="c-key">Features:</span> <span class="c-val">${m.n_features ?? '?'}</span>  <span class="c-key">Test samples:</span> <span class="c-val">${m.n_samples ?? '?'}</span>`);
   })
   .catch(() => log(`<span class="c-time">[${ts()}]</span> <span class="c-warn">Could not load metrics JSON</span>`));
 
+// ── WebSocket events ──────────────────────────────────────
 socket.on('connect', () => {
   const b = document.getElementById('live-badge');
-  b.style.background = 'rgba(0,229,160,0.15)';
-  b.style.color = 'var(--ok)';
-  b.style.borderColor = 'rgba(0,229,160,0.4)';
+  b.style.cssText = 'background:rgba(0,229,160,0.13);color:var(--ok);border-color:rgba(0,229,160,0.35);';
   b.textContent = '● LIVE';
   log(`<span class="c-time">[${ts()}]</span> <span class="c-ok">WebSocket stream connected</span>`);
 });
 
 socket.on('disconnect', () => {
   const b = document.getElementById('live-badge');
-  b.style.background = 'rgba(255,77,109,0.15)';
-  b.style.color = 'var(--danger)';
-  b.style.borderColor = 'rgba(255,77,109,0.4)';
+  b.style.cssText = 'background:rgba(255,77,109,0.13);color:var(--danger);border-color:rgba(255,77,109,0.35);';
   b.textContent = '● OFFLINE';
   log(`<span class="c-time">[${ts()}]</span> <span class="c-err">WebSocket disconnected</span>`);
 });
@@ -533,85 +535,67 @@ socket.on('angles', (data) => {
   if (!data.ai_predictions) return;
   const ai = data.ai_predictions;
 
-  // Risk
+  // ─ Risk ─
   const r10 = parseFloat(ai.risk_10d || 0);
   let rColor = '#00e5a0';
   if (r10 > 0.4) rColor = '#ffaa00';
   if (r10 > 0.7) rColor = '#ff4d6d';
-
   const riskEl = document.getElementById('ai-risk-10d');
   riskEl.textContent = r10.toFixed(3);
   riskEl.style.color = rColor;
-  riskEl.style.textShadow = `0 0 15px ${rColor}80`;
-
-  document.getElementById('ai-risk-level').textContent = (ai.risk_level || 'UNKNOWN').toUpperCase();
+  riskEl.style.textShadow = `0 0 18px ${rColor}70`;
+  document.getElementById('ai-risk-level').textContent = (ai.risk_level||'UNKNOWN').toUpperCase();
   document.getElementById('ai-risk-level').style.color = rColor;
-  document.getElementById('ai-risk-bar').style.width   = `${Math.min(r10 * 100, 100)}%`;
+  document.getElementById('ai-risk-bar').style.width = `${Math.min(r10*100,100)}%`;
   document.getElementById('ai-risk-bar').style.background = rColor;
 
-  // Condition
-  const cond = (ai.condition || '—').replace(/_/g,' ');
-  document.getElementById('ai-condition').textContent  = cond;
+  // ─ Condition ─
+  const cond = (ai.condition||'—').replace(/_/g,' ');
+  document.getElementById('ai-condition').textContent = cond;
   document.getElementById('ai-condition').title = cond;
-  
-  const sev  = (ai.severity || '—').toUpperCase();
+  const sev = (ai.severity||'—').toUpperCase();
   let sevColor = '#00e5a0';
-  if (sev === 'MEDIUM') sevColor = '#ffaa00';
-  if (sev === 'HIGH')   sevColor = '#ff4d6d';
-  document.getElementById('ai-severity').textContent   = `Severity: ${sev}`;
-  document.getElementById('ai-severity').style.color   = sevColor;
-  document.getElementById('ai-severity').style.borderLeft = `3px solid ${sevColor}`;
+  if (sev==='MEDIUM') sevColor='#ffaa00';
+  if (sev==='HIGH')   sevColor='#ff4d6d';
+  const sevEl = document.getElementById('ai-severity');
+  sevEl.textContent = `Severity: ${sev}`;
+  sevEl.style.color = sevColor;
+  sevEl.style.borderLeft = `3px solid ${sevColor}`;
 
-  // SHAP
-  const crit = (ai.critical_joint || 'Normal').replace(/_/g,' ');
+  // ─ SHAP ─
+  const crit = (ai.critical_joint||'Normal').replace(/_/g,' ');
   document.getElementById('ai-critical-joint').textContent = crit;
   document.getElementById('ai-critical-joint').style.color = rColor;
 
-  // Anomaly Global
-  const anom = parseFloat(ai.anomaly_score || 0);
-  let aColor = '#00e5a0';
-  if (anom > 0.4) aColor = '#ffaa00';
-  if (anom > 0.7) aColor = '#ff4d6d';
-  document.getElementById('ai-anomaly-score').textContent = anom.toFixed(3);
-  document.getElementById('ai-anomaly-score').style.color = aColor;
-  document.getElementById('ai-anomaly-bar').style.width   = `${Math.min(anom*100,100)}%`;
-  document.getElementById('ai-anomaly-bar').style.background = aColor;
-
-  // Per-joint
+  // ─ Per-joint anomaly ─
   if (ai.anomaly_probs) {
-    const sorted = Object.entries(ai.anomaly_probs).sort((a,b) => b[1]-a[1]);
-    const html = sorted.map(([name,prob]) => {
+    const sorted = Object.entries(ai.anomaly_probs).sort((a,b)=>b[1]-a[1]);
+    document.getElementById('ai-anomaly-top5').innerHTML = sorted.map(([name,prob])=>{
       const pct = (prob*100).toFixed(1);
       let bc = '#00e5ff';
-      if (prob > 0.4) bc = '#ffaa00';
-      if (prob > 0.7) bc = '#ff4d6d';
-      return `
-        <div style="margin-bottom:10px;">
-          <div class="anom-row">
-            <span style="color:#e4e8f4;font-weight:500;">${name}</span>
-            <span style="color:${bc};font-weight:700;">${pct}%</span>
-          </div>
-          <div class="anom-bar-wrap">
-            <div style="height:100%;width:${pct}%;background:${bc};border-radius:3px;transition:width .6s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 0 8px ${bc}80;"></div>
-          </div>
-        </div>`;
+      if (prob>0.4) bc='#ffaa00';
+      if (prob>0.7) bc='#ff4d6d';
+      return `<div style="margin-bottom:10px;">
+        <div class="anom-row">
+          <span style="color:#c8d0e8;font-weight:500;">${name}</span>
+          <span style="color:${bc};font-weight:700;">${pct}%</span>
+        </div>
+        <div class="anom-bar-wrap">
+          <div style="height:100%;width:${pct}%;background:${bc};border-radius:3px;transition:width .6s cubic-bezier(0.4,0,0.2,1);box-shadow:0 0 6px ${bc}80;"></div>
+        </div>
+      </div>`;
     }).join('');
-    document.getElementById('ai-anomaly-top5').innerHTML = html;
   }
 
-  // Console
-  const condShort = cond.length > 20 ? cond.substring(0,20)+'...' : cond;
+  // ─ Console ─
+  const condShort = cond.length>22 ? cond.substring(0,22)+'…' : cond;
   log(
     `<span class="c-time">[${ts()}]</span> ` +
     `risk=<span style="color:${rColor};font-weight:700;">${r10.toFixed(3)}</span> ` +
     `cond=<span class="c-val">${condShort}</span> ` +
     `sev=<span style="color:${sevColor}">${sev}</span> ` +
-    `joint=<span class="c-warn">${crit}</span> ` +
-    `anom=<span class="c-err">${anom.toFixed(3)}</span>`
+    `joint=<span class="c-warn">${crit}</span>`
   );
-  
-  const lines = cons.innerHTML.split('<br>');
-  if (lines.length > 80) cons.innerHTML = lines.slice(-80).join('<br>');
 });
 </script>
 {% endblock %}
