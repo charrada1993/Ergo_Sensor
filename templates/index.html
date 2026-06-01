@@ -538,12 +538,38 @@
     line-height: 1.6;
   }
 
-  /* ── Stats Grid ───────────────────────────────────────────────── */
-  .stats-grid {
+  /* ── App Layout ───────────────────────────────────────────────── */
+  .app-layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1.5rem;
+    margin: 0 2.5rem 2.5rem;
+    align-items: start;
+  }
+
+  .app-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: sticky;
+    top: 20px;
+  }
+
+  .app-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .app-card-fill {
+    height: 100%;
+  }
+
+  /* ── Stats Row ───────────────────────────────────────────────── */
+  .stats-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 1.2rem;
-    margin: 0 2.5rem 2rem;
   }
 
   .stat-card {
@@ -615,15 +641,12 @@
     transition: width 1s cubic-bezier(0.4,0,0.2,1);
   }
 
-  /* ── Stretching Coach Section ─────────────────────────────────── */
-  .stretch-section {
-    margin: 0 2.5rem 2.5rem;
-  }
-
+  /* ── Stretch Grid ─────────────────────────────────────────────── */
   .stretch-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.4rem;
+    gap: 1.2rem;
+    margin-top: 1rem;
   }
 
   .stretch-card {
@@ -740,14 +763,74 @@
      DOCTOR INTERFACE
   ──────────────────────────────────────────────────────────────── */
   .doctor-section {
-    margin: 0 2.5rem 2rem;
+    /* Main container padding is handled by app-card-fill now */
   }
 
-  /* Joint Trend Charts */
-  .grid-9 {
+  /* ── Compact Trend Grid ───────────────────────────────────────── */
+  .grid-compact {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+  }
+
+  /* ── AI Diagnostic HUD (Doctor Sidebar) ───────────────────────── */
+  .ai-diag-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .ai-risk-gauge {
+    text-align: center;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .ai-risk-prob-text {
+    font-size: 3rem;
+    font-weight: 800;
+    font-family: var(--mono);
+    color: var(--danger);
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+  }
+
+  .ai-risk-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-top: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .ai-diag-details {
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.05);
+  }
+  
+  .detail-row:last-child {
+    border-bottom: none;
+  }
+
+  .d-label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+
+  .d-val {
+    font-weight: 700;
+    color: var(--text-bright);
+    font-size: 0.85rem;
   }
 
   .trend-card {
@@ -1070,20 +1153,19 @@
   }
 
   /* ── Responsive ───────────────────────────────────────────────── */
-  @media (max-width: 1000px) {
-    .patient-hud, .doctor-grid { grid-template-columns: 1fr; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 1100px) {
+    .app-layout { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
     .stretch-grid { grid-template-columns: repeat(2, 1fr); }
-    .full-width { grid-column: span 1; }
-    .patient-hud, .stats-grid, .stretch-section,
-    .doctor-section, .dash-hero { padding-left: 1.2rem; padding-right: 1.2rem; }
-    .patient-hud, .stats-grid { margin-left: 1.2rem; margin-right: 1.2rem; }
-    .doctor-section { margin-left: 1.2rem; margin-right: 1.2rem; }
+    .grid-compact { grid-template-columns: repeat(2, 1fr); }
+    .app-sidebar { position: static; }
+    .app-layout, .dash-hero { padding-left: 1.2rem; padding-right: 1.2rem; margin-left: 0; margin-right: 0; }
   }
 
   @media (max-width: 640px) {
-    .stats-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: 1fr; }
     .stretch-grid { grid-template-columns: 1fr; }
+    .grid-compact { grid-template-columns: 1fr; }
     .hero-title { font-size: 1.4rem; }
   }
 </style>
@@ -1129,10 +1211,10 @@
        PATIENT INTERFACE
   ================================================================ -->
   {% if session.get('user_role') != 'doctor' %}
-  <div class="patient-dashboard">
+  <div class="patient-dashboard app-layout">
 
-    <!-- Posture HUD Row -->
-    <div class="patient-hud">
+    <!-- Sidebar / Left Column -->
+    <div class="app-sidebar">
 
       <!-- Score Ring -->
       <div class="card score-ring-card accent-cyan">
@@ -1151,7 +1233,7 @@
       </div>
 
       <!-- Coach Advice -->
-      <div class="card coach-card accent-purple">
+      <div class="card coach-card accent-purple app-card-fill">
         <div class="card-title"><span class="ct-dot"></span> Live Ergonomic Advice</div>
         <div class="coach-body">
           <div class="coach-avatar-wrap">
@@ -1171,10 +1253,13 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> <!-- End Sidebar -->
 
-    <!-- Stats Grid -->
-    <div class="stats-grid">
+    <!-- Main Content Area -->
+    <div class="app-main">
+      
+      <!-- Top Stats Row -->
+      <div class="stats-row">
       <div class="card stat-card accent-cyan">
         <div class="stat-card-icon cyan"><i class="fas fa-stopwatch"></i></div>
         <div class="stat-card-num" id="patient-session-timer">00:00:00</div>
@@ -1204,15 +1289,15 @@
         <div class="stat-card-num">4 <span style="font-size:1.2rem">Days</span> <i class="fas fa-fire streak-flame"></i></div>
         <div class="stat-card-desc">Active Posture Streak</div>
       </div>
-    </div>
+      </div> <!-- End Stats Row -->
 
-    <!-- Stretching Coach -->
-    <div class="stretch-section">
-      <div class="section-header">
-        <div class="section-icon"><i class="fas fa-dumbbell"></i></div>
-        <div class="section-label">Desk Stretching Coach</div>
-      </div>
-      <div class="stretch-grid">
+      <!-- Stretching Coach -->
+      <div class="stretch-section app-card-fill">
+        <div class="section-header">
+          <div class="section-icon"><i class="fas fa-dumbbell"></i></div>
+          <div class="section-label">Desk Stretching Coach</div>
+        </div>
+        <div class="stretch-grid">
 
         <div class="card stretch-card">
           <div class="stretch-icon-wrap">
@@ -1248,24 +1333,60 @@
         </div>
 
       </div>
-    </div>
+    </div> <!-- End Main Content -->
 
-  </div>
+  </div> <!-- End patient-dashboard -->
   {% endif %}
 
   <!-- ================================================================
        DOCTOR INTERFACE
   ================================================================ -->
   {% if session.get('user_role') == 'doctor' %}
-  <div class="doctor-dashboard">
+  <div class="doctor-dashboard app-layout">
 
-    <!-- Joint Angle Trend Charts -->
-    <div class="doctor-section">
-      <div class="section-header">
-        <div class="section-icon"><i class="fas fa-chart-area"></i></div>
-        <div class="section-label">Joint Angle Trends</div>
+    <!-- Sidebar / Diagnostic HUD -->
+    <div class="app-sidebar">
+      
+      <!-- AI Diagnostic Overview -->
+      <div class="card ai-diag-card accent-red app-card-fill">
+        <div class="card-title"><i class="fas fa-brain"></i> AI Diagnostic Engine</div>
+        
+        <div class="ai-risk-gauge">
+          <div class="ai-risk-prob-text" id="ai-risk-prob-text">--%</div>
+          <div class="ai-risk-label">MSD RISK PROBABILITY</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="ai-risk-gauge-fill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="ai-diag-details">
+          <div class="detail-row">
+            <span class="d-label">Risk Level</span>
+            <span class="badge clinical" id="ai-risk-level-badge">ANALYZING</span>
+          </div>
+          <div class="detail-row">
+            <span class="d-label">Top Anomaly</span>
+            <span class="d-val" id="ai-anomaly-state">--</span>
+          </div>
+          <div class="detail-row">
+            <span class="d-label">Critical Joint</span>
+            <span class="d-val" id="ai-critical-joint">--</span>
+          </div>
+        </div>
       </div>
-      <div class="grid-9">
+
+    </div> <!-- End Sidebar -->
+
+    <!-- Main Content Area -->
+    <div class="app-main">
+
+      <!-- Joint Angle Trend Charts -->
+      <div class="doctor-section app-card-fill" style="padding: 1.5rem">
+        <div class="section-header" style="margin-bottom: 1rem;">
+          <div class="section-icon"><i class="fas fa-chart-area"></i></div>
+          <div class="section-label">Real-Time Joint Telemetry</div>
+        </div>
+        <div class="grid-compact">
         <div class="card trend-card" data-joint="Neck">
           <div class="card-title"><i class="fas fa-chart-line"></i> Neck</div>
           <canvas id="trend-Neck"></canvas>
@@ -1327,9 +1448,9 @@
           <div class="comp-badges" id="comp-L_Knee"></div>
         </div>
       </div>
-    </div>
+    </div> <!-- End Main Content Area -->
 
-  </div>
+  </div> <!-- End doctor-dashboard -->
   {% endif %}
 
 </div><!-- end .dash-wrapper -->
