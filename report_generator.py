@@ -464,48 +464,18 @@ class ReportGenerator:
 
         print(f'[ReportGen] PDF saved locally -> {pdf_path}')
         
-        # Upload to Firebase RTDB as Base64
+        # Upload to Firebase RTDB as Base64 using REST API
         try:
-            import firebase_admin
-            from firebase_admin import credentials, db
-            import json
-            
-            if not firebase_admin._apps:
-                cred_path = getattr(self.config, 'FIREBASE_CREDENTIALS_PATH', 'msd-monitor-system-firebase-adminsdk-fbsvc-57e212bc0a.json')
-                database_url = getattr(self.config, 'FIREBASE_DATABASE_URL', 'https://msd-monitor-system-default-rtdb.europe-west1.firebasedatabase.app/')
-                
-                env_creds = os.environ.get("FIREBASE_CREDS_JSON")
-                if env_creds:
-                    try:
-                        cred_dict = json.loads(env_creds)
-                        cred = credentials.Certificate(cred_dict)
-                        print("[ReportGen] Firebase initialized using FIREBASE_CREDS_JSON")
-                    except Exception as e:
-                        print(f"[ReportGen] Failed to parse FIREBASE_CREDS_JSON: {e}")
-                        cred = None
-                elif os.path.exists(cred_path):
-                    cred = credentials.Certificate(cred_path)
-                    print(f"[ReportGen] Firebase initialized using {cred_path}")
-                else:
-                    cred = None
-                    print(f"[ReportGen] Firebase credentials not found at {cred_path}")
-                
-                if cred:
-                    firebase_admin.initialize_app(cred, {'databaseURL': database_url})
+            from firebase_storage import FirebaseStorage
+            storage_url = getattr(self.config, 'FIREBASE_STORAGE_URL', 'https://ergo-a4b30-default-rtdb.firebaseio.com/')
+            storage = FirebaseStorage(storage_url)
 
             with open(pdf_path, 'rb') as f:
                 pdf_data = f.read()
             if pdf_data:
-                b64_string = base64.b64encode(pdf_data).decode('utf-8')
-                file_key = os.path.basename(pdf_path).replace('.', '_')
-                ref = db.reference(f'/files/reports/{file_key}')
-                import time
-                ref.set({
-                    'filename': os.path.basename(pdf_path),
-                    'data': b64_string,
-                    'timestamp': time.time()
-                })
-                print(f'[ReportGen] PDF uploaded to Firebase RTDB -> files/reports/{file_key}')
+                success = storage.put_file('/files/reports', os.path.basename(pdf_path), pdf_data)
+                if success:
+                    print(f'[ReportGen] PDF uploaded to Firebase RTDB ({storage_url}) -> files/reports')
         except Exception as e:
             print(f'[ReportGen] Warning: Could not upload PDF to Firebase RTDB: {e}')
 

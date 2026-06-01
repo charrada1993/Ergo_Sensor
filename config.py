@@ -8,6 +8,7 @@ class Config:
     # Firebase
     FIREBASE_DATABASE_URL = 'https://msd-monitor-system-default-rtdb.europe-west1.firebasedatabase.app/'
     FIREBASE_CREDENTIALS_PATH = 'msd-monitor-system-firebase-adminsdk-fbsvc-57e212bc0a.json'
+    FIREBASE_STORAGE_URL = 'https://ergo-a4b30-default-rtdb.firebaseio.com/'
     # Data ingestion – exact sensor IDs as sent by ESP32
     EXPECTED_SENSORS = [
         'NECK', 'UPPER_BACK',

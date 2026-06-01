@@ -189,6 +189,10 @@ class CSVLogger:
 
     def _upload_periodically(self):
         """Upload to Firebase RTDB as Base64 every 60 seconds to prevent data loss on ephemeral filesystems."""
+        from firebase_storage import FirebaseStorage
+        storage_url = getattr(self.config, 'FIREBASE_STORAGE_URL', 'https://ergo-a4b30-default-rtdb.firebaseio.com/')
+        storage = FirebaseStorage(storage_url)
+
         while self.running:
             for _ in range(60):
                 if not self.running: return
@@ -196,20 +200,13 @@ class CSVLogger:
             
             if self.filename and os.path.exists(self.filename):
                 try:
-                    from firebase_admin import db
                     with open(self.filename, 'rb') as f:
                         file_data = f.read()
                     
                     if file_data:
-                        b64_string = base64.b64encode(file_data).decode('utf-8')
-                        file_key = os.path.basename(self.filename).replace('.', '_')
-                        ref = db.reference(f'/files/csv/{file_key}')
-                        ref.set({
-                            'filename': os.path.basename(self.filename),
-                            'data': b64_string,
-                            'timestamp': time.time()
-                        })
-                        print(f"[CSVLogger] Uploaded {os.path.basename(self.filename)} to Firebase RTDB")
+                        success = storage.put_file('/files/csv', os.path.basename(self.filename), file_data)
+                        if success:
+                            print(f"[CSVLogger] Uploaded {os.path.basename(self.filename)} to Firebase RTDB ({storage_url})")
                 except Exception as e:
                     print(f"[CSVLogger] Warning: Could not upload to Firebase RTDB: {e}")
 

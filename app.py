@@ -302,34 +302,18 @@ def get_sensors_status():
 
 def get_firebase_db_files(path):
     try:
-        from firebase_admin import db
-        ref = db.reference(path)
-        data = ref.get()
-        if data:
-            files = [v['filename'] for v in data.values() if 'filename' in v]
-            files.sort(reverse=True)
-            return files
+        from firebase_storage import FirebaseStorage
+        storage = FirebaseStorage(Config.FIREBASE_STORAGE_URL)
+        return storage.list_files(path) or []
     except Exception as e:
         print(f"Error accessing Firebase RTDB: {e}")
-    return None
+    return []
 
 def get_firebase_db_files_metadata(path):
     try:
-        from firebase_admin import db
-        ref = db.reference(path)
-        data = ref.get()
-        if data:
-            result = {}
-            for k, v in data.items():
-                if isinstance(v, dict) and 'filename' in v:
-                    size = 0
-                    if 'data' in v:
-                        size = len(v['data']) * 3 // 4
-                    result[v['filename']] = {
-                        'timestamp': v.get('timestamp', time.time()),
-                        'size': size
-                    }
-            return result
+        from firebase_storage import FirebaseStorage
+        storage = FirebaseStorage(Config.FIREBASE_STORAGE_URL)
+        return storage.get_files_metadata(path) or {}
     except Exception as e:
         print(f"Error accessing Firebase RTDB metadata: {e}")
     return {}
@@ -394,14 +378,11 @@ def delete_csv(filename):
     # Delete from Firebase
     deleted_from_firebase = False
     try:
-        from firebase_admin import db
-        file_key = filename.replace('.', '_')
-        ref = db.reference(f'/files/csv/{file_key}')
-        if ref.get():
-            ref.delete()
-            deleted_from_firebase = True
-    except Exception:
-        pass
+        from firebase_storage import FirebaseStorage
+        storage = FirebaseStorage(Config.FIREBASE_STORAGE_URL)
+        deleted_from_firebase = storage.delete_file('/files/csv', filename)
+    except Exception as e:
+        print(f"Error deleting CSV from Firebase: {e}")
 
     filepath = os.path.join(Config.CSV_DIR, filename)
     if os.path.exists(filepath):
@@ -436,15 +417,13 @@ def get_latest_csv():
     
     if latest_file in fb_files:
         try:
-            from firebase_admin import db
-            file_key = latest_file.replace('.', '_')
-            ref = db.reference(f'/files/csv/{file_key}')
-            data = ref.get()
-            if data and 'data' in data:
-                file_bytes = base64.b64decode(data['data'])
+            from firebase_storage import FirebaseStorage
+            storage = FirebaseStorage(Config.FIREBASE_STORAGE_URL)
+            file_bytes = storage.get_file('/files/csv', latest_file)
+            if file_bytes:
                 return send_file(io.BytesIO(file_bytes), download_name=download_name, as_attachment=True)
         except Exception as e:
-            print(f"Error fetching from RTDB: {e}")
+            print(f"Error fetching CSV from Firebase: {e}")
             
     return send_file(os.path.join(Config.CSV_DIR, latest_file), download_name=download_name, as_attachment=True)
 
@@ -453,15 +432,13 @@ def get_latest_csv():
 @login_required(role='doctor')
 def download_csv(filename):
     try:
-        from firebase_admin import db
-        file_key = filename.replace('.', '_')
-        ref = db.reference(f'/files/csv/{file_key}')
-        data = ref.get()
-        if data and 'data' in data:
-            file_bytes = base64.b64decode(data['data'])
+        from firebase_storage import FirebaseStorage
+        storage = FirebaseStorage(Config.FIREBASE_STORAGE_URL)
+        file_bytes = storage.get_file('/files/csv', filename)
+        if file_bytes:
             return send_file(io.BytesIO(file_bytes), download_name=filename, as_attachment=True)
     except Exception as e:
-        print(f"Error fetching from RTDB: {e}")
+        print(f"Error fetching CSV from Firebase: {e}")
 
     return send_from_directory(Config.CSV_DIR, filename, as_attachment=True)
 
@@ -474,12 +451,10 @@ def preview_csv(filename):
     
     csv_data = None
     try:
-        from firebase_admin import db
-        file_key = filename.replace('.', '_')
-        ref = db.reference(f'/files/csv/{file_key}')
-        data = ref.get()
-        if data and 'data' in data:
-            file_bytes = base64.b64decode(data['data'])
+        from firebase_storage import FirebaseStorage
+        storage = FirebaseStorage(Config.FIREBASE_STORAGE_URL)
+        file_bytes = storage.get_file('/files/csv', filename)
+        if file_bytes:
             csv_data = file_bytes.decode('utf-8')
     except Exception as e:
         print(f"Error fetching CSV for preview: {e}")
@@ -563,12 +538,9 @@ def delete_report(filename):
     # Delete from Firebase
     deleted_from_firebase = False
     try:
-        from firebase_admin import db
-        file_key = filename.replace('.', '_')
-        ref = db.reference(f'/files/reports/{file_key}')
-        if ref.get():
-            ref.delete()
-            deleted_from_firebase = True
+        from firebase_storage import FirebaseStorage
+        storage = FirebaseStorage(Config.FIREBASE_STORAGE_URL)
+        deleted_from_firebase = storage.delete_file('/files/reports', filename)
     except Exception as e:
         print(f"Error deleting report from Firebase: {e}")
 
@@ -591,15 +563,13 @@ def delete_report(filename):
 @login_required(role='doctor')
 def download_report(filename):
     try:
-        from firebase_admin import db
-        file_key = filename.replace('.', '_')
-        ref = db.reference(f'/files/reports/{file_key}')
-        data = ref.get()
-        if data and 'data' in data:
-            file_bytes = base64.b64decode(data['data'])
+        from firebase_storage import FirebaseStorage
+        storage = FirebaseStorage(Config.FIREBASE_STORAGE_URL)
+        file_bytes = storage.get_file('/files/reports', filename)
+        if file_bytes:
             return send_file(io.BytesIO(file_bytes), download_name=filename, as_attachment=True)
     except Exception as e:
-        print(f"Error fetching from RTDB: {e}")
+        print(f"Error fetching report from Firebase: {e}")
 
     return send_from_directory(Config.REPORTS_DIR, filename, as_attachment=True)
 
@@ -612,17 +582,15 @@ def generate_report():
     
     if files:
         try:
-            from firebase_admin import db
-            file_key = files[0].replace('.', '_')
-            ref = db.reference(f'/files/csv/{file_key}')
-            data = ref.get()
-            if data and 'data' in data:
-                file_bytes = base64.b64decode(data['data'])
+            from firebase_storage import FirebaseStorage
+            storage = FirebaseStorage(Config.FIREBASE_STORAGE_URL)
+            file_bytes = storage.get_file('/files/csv', files[0])
+            if file_bytes:
                 csv_file = os.path.join(Config.CSV_DIR, files[0])
                 with open(csv_file, 'wb') as f:
                     f.write(file_bytes)
         except Exception as e:
-            print(f"Error fetching CSV for report from RTDB: {e}")
+            print(f"Error fetching CSV for report from Firebase: {e}")
     
     if not csv_file or not os.path.exists(csv_file):
         local_files = [f for f in os.listdir(Config.CSV_DIR) if f.endswith('.csv')]

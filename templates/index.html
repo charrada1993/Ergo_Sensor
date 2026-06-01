@@ -728,19 +728,6 @@
      =============================================================== -->
 {% if session.get('user_role') == 'doctor' %}
 <div class="doctor-dashboard">
-
-  <div class="doctor-grid">
-
-
-    </div>
-
-    <!-- Live Joint Angles Grid -->
-    <div class="card">
-      <div class="card-title"><i class="fas fa-compass"></i> Live Kinematics</div>
-      <div id="angles" class="joint-grid"></div>
-    </div>
-  </div>
-
   <!-- ── 2. Joint Trend Charts ─────────────────────────────────────── -->
   <div style="margin-bottom: 2rem;">
     <div class="section-title">Joint Angle Trends</div>
@@ -808,27 +795,6 @@
     </div>
   </div>
 
-  <!-- ── 4. RULA Trend Charts ──────────────────────────────────────── -->
-  <div style="margin-bottom: 2rem;">
-    <div class="section-title">RULA Assessment Trends</div>
-    <div class="grid-9">
-      <div class="card trend-card full-width">
-        <div class="card-title">RULA Score Trend</div>
-        <canvas id="trend-rula-unified"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── 6. REBA Trend Charts ──────────────────────────────────────── -->
-  <div style="margin-bottom: 2rem;">
-    <div class="section-title">REBA Assessment Trends</div>
-    <div class="grid-9">
-      <div class="card trend-card full-width">
-        <div class="card-title">REBA Score Trend</div>
-        <canvas id="trend-reba-unified"></canvas>
-      </div>
-    </div>
-  </div>
 </div>
 {% endif %}
 
