@@ -27,91 +27,159 @@ body {
     padding: 20px;
 }
 
-/* === Navbar (responsive + toggle) === */
+/* === Navbar — Premium Dark === */
 .navbar {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
-    background: rgba(18, 20, 35, 0.4);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
-    padding: 15px 35px;
-    margin-bottom: 40px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    gap: 15px;
-    transition: all 0.3s ease;
+    background: rgba(6, 8, 18, 0.75);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 18px;
+    padding: 0 28px;
+    height: 66px;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0,229,255,0.04);
+    gap: 0;
+    position: relative;
+    transition: box-shadow 0.3s ease;
+    overflow: hidden;
 }
 
+/* Top shimmer line */
+.navbar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 5%;
+    right: 5%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,229,255,0.35), transparent);
+    pointer-events: none;
+}
+
+/* Bottom accent glow line */
+.navbar::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(124,58,237,0.25), rgba(0,229,255,0.25), transparent);
+    pointer-events: none;
+}
+
+.navbar:hover {
+    box-shadow: 0 6px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(0,229,255,0.08), 0 0 30px rgba(0,229,255,0.04);
+}
+
+/* Brand */
 .nav-brand {
-    font-size: 1.9rem;
+    font-size: 1.45rem;
     font-weight: 800;
-    background: linear-gradient(120deg, #00e5ff 0%, #8c52ff 100%);
+    background: linear-gradient(120deg, #00e5ff 0%, #a78bfa 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    letter-spacing: 2px;
-    filter: drop-shadow(0px 2px 4px rgba(0, 229, 255, 0.2));
+    background-clip: text;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-right: 24px;
+    filter: drop-shadow(0 0 12px rgba(0,229,255,0.15));
 }
 
 .nav-brand i {
     margin-right: 8px;
     color: #00d4ff;
     -webkit-text-fill-color: initial;
+    font-size: 1.2rem;
 }
 
+/* Nav Links */
 .nav-links {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    flex-wrap: nowrap;
+    gap: 2px;
     list-style: none;
     margin: 0;
     padding: 0;
+    flex: 1;
+    overflow: hidden;
+}
+
+.nav-links li {
+    flex-shrink: 0;
 }
 
 .nav-links a {
-    color: #fff;
+    color: rgba(180,190,220,0.8);
     text-decoration: none;
-    padding: 10px 20px;
-    border-radius: 30px;
-    transition: all 0.3s ease;
+    padding: 8px 14px;
+    border-radius: 10px;
+    transition: all 0.25s ease;
     font-weight: 500;
+    font-size: 0.87rem;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
 }
 
 .nav-links a i {
-    font-size: 1.1rem;
-    opacity: 0.8;
+    font-size: 0.95rem;
+    opacity: 0.75;
+    transition: opacity 0.2s, color 0.2s;
 }
 
-.nav-links a:hover,
-.nav-links a.active {
-    background: rgba(0, 229, 255, 0.1);
+.nav-links a:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.07);
+}
+
+.nav-links a:hover i {
+    opacity: 1;
     color: #00e5ff;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.15);
-    backdrop-filter: blur(5px);
+}
+
+.nav-links a.active {
+    background: linear-gradient(135deg, rgba(0,229,255,0.15) 0%, rgba(124,58,237,0.12) 100%);
+    color: #00e5ff;
+    border: 1px solid rgba(0,229,255,0.18);
+    box-shadow: 0 2px 12px rgba(0,229,255,0.1), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.nav-links a.active i {
+    opacity: 1;
+    color: #00e5ff;
 }
 
 /* Theme Toggle Button */
 .theme-toggle {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: inherit;
-    font-size: 1.2rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(200,210,230,0.8);
+    font-size: 1rem;
     cursor: pointer;
-    margin-left: auto;
-    padding: 5px 10px;
-    border-radius: 30px;
-    transition: background 0.2s;
+    margin-left: 12px;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    transition: all 0.25s;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .theme-toggle:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(0,229,255,0.1);
+    border-color: rgba(0,229,255,0.2);
+    color: #00e5ff;
 }
 
 /* Responsive navbar on small screens */
@@ -1064,26 +1132,28 @@ body.light-mode {
     color: #2c3e50;
 }
 
+/* Navbar stays dark even in light mode — it's a floating HUD */
 body.light-mode .navbar {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    background: rgba(6, 8, 18, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0,229,255,0.05);
 }
 
 body.light-mode .nav-brand {
-    background: linear-gradient(45deg, #0d7377, #1a3a5c);
+    background: linear-gradient(120deg, #00e5ff 0%, #a78bfa 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 body.light-mode .nav-links a {
-    color: #2c3e50;
+    color: rgba(180, 190, 220, 0.8);
 }
 
 body.light-mode .nav-links a:hover,
 body.light-mode .nav-links a.active {
-    background: rgba(13, 115, 119, 0.2);
-    color: #0d7377;
+    color: #00e5ff;
+    background: linear-gradient(135deg, rgba(0,229,255,0.15) 0%, rgba(124,58,237,0.12) 100%);
 }
 
 body.light-mode .card {
