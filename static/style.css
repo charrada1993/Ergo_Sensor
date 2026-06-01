@@ -1131,8 +1131,15 @@ body.light-mode .theme-toggle:hover {
 
 /* ========== LIGHT MODE OVERRIDES ========== */
 body.light-mode {
-    background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%);
-    color: #2c3e50;
+    background-color: #eef2f9;
+    background-image:
+        radial-gradient(ellipse 80% 55% at 15% 10%, rgba(6, 182, 212, 0.12) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 50% at 85% 5%,  rgba(139, 92, 246, 0.1)  0%, transparent 60%),
+        radial-gradient(ellipse 50% 45% at 50% 95%, rgba(14, 165, 233, 0.09) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 35% at 80% 80%, rgba(167, 139, 250, 0.08) 0%, transparent 55%),
+        linear-gradient(160deg, #f0f6ff 0%, #e8f0fb 40%, #ede9f6 70%, #e6f3fb 100%);
+    background-attachment: fixed;
+    color: #1e293b;
 }
 
 /* ── Light Mode Navbar — Premium frosted glass ── */
@@ -1200,14 +1207,20 @@ body.light-mode .nav-links a.active i {
 }
 
 body.light-mode .card {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow:
+        0 4px 24px rgba(14, 165, 233, 0.07),
+        0 1px 4px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    color: #1e293b;
 }
 
 body.light-mode .card h3 {
-    color: #1a3a5c;
-    border-bottom-color: rgba(0, 0, 0, 0.1);
+    color: #0f172a;
+    border-bottom-color: rgba(0, 0, 0, 0.07);
 }
 
 body.light-mode .gauge {
