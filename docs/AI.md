@@ -1,78 +1,72 @@
-# 🧠 Ergo Sensor — Intelligence artificielle et modélisation biomécanique
+# 🧠 Ergo Sensor — Intelligence Artificielle et Modélisation Biomécanique
 
-Ce document fournit une plongée profonde dans le noyau d'Intelligence Artificielle du système **Ergo Sensor**. Il explique la justification scientifique, les architectures de modèles et le pipeline de données utilisé pour prévenir les troubles musculosquelettiques (TMS).
-
----
-
-## 🔬 Pourquoi ce choix de modèle ?
-
-Nous avons sélectionné une approche d'**Apprentissage d'ensemble** basée sur **LightGBM** pour plusieurs raisons techniques :
-
-1.  **Séquences temporelles** : Ergo Sensor v3.0-Production s'appuie sur l'ingénierie des caractéristiques de séries temporelles (fenêtres mobiles, retards) et la validation croisée `TimeSeriesSplit` pour capturer l'historique postural dynamique plutôt que des instantanés statiques.
-2.  **Optuna HPO** : L'optimisation des hyperparamètres (Optuna) garantit que les modèles se généralisent aux travailleurs invisibles plutôt que de mémoriser les données d'entraînement.
-3.  **Gestion du déséquilibre** : Les anomalies posturales sont rares. Le `class_weight='balanced'` de LightGBM nous permet de détecter efficacement les blessures rares.
-4.  **Gestion des inconnus** : Bien qu'il s'agisse principalement d'un système supervisé, l'approche est structurée pour gérer également diverses anomalies posturales inconnues.
+Ce document détaille le fonctionnement interne du moteur d'IA d'Ergo Sensor (v3.0-Production).
 
 ---
 
-## 📊 L'ensemble de données : `dataset_TMS_enriched.csv`
+## ⚙️ Flux de Données d'IA
 
-Le modèle a été entraîné sur un ensemble de données de haute qualité spécifiquement conçu pour la recherche sur les troubles musculosquelettiques (TMS) :
-
-- **Volume** : ~20 000 points de données collectés à 10 Hz.
-- **Caractéristiques d'entrée (75)** : 
-    - 12 angles articulaires bruts (norme clinique).
-    - 24 statistiques temporelles (moyennes et écarts-types mobiles).
-    - 12 caractéristiques de retard (historique postural).
-    - 14 caractéristiques dynamiques et proxys (vitesse, énergie).
-    - 5 deltas d'asymétrie bilatérale.
-    - 2 scores de charge composite.
-    - 6 superpositions d'angles bruts, drapeaux de posture et accélérations.
-- **Classes cibles** : 
-    - **Continu** : Score de risque (0,0 à 1,0).
-    - **Multi-classes** : 18 catégories de conditions (pathologies TMS).
-    - **Gravité** : Faible, Modérée, Élevée.
-
----
-
-## ⚙️ Développement et entraînement du modèle
-
-Le pipeline d'entraînement suit un flux de travail rigoureux en science des données :
-
-1.  **Ingénierie des caractéristiques** : Extraction du vecteur biomécanique de **75 caractéristiques** via `feature_extractor.py`.
-2.  **Poids équilibrés** : Utilisation d'un entraînement pondéré par classe pour compenser le déséquilibre sévère de l'ensemble de données.
-3.  **Division temporelle** : Validation croisée `TimeSeriesSplit` à 3 plis pour garantir une fuite de données temporelles nulle.
-4.  **Optimisation** : Réglage des hyperparamètres à l'aide de l'optimisation bayésienne (Optuna).
+```mermaid
+graph LR
+    A[Raw IMU Data] --> B[Angle Math]
+    B --> C[12 Joint Angles]
+    C --> D[Feature Extractor]
+    D --> E[75-Feature Vector]
+    E --> F[LightGBM Ensemble]
+    F --> G1[Risk Score]
+    F --> G2[MSD Condition]
+    F --> G3[Severity Level]
+    F --> G4[Joint Anomalies]
+    E --> H[SHAP Explainer]
+    H --> I[Local Interpretability]
+```
 
 ---
 
-## 📈 Résultats de performance (v3.0-Production)
+## 🔬 Méthodologie Scientifique
 
-L'IA Ergo Sensor obtient des résultats de pointe pour l'évaluation ergonomique en temps réel :
+### 1. Pourquoi LightGBM ?
+Nous avons choisi une approche par **Apprentissage d'Ensemble** (Gradient Boosting) plutôt que des réseaux de neurones profonds pour plusieurs raisons :
+- **Efficacité sur données tabulaires** : LightGBM surpasse les DNN sur les données structurées de cinématique.
+- **Latence ultra-faible** : Inférence en moins de 5ms, crucial pour le temps réel à 10Hz.
+- **Expliquabilité native** : Intégration transparente avec SHAP pour la transparence clinique.
 
-| Mesure | Résultat | Interprétation |
+### 2. Ingénierie des Caractéristiques (Feature Engineering)
+Le passage de 38 à **75 caractéristiques** en v3.0 a radicalement amélioré la robustesse du système :
+- **Statistiques Mobiles** : Moyennes et variances sur 15 trames pour capturer les postures statiques prolongées.
+- **Features de Retard (Lag)** : Valeurs à $t-15$ pour donner un contexte temporel au modèle.
+- **Dynamique** : Vitesses et accélérations angulaires pour détecter les mouvements brusques.
+- **Asymétrie** : Écart absolu entre les membres gauche et droit pour détecter les compensations musculaires.
+
+---
+
+## 📊 Performance et Validation
+
+### Stratégie de Validation
+Pour éviter la **fuite de données temporelles** (data leakage), nous utilisons `TimeSeriesSplit` (3-fold) au lieu d'un K-Fold classique. Cela garantit que le modèle est testé sur des sessions "futures" par rapport à son entraînement.
+
+| Modèle | Métrique Clé | Score |
 |---|---|---|
-| **Score R² (Risque)** | **0,9981** | Variance quasi parfaite expliquée dans la prévision des risques de blessures. |
-| **Précision (Cond)** | **99,60%** | Classification exceptionnelle à travers 18 pathologies TMS. |
-| **Score F1 (Gravité)** | **0,9411** | Généralisation robuste sur la gravité malgré la validation croisée temporelle. |
-| **Score F1 (Anomalie)** | **0,9906** | F1 moyen à travers 5 classificateurs d'anomalies par articulation distincts. |
+| **Régresseur (Risque)** | $R^2$ Score | **0.9981** |
+| **Condition (18 classes)** | Précision (Acc) | **99.60%** |
+| **Gravité (3 classes)** | F1-Score Macro | **0.9411** |
+| **Anomalies (Binaires)** | F1-Score Moyen | **0.9906** |
 
 ---
 
-## 🔍 Expliquabilité avec SHAP
+## 🔍 Expliquabilité via SHAP
 
-L'une des fonctionnalités les plus puissantes d'Ergo Sensor est **SHAP (SHapley Additive exPlanations)**. 
-
-Lorsqu'un "risque élevé" est détecté, l'IA ne se contente pas de donner un chiffre. Elle utilise **TreeExplainer** pour calculer la contribution de chacune des 75 caractéristiques. 
-- **Exemple** : "Le risque est de 85 %. **Cause principale** : Flexion soutenue du tronc (contribution de 42 %) et retard de l'épaule."
-- **Bénéfice** : Cela permet aux cliniciens de fournir un retour spécifique (ex: "Ajustez la hauteur de votre chaise pour abaisser votre épaule droite").
+Le système utilise **SHAP TreeExplainer** pour lever l'effet "boîte noire". Pour chaque alerte de risque élevé :
+1. L'IA calcule la contribution de chacune des 75 caractéristiques.
+2. Le clinicien voit exactement quel joint ou mouvement a déclenché l'alerte.
+3. *Exemple* : "Risque de 85% : +40% dû à la flexion du cou, +20% dû au retard de l'épaule droite."
 
 ---
 
-## 🔄 Pipeline de données d'IA
+## 🔄 Pipeline d'Entraînement
 
-1.  **Ingestion** : Quaternions bruts des capteurs ESP32 via Firebase.
-2.  **Traitement** : `angle_math.py` convertit l'orientation en 12 angles articulaires cliniques.
-3.  **Extraction** : `feature_extractor.py` calcule le vecteur de série temporelle dynamique de 75 caractéristiques.
-4.  **Inférence** : `ai_engine.py` exécute l'ensemble de 5 modèles.
-5.  **Visualisation** : Tableau de bord en direct, squelette 3D et rapports PDF avec **courbes de probabilité d'anomalies**.
+Le script `retrain_v3.py` automatise l'ensemble du cycle de vie :
+1. **Prétraitement** : Nettoyage et enrichissement du dataset `dataset_TMS_enriched.csv`.
+2. **Optimisation** : Recherche d'hyperparamètres via **Optuna** (10 essais par modèle).
+3. **Entraînement** : Fit des modèles LightGBM avec poids de classes équilibrés.
+4. **Diagnostic** : Génération automatique de 10 graphiques d'évaluation (ROC, Confusion, PR).
