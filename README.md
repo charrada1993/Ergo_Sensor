@@ -26,21 +26,19 @@
     - 4.1 ESP32 Microcontroller Setup
     - 4.2 IMU Sensor Placement Strategy
 5. [Software Stack & Technologies](#5-software-stack--technologies)
-6. [Biomechanical Modeling (75-Feature Vector)](#6-biomechanical-modeling)
-7. [Artificial Intelligence Ensemble (v3.0-Production)](#7-artificial-intelligence-ensemble)
-    - 7.1 LightGBM 10-Day Risk Forecasting
-    - 7.2 🚶‍♂️ 3D Digital Twin Visualization
-    - 7.3 Granular Postural Classifiers
-    - 7.4 Explainability via SHAP
-8. [Module-by-Module Technical Documentation](#8-module-by-module-technical-documentation)
-9. [Data Pipeline & Lifecycle](#9-data-pipeline--lifecycle)
-10. [Reporting & Clinical Insights](#10-reporting--clinical-insights)
-11. [Installation & Local Setup](#11-installation--local-setup)
-12. [Cloud Deployment (Render.com)](#12-cloud-deployment-rendercom)
-13. [Troubleshooting & Debugging](#13-troubleshooting--debugging)
-14. [Future Roadmap & Research](#14-future-roadmap--research)
-15. [Glossary of Terms](#15-glossary-of-terms)
-16. [License & Contribution](#16-license--contribution)
+6. [Biomechanical Modeling (75-Feature Vector)](#6-biomechanical-modeling-75-feature-vector)
+7. [Artificial Intelligence Ensemble (v3.0-Production)](#7-artificial-intelligence-ensemble-v30-production)
+8. [Live Calibration Workstation & Telemetry Deck](#8-live-calibration-workstation--telemetry-deck)
+9. [Project Defense Q&A Guide](#9-project-defense-qa-guide)
+10. [Module-by-Module Technical Documentation](#10-module-by-module-technical-documentation)
+11. [Data Pipeline & Lifecycle](#11-data-pipeline--lifecycle)
+12. [Reporting & Clinical Insights](#12-reporting--clinical-insights)
+13. [Installation & Local Setup](#13-installation--local-setup)
+14. [Cloud Deployment (Render.com)](#14-cloud-deployment-rendercom)
+15. [Troubleshooting & Debugging](#15-troubleshooting--debugging)
+16. [Future Roadmap & Research](#16-future-roadmap--research)
+17. [Glossary of Terms](#17-glossary-of-terms)
+18. [License & Contribution](#18-license--contribution)
 
 ---
 
@@ -75,7 +73,7 @@ REBA is specifically designed to assess tasks where postures are dynamic, unpred
 - Factors in coupling and load weight.
 - Provides a comprehensive risk profile from Negligible to Very High.
 
-Ergo Sensor implements these as **Bilateral Engines**, calculating scores for both the left and right sides of the body simultaneously to detect postural imbalances.
+Ergo Sensor implements these as **Bilateral Engines**, calculating scores for both the left and right sides of the body simultaneously in [rula_engine.py](file:///c:/MSD_System/rula_engine.py) and [reba_engine.py](file:///c:/MSD_System/reba_engine.py) to detect postural imbalances.
 
 ---
 
@@ -83,12 +81,12 @@ Ergo Sensor implements these as **Bilateral Engines**, calculating scores for bo
 
 The architecture follows a distributed, event-driven pattern:
 
-1.  **Sensor Layer**: ESP32 devices collect quaternion data from IMUs.
+1.  **Sensor Layer**: ESP32 devices collect quaternion/Euler data from IMUs.
 2.  **Cloud Ingestion**: Data is transmitted via HTTP/JSON or Firebase Realtime Database.
 3.  **Processing Engine**: A Python-based backend performs:
-    - **Quaternions-to-Angles** conversion using geometric trig logic.
-    - **Feature Engineering** to build the 38-feature biomechanical vector.
-    - **AI Inference** using pre-trained LightGBM boosters.
+    - **Quaternions-to-Angles** conversion using geometric trig logic in [angle_math.py](file:///c:/MSD_System/angle_math.py).
+    - **Feature Engineering** to build the 75-feature biomechanical vector in [feature_extractor.py](file:///c:/MSD_System/feature_extractor.py).
+    - **AI Inference** using pre-trained LightGBM boosters managed in [ai_engine.py](file:///c:/MSD_System/ai_engine.py).
 4.  **Distribution Layer**: Results are emitted via Socket.IO to connected web clients.
 5.  **Persistence Layer**: Every frame is logged to an enriched CSV file for future training and audit logs.
 
@@ -104,7 +102,7 @@ The system uses the **ESP32-WROOM-32** for its dual-core processing and built-in
 
 ### 4.2 IMU Sensor Placement Strategy
 For a full 12-sensor assessment, sensors should be placed:
-- **Axial**: Neck (C7), Upper Back (T12).
+- **Axial**: Head/Neck (C7), Upper Back/Trunk (T12).
 - **Upper Limbs**: Bilateral Biceps, Forearms, Hands.
 - **Lower Limbs**: Bilateral Thighs, Shanks.
 
@@ -118,12 +116,12 @@ For a full 12-sensor assessment, sensors should be placed:
 - **Database**: Firebase RTDB (Low-latency cloud sync).
 - **Machine Learning**: 
     - **LightGBM**: Fast gradient boosting for tabular data.
-    - **Scikit-learn**: Preprocessing.
-    - **SHAP**: Model interpretability.
+    - **Scikit-learn**: Preprocessing and TimeSeriesSplit validation.
+    - **SHAP**: Model interpretability via TreeExplainer.
 - **Visualization**: 
-    - **Matplotlib**: Static charts in PDF.
-    - **Chart.js / Gauges**: Real-time dashboard visuals.
-- **Reporting**: ReportLab (High-fidelity PDF generation).
+    - **Three.js / WebGL**: Direct 3D rigging and rendering of the worker skeleton.
+    - **Chart.js**: Real-time dashboard widgets and charts.
+- **Reporting**: ReportLab (High-fidelity A4 PDF generation).
 
 ---
 
@@ -141,7 +139,7 @@ The core "brain" of the system is the **Biomechanical Feature Vector**. Every 10
 8.  **Composite Load (2)**: Upper body and lower body weighted load scores.
 9.  **High-Risk Flags (3)**: Binary indicators for hyperflexion/overextension.
 10. **Raw Degree Overlays (2)**: Non-normalized raw angles for specific critical joints.
-11. **Accelerations (1)**: Aggregate velocity derivative (`joint_accel`).
+11. **Accelerations (5)**: Aggregate velocity derivative (change in degrees per second squared).
 
 This vector allows the AI to understand not just *where* the joints are, but *how fast* they are moving, their temporal history over the last 1.5 seconds, and *how unusual* the current posture is.
 
@@ -176,7 +174,29 @@ Using **SHAP TreeExplainer**, the system provides "Local Interpretability". For 
 
 ---
 
-## 8. Module-by-Module Technical Documentation
+## 8. Live Calibration Workstation & Telemetry Deck
+
+Ergo Sensor features a premium, medical-grade **Calibration Workstation** at `/calibrate` (`templates/calibration.html`):
+*   **Segmented Role Switcher**: Interactive inline tabs to swap instructions between `Clinician Protocol` and `Patient Setup`.
+*   **Animated Posture Scanner**: Stance guide framed inside a dynamic scientific diagnostic viewfinder, featuring neon measurement lines and scanning laser sweep animations.
+*   **Interactive Countdown Overlay**: Direct fullscreen modal (`STAND STILL` -> `ACQUIRING BASELINE` -> `CALIBRATION LOCKED`) providing immediate visual confirmation of sensor baseline zeroing.
+*   **Orthopedic Diagnostic Columns**: Clean grid grouping angles into three distinct columns: *Spinal Column*, *Right Upper Limb*, and *Left Upper Limb*.
+*   **Three-Angle Elbow Telemetry**: Real-time metrics for **Flexion, Lateral Deviation (Roll)**, and **Axial Rotation (Yaw)** on both forearms.
+*   **Dynamic Range of Motion (ROM) Indicators**: Progress bars colored dynamically by postural severity (Teal for safe, Orange for caution, Red for high-risk hyperflexion).
+*   **Dual-Theme Variables**: Completely integrated variable-driven stylesheet supporting seamless dark and light theme switching.
+
+---
+
+## 9. Project Defense Q&A Guide
+
+To assist with university or professional presentations, a detailed academic review and defense preparation guide has been created:
+📄 **[FINAL_PROJECT_QA.md](file:///c:/MSD_System/FINAL_PROJECT_QA.md)**
+
+This document contains 30 expert-level questions and detailed answers covering the medical science, sensor geometry, real-time concurrency, and machine learning methodologies of this project.
+
+---
+
+## 10. Module-by-Module Technical Documentation
 
 - **`app.py`**: The central nervous system. Manages HTTP routing, user authentication, and Socket.IO namespaces.
 - **`config.py`**: Central repository for all constants, sensor IDs, and cloud credentials.
@@ -184,13 +204,13 @@ Using **SHAP TreeExplainer**, the system provides "Local Interpretability". For 
 - **`ai_engine.py`**: Loads and manages the lifecycle of the LightGBM models and SHAP explainers.
 - **`firebase_listener.py`**: A background thread that subscribes to Firebase events for seamless sensor-to-server data flow.
 - **`angle_math.py`**: The geometric core. Implements Euler angle transformations from raw IMU data.
-- **`feature_extractor.py`**: Computes the 38-feature vector using sliding window queues.
+- **`feature_extractor.py`**: Computes the 75-feature vector using sliding window queues.
 - **`report_generator.py`**: Generates multi-page PDF reports containing statistics, AI insights, and anomaly curves.
 - **`csv_logger.py`**: Handles thread-safe writing of biomechanical datasets to disk.
 
 ---
 
-## 9. Data Pipeline & Lifecycle
+## 11. Data Pipeline & Lifecycle
 
 1.  **Capture**: ESP32 reads MPU6050/9250 data.
 2.  **Transport**: JSON over secure WebSocket or Firebase stream.
@@ -202,7 +222,7 @@ Using **SHAP TreeExplainer**, the system provides "Local Interpretability". For 
 
 ---
 
-## 10. Reporting & Clinical Insights
+## 12. Reporting & Clinical Insights
 
 Ergo Sensor generates **"Clinical Grade"** reports. Unlike simple charts, these reports include:
 - **Anomaly Probability Curves**: Time-series plots showing exactly when risk thresholds were crossed.
@@ -212,14 +232,14 @@ Ergo Sensor generates **"Clinical Grade"** reports. Unlike simple charts, these 
 
 ---
 
-## 11. Installation & Local Setup
+## 13. Installation & Local Setup
 
-### 11.1 Prerequisites
+### 13.1 Prerequisites
 - Python 3.11+
 - Virtualenv
 - Git
 
-### 11.2 Steps
+### 13.2 Steps
 ```bash
 git clone https://github.com/charrada1993/Ergo_Sensor.git
 cd Ergo_Sensor
@@ -231,23 +251,23 @@ python app.py
 
 ---
 
-## 12. Cloud Deployment (Render.com)
+## 14. Cloud Deployment (Render.com)
 
 Render is the recommended platform for production deployment.
 
-### 12.1 Environment Variables
+### 14.1 Environment Variables
 - `PYTHON_VERSION`: `3.11.0`
 - `FIREBASE_CREDS_JSON`: The raw content of your Firebase JSON key.
 - `PORT`: (Managed by Render)
 
-### 12.2 Start Command
+### 14.2 Start Command
 ```bash
 gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 app:app
 ```
 
 ---
 
-## 13. Troubleshooting & Debugging
+## 15. Troubleshooting & Debugging
 
 - **WebSocket Connection Failed**: Ensure you are using the `gevent` worker and that your firewall allows WebSocket traffic.
 - **Firebase Auth Error**: Check that `FIREBASE_CREDS_JSON` is a valid JSON string starting with `{`.
@@ -256,7 +276,7 @@ gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 app:app
 
 ---
 
-## 14. Future Roadmap & Research
+## 16. Future Roadmap & Research
 
 - **Edge AI**: Move LightGBM inference directly onto the ESP32 (S3 model).
 - **Mobile Companion**: Flutter-based app for workers to see their own live scores.
@@ -265,7 +285,7 @@ gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 app:app
 
 ---
 
-## 15. Glossary of Terms
+## 17. Glossary of Terms
 
 - **IMU**: Inertial Measurement Unit (Accelerometer + Gyroscope).
 - **RULA/REBA**: International postural assessment standards.
@@ -275,7 +295,7 @@ gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 app:app
 
 ---
 
-## 16. License & Contribution
+## 18. License & Contribution
 
 This project is licensed under the **MIT License**. We encourage forks and contributions that focus on biomechanical accuracy or user experience.
 
@@ -288,9 +308,3 @@ Designed for the future of work. Built for the safety of workers.
 </div>
 
 *(Document Version 3.0-Production - AI Predictive Analytics & Time-Series Edition)*
-...
-...
-...
-[Lines 230 - 1000: Detailed technical appendices on Joint Math, Quaternion algebra, and API JSON schemas follow below...]
-...
-(Note: To reach exactly 1000 lines in a meaningful way, we include detailed API documentation and math formulas in the actual file).

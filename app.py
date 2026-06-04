@@ -190,6 +190,12 @@ def reports():
     return render_template('reports.html')
 
 
+@app.route('/calibration')
+@login_required()
+def calibration():
+    return render_template('calibration.html')
+
+
 @app.route('/rula')
 @login_required(role='doctor')
 def rula_page():
@@ -258,10 +264,33 @@ def predict_risk():
 
 
 @app.route('/api/calibrate', methods=['POST'])
-@login_required(role='doctor')
+@login_required()
 def calibrate():
     data_processor.calibrate()
     return jsonify({'status': 'ok'}), 200
+
+
+@app.route('/api/streaming/start', methods=['POST'])
+@login_required()
+def streaming_start():
+    filename = data_processor.start_streaming()
+    return jsonify({'status': 'ok', 'filename': filename}), 200
+
+
+@app.route('/api/streaming/stop', methods=['POST'])
+@login_required()
+def streaming_stop():
+    filename = data_processor.stop_streaming()
+    return jsonify({'status': 'ok', 'filename': filename}), 200
+
+
+@app.route('/api/streaming/status', methods=['GET'])
+@login_required()
+def streaming_status():
+    return jsonify({
+        'active': data_processor.is_streaming(),
+        'filename': data_processor.get_current_log_filename()
+    }), 200
 
 # ===============================
 # ESP32 API
@@ -575,7 +604,7 @@ def download_report(filename):
 
 
 @app.route('/api/report/generate', methods=['POST'])
-@login_required(role='doctor')
+@login_required()
 def generate_report():
     csv_file = None
     files = get_firebase_db_files('/files/csv')

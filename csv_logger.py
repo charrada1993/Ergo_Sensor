@@ -21,7 +21,7 @@ class CSVLogger:
 
     def _open_file(self):
         os.makedirs(self.config.CSV_DIR, exist_ok=True)
-        timestamp     = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp     = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
         self.filename = os.path.join(self.config.CSV_DIR, f'session_{timestamp}.csv')
         self.file     = open(self.filename, 'w', newline='', encoding='utf-8')
         self.writer   = csv.writer(self.file)
@@ -421,6 +421,25 @@ class CSVLogger:
 
         self.writer.writerow(row)
         self.file.flush()
+
+    def stop_session(self):
+        if self.file:
+            filename = self.filename
+            self.file.close()
+            self.file = None
+            self.writer = None
+            print(f"[CSVLogger] Session stopped. File closed: {filename}")
+            return filename
+        return None
+
+    def start_new_session(self):
+        if self.file:
+            self.file.close()
+            self.file = None
+            self.writer = None
+        self._open_file()
+        print(f"[CSVLogger] New session started. File opened: {self.filename}")
+        return self.filename
 
     def close(self):
         self.running = False

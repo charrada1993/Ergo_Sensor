@@ -27,17 +27,17 @@ const jointList = [
 
 const jointComponents = {
     Neck:       ['Neck', 'Neck_Roll', 'Neck_Yaw'],
-    R_Shoulder: ['R_Shoulder', 'R_Shoulder_Abduction'],
-    L_Shoulder: ['L_Shoulder', 'L_Shoulder_Abduction'],
-    R_Elbow:    ['R_Elbow', 'R_Elbow_Roll'],
-    L_Elbow:    ['L_Elbow', 'L_Elbow_Roll'],
+    R_Shoulder: ['R_Shoulder', 'R_Shoulder_Abduction', 'R_Shoulder_Rotation'],
+    L_Shoulder: ['L_Shoulder', 'L_Shoulder_Abduction', 'L_Shoulder_Rotation'],
+    R_Elbow:    ['R_Elbow', 'R_Elbow_Roll', 'R_Elbow_Yaw'],
+    L_Elbow:    ['L_Elbow', 'L_Elbow_Roll', 'L_Elbow_Yaw'],
     R_Wrist:    ['R_Wrist', 'R_Wrist_Roll', 'R_Wrist_Yaw'],
     L_Wrist:    ['L_Wrist', 'L_Wrist_Roll', 'L_Wrist_Yaw'],
     Back:       ['Trunk_Pitch', 'Trunk_Roll', 'Trunk_Yaw'],
     R_Thigh:    ['R_Thigh', 'R_Thigh_Roll', 'R_Thigh_Yaw'],
     L_Thigh:    ['L_Thigh', 'L_Thigh_Roll', 'L_Thigh_Yaw'],
-    R_Knee:     ['R_Knee'],
-    L_Knee:     ['L_Knee'],
+    R_Knee:     ['R_Knee', 'R_Knee_Varus_Valgus', 'R_Knee_Rotation'],
+    L_Knee:     ['L_Knee', 'L_Knee_Varus_Valgus', 'L_Knee_Rotation'],
 };
 
 const componentColors = {
@@ -64,12 +64,20 @@ const componentColors = {
     L_Wrist:            '#00d4ff',
     R_Elbow_Roll:       '#ffaa00',
     L_Elbow_Roll:       '#ffaa00',
+    R_Elbow_Yaw:        '#ff6b6b',
+    L_Elbow_Yaw:        '#ff6b6b',
     R_Wrist_Roll:       '#ffaa00',
     L_Wrist_Roll:       '#ffaa00',
     R_Wrist_Yaw:        '#ff6b6b',
     L_Wrist_Yaw:        '#ff6b6b',
     R_Shoulder_Abduction: '#27ae60',
     L_Shoulder_Abduction: '#27ae60',
+    R_Shoulder_Rotation:  '#ff6b6b',
+    L_Shoulder_Rotation:  '#ff6b6b',
+    R_Knee_Varus_Valgus:  '#ffaa00',
+    L_Knee_Varus_Valgus:  '#ffaa00',
+    R_Knee_Rotation:      '#ff6b6b',
+    L_Knee_Rotation:      '#ff6b6b',
     Neck_Roll:          '#ffaa00',
     Neck_Yaw:           '#ff6b6b',
 };
@@ -260,7 +268,7 @@ socket.on('raw_sensors', (data) => {
     if (rawDebugDiv && rawDebugBody && !rawDebugMinimized) {
         let html = '';
         for (const [sid, vals] of Object.entries(data)) {
-            html += `${sid}: r=${vals.roll.toFixed(1)}° p=${vals.pitch.toFixed(1)}° y=${vals.yaw.toFixed(1)}°<br>`;
+            html += `${sid}: Lat=${vals.roll.toFixed(1)}° Flex=${vals.pitch.toFixed(1)}° Rot=${vals.yaw.toFixed(1)}°<br>`;
         }
         rawDebugBody.innerHTML = html;
         rawDebugDiv.style.opacity = '0.9';
@@ -455,17 +463,18 @@ function updateTrends(angles, legs_score) {
 
     // Component label shortcuts: strip joint prefix, keep meaningful suffix
     const compLabel = {
-        Neck: 'Pitch', Neck_Roll: 'Roll', Neck_Yaw: 'Yaw',
-        R_Shoulder: 'Pitch', R_Shoulder_Abduction: 'Abd',
-        L_Shoulder: 'Pitch', L_Shoulder_Abduction: 'Abd',
-        R_Elbow: 'Pitch', R_Elbow_Roll: 'Roll',
-        L_Elbow: 'Pitch', L_Elbow_Roll: 'Roll',
-        R_Wrist: 'Pitch', R_Wrist_Roll: 'Roll', R_Wrist_Yaw: 'Yaw',
-        L_Wrist: 'Pitch', L_Wrist_Roll: 'Roll', L_Wrist_Yaw: 'Yaw',
-        Trunk_Pitch: 'Pitch', Trunk_Roll: 'Roll', Trunk_Yaw: 'Yaw',
-        R_Thigh: 'Pitch', R_Thigh_Roll: 'Roll', R_Thigh_Yaw: 'Yaw',
-        L_Thigh: 'Pitch', L_Thigh_Roll: 'Roll', L_Thigh_Yaw: 'Yaw',
-        R_Knee: 'Pitch', L_Knee: 'Pitch',
+        Neck: 'Flex/Ext', Neck_Roll: 'Lat Flexion', Neck_Yaw: 'Axial Rot',
+        R_Shoulder: 'Flex/Ext', R_Shoulder_Abduction: 'Abduction', R_Shoulder_Rotation: 'Int/Ext Rot',
+        L_Shoulder: 'Flex/Ext', L_Shoulder_Abduction: 'Abduction', L_Shoulder_Rotation: 'Int/Ext Rot',
+        R_Elbow: 'Flex/Ext', R_Elbow_Roll: 'Forearm Dev', R_Elbow_Yaw: 'Rotation',
+        L_Elbow: 'Flex/Ext', L_Elbow_Roll: 'Forearm Dev', L_Elbow_Yaw: 'Rotation',
+        R_Wrist: 'Flex/Ext', R_Wrist_Roll: 'Radial/Ulnar Dev', R_Wrist_Yaw: 'Pronation/Sup',
+        L_Wrist: 'Flex/Ext', L_Wrist_Roll: 'Radial/Ulnar Dev', L_Wrist_Yaw: 'Pronation/Sup',
+        Trunk_Pitch: 'Flex/Ext', Trunk_Roll: 'Lat Flexion', Trunk_Yaw: 'Axial Rot',
+        R_Thigh: 'Flex/Ext', R_Thigh_Roll: 'Abduction', R_Thigh_Yaw: 'Rotation',
+        L_Thigh: 'Flex/Ext', L_Thigh_Roll: 'Abduction', L_Thigh_Yaw: 'Rotation',
+        R_Knee: 'Flex/Ext', R_Knee_Varus_Valgus: 'Varus/Valgus', R_Knee_Rotation: 'Int/Ext Rot',
+        L_Knee: 'Flex/Ext', L_Knee_Varus_Valgus: 'Varus/Valgus', L_Knee_Rotation: 'Int/Ext Rot',
     };
 
     for (const joint in jointComponents) {

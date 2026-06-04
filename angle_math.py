@@ -82,6 +82,7 @@ def compute_joint_angles(sensor_data):
         rb_roll, rb_pitch, rb_yaw = r_biceps
         angles['R_Shoulder']           = rb_pitch - t_pitch   # flexion
         angles['R_Shoulder_Abduction'] = rb_roll  - t_roll    # abduction
+        angles['R_Shoulder_Rotation']  = rb_yaw   - t_yaw     # rotation
 
     # ── Left Shoulder ─────────────────────────────────────────────────────────
     l_biceps = get('L_BICEPS')
@@ -89,6 +90,7 @@ def compute_joint_angles(sensor_data):
         lb_roll, lb_pitch, lb_yaw = l_biceps
         angles['L_Shoulder']           = lb_pitch - t_pitch
         angles['L_Shoulder_Abduction'] = lb_roll  - t_roll
+        angles['L_Shoulder_Rotation']  = lb_yaw   - t_yaw
 
     # ── Right Elbow ───────────────────────────────────────────────────────────
     r_forearm = get('R_FOREARM')
@@ -97,6 +99,7 @@ def compute_joint_angles(sensor_data):
         if r_biceps:
             angles['R_Elbow']      = abs(rf_pitch - rb_pitch)   # flexion (internal angle)
             angles['R_Elbow_Roll'] = abs(rf_roll  - rb_roll)    # lateral deviation
+            angles['R_Elbow_Yaw']  = abs(rf_yaw   - rb_yaw)     # axial rotation
 
     # ── Left Elbow ────────────────────────────────────────────────────────────
     l_forearm = get('L_FOREARM')
@@ -105,6 +108,7 @@ def compute_joint_angles(sensor_data):
         if l_biceps:
             angles['L_Elbow']      = abs(lf_pitch - lb_pitch)
             angles['L_Elbow_Roll'] = abs(lf_roll  - lb_roll)
+            angles['L_Elbow_Yaw']  = abs(lf_yaw   - lb_yaw)
 
     # ── Right Wrist ───────────────────────────────────────────────────────────
     r_hand = get('R_HAND')
@@ -134,6 +138,8 @@ def compute_joint_angles(sensor_data):
     if r_shank and r_thigh:
         rs_roll, rs_pitch, rs_yaw = r_shank
         angles['R_Knee'] = abs(rs_pitch - rt_pitch)
+        angles['R_Knee_Varus_Valgus'] = rs_roll - rt_roll
+        angles['R_Knee_Rotation'] = rs_yaw - rt_yaw
 
     # ── Left Thigh & Knee ──────────────────────────────────────────────────────
     l_thigh = get('L_THIGH')
@@ -147,5 +153,7 @@ def compute_joint_angles(sensor_data):
     if l_shank and l_thigh:
         ls_roll, ls_pitch, ls_yaw = l_shank
         angles['L_Knee'] = abs(ls_pitch - lt_pitch)
+        angles['L_Knee_Varus_Valgus'] = ls_roll - lt_roll
+        angles['L_Knee_Rotation'] = ls_yaw - lt_yaw
 
     return angles

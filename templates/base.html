@@ -28,6 +28,7 @@
             <ul class="nav-links">
                 <li><a href="{{ url_for('index') }}" class="{% if request.path == '/' %}active{% endif %}"><i class="fas fa-chart-line"></i> Dashboard</a></li>
                 <li><a href="{{ url_for('system') }}" class="{% if request.path == '/system' %}active{% endif %}"><i class="fas fa-microchip"></i> System</a></li>
+                <li><a href="{{ url_for('calibration') }}" class="{% if request.path == '/calibration' %}active{% endif %}"><i class="fas fa-cogs"></i> Calibration</a></li>
                 {% if session.get('user_role') == 'doctor' %}
                 <li><a href="{{ url_for('ai_page') }}" class="{% if request.path == '/ai' %}active{% endif %}"><i class="fas fa-brain"></i> AI Analytics</a></li>
                 <li><a href="{{ url_for('csv_view') }}" class="{% if request.path == '/csv-view' %}active{% endif %}"><i class="fas fa-file-csv"></i> CSV Data</a></li>
@@ -88,6 +89,10 @@
             <a href="{{ url_for('system') }}" class="mobile-nav-item {% if request.path == '/system' %}active{% endif %}">
                 <i class="fas fa-microchip"></i>
                 <span>Map</span>
+            </a>
+            <a href="{{ url_for('calibration') }}" class="mobile-nav-item {% if request.path == '/calibration' %}active{% endif %}">
+                <i class="fas fa-cogs"></i>
+                <span>Calibration</span>
             </a>
             {% if session.get('user_role') == 'doctor' %}
             <a href="{{ url_for('ai_page') }}" class="mobile-nav-item {% if request.path == '/ai' %}active{% endif %}">

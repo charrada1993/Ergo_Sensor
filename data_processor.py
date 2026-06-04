@@ -307,6 +307,22 @@ class DataProcessor:
                 for sid in self.config.EXPECTED_SENSORS
             ]
 
+    def start_streaming(self):
+        with self.lock:
+            if self.csv_logger:
+                return self.csv_logger.start_new_session()
+            return None
+
+    def stop_streaming(self):
+        with self.lock:
+            if self.csv_logger:
+                return self.csv_logger.stop_session()
+            return None
+
+    def is_streaming(self):
+        with self.lock:
+            return self.csv_logger is not None and self.csv_logger.file is not None
+
     def get_current_log_filename(self):
         with self.lock:
             if self.csv_logger and self.csv_logger.filename:

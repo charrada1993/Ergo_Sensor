@@ -220,8 +220,27 @@ try:
     ok("DataProcessor instantiated")
     status = dp.get_sensor_status()
     ok(f"get_sensor_status -> {len(status)} sensors")
-    current_log = dp.get_current_log_filename()
-    ok(f"get_current_log_filename -> {current_log}")
+    
+    # Verify default streaming state
+    assert dp.is_streaming() == True, "Should be streaming by default"
+    f1 = dp.get_current_log_filename()
+    ok(f"Initial streaming active, log file: {f1}")
+    
+    # Test stop_streaming
+    f_stop = dp.stop_streaming()
+    assert dp.is_streaming() == False, "is_streaming should be False after stop_streaming"
+    ok("stop_streaming successfully stops CSV writing")
+    
+    # Test start_streaming
+    f_start = dp.start_streaming()
+    assert dp.is_streaming() == True, "is_streaming should be True after start_streaming"
+    f2 = dp.get_current_log_filename()
+    assert f1 != f2, "start_streaming should create a new file session"
+    ok(f"start_streaming successfully started new session: {f2}")
+    
+    # Stop session to clean up file handle
+    dp.stop_streaming()
+    
 except Exception as e:
     fail("DataProcessor", e)
 

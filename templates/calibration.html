@@ -1,0 +1,1724 @@
+{% extends "base.html" %}
+{% block title %}Sensor Calibration & Telemetry Control{% endblock %}
+
+{% block head %}
+<!-- Import Socket.io for live telemetry -->
+<script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+<style>
+  /* ── Design Tokens & Variables (Dark Mode Defaults) ── */
+  :root {
+    --bg-calib: #030712;
+    --surface: rgba(18, 20, 35, 0.5);
+    --surface2: rgba(255, 255, 255, 0.04);
+    --border: rgba(255, 255, 255, 0.06);
+    --border-glow: rgba(0, 229, 255, 0.15);
+    --accent: #00e5ff;
+    --accent2: #a78bfa;
+    --accent3: #0369a1;
+    --text: #e4e8f4;
+    --text-dim: #8890aa;
+    --text-bright: #ffffff;
+    --ok: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --muted: #4b5563;
+    --shadow-card: 0 15px 35px rgba(0, 0, 0, 0.3);
+  }
+
+  /* ── Light Mode Token Overrides ── */
+  body.light-mode {
+    --bg-calib: #f3f4f6;
+    --surface: rgba(255, 255, 255, 0.72);
+    --surface2: rgba(241, 245, 249, 0.85);
+    --border: rgba(0, 0, 0, 0.08);
+    --border-glow: rgba(8, 145, 178, 0.25);
+    --accent: #0891b2;
+    --accent2: #6d28d9;
+    --accent3: #0369a1;
+    --text: #1e293b;
+    --text-dim: #475569;
+    --text-bright: #0f172a;
+    --ok: #059669;
+    --warn: #d97706;
+    --danger: #dc2626;
+    --muted: #64748b;
+    --shadow-card: 0 15px 35px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.03);
+  }
+
+  /* ── Layout & Wrapper ── */
+  .calib-wrapper {
+    max-width: 1350px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem 3rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Header Area ── */
+  .calib-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .calib-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .calib-title i {
+    -webkit-text-fill-color: initial;
+    color: var(--accent);
+    filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.3));
+  }
+
+  .calib-meta {
+    display: flex;
+    gap: 10px;
+  }
+
+  .meta-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-bright);
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ── Layout Top Grid ── */
+  .calib-top-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 1024px) {
+    .calib-top-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ── Glass Cards ── */
+  .calib-card {
+    background: var(--surface);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: var(--shadow-card);
+    transition: all 0.3s;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .calib-card h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: var(--text-bright);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+  }
+
+  .calib-card h2 i {
+    color: var(--accent);
+  }
+
+  /* ── Guidelines Segmented Tab Switcher ── */
+  .guidelines-tabs {
+    display: flex;
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 4px;
+    margin-bottom: 1.5rem;
+  }
+
+  body.light-mode .guidelines-tabs {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .guideline-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 10px;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .guideline-tab.active {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 229, 255, 0.2);
+  }
+
+  /* ── Step-by-Step Instructions ── */
+  .steps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .step-item {
+    position: relative;
+    padding-left: 45px;
+  }
+
+  .step-number {
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+  }
+
+  .step-item h3 {
+    margin: 0 0 5px;
+    font-size: 1.05rem;
+    color: var(--text-bright);
+    font-weight: 600;
+  }
+
+  .step-item p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .step-item ul {
+    margin: 8px 0 0;
+    padding-left: 20px;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
+  .step-item li {
+    margin-bottom: 4px;
+  }
+
+  /* ── High-Tech Stance Scanner Frame ── */
+  .stance-scanner-frame {
+    position: relative;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(6, 182, 212, 0.15);
+    border-radius: 16px;
+    padding: 24px;
+    overflow: hidden;
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.light-mode .stance-scanner-frame {
+    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(6, 182, 212, 0.25);
+  }
+
+  .scanner-corner {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--accent);
+    pointer-events: none;
+  }
+
+  .scanner-corner.tl { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+  .scanner-corner.tr { top: 12px; right: 12px; border-left: none; border-bottom: none; }
+  .scanner-corner.bl { bottom: 12px; left: 12px; border-right: none; border-top: none; }
+  .scanner-corner.br { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+
+  .laser-scanner-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    box-shadow: 0 0 12px var(--accent);
+    animation: scanMotion 4s linear infinite alternate;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  @keyframes scanMotion {
+    0% { top: 4%; }
+    100% { top: 96%; }
+  }
+
+  .stance-img {
+    max-width: 100%;
+    max-height: 240px;
+    object-fit: contain;
+    border-radius: 8px;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.1));
+  }
+
+  .scanner-label {
+    font-size: 0.65rem;
+    font-family: var(--mono);
+    color: var(--accent);
+    margin-top: 12px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 5px rgba(0, 229, 255, 0.4);
+    font-weight: 700;
+  }
+
+  /* ── Controls Cockpit ── */
+  .control-hud {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  body.light-mode .control-hud {
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .hud-stat-box {
+    text-align: center;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  body.light-mode .hud-stat-box {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .hud-stat-box.span-2 {
+    grid-column: span 2;
+  }
+
+  .hud-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+
+  .hud-val {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    font-family: var(--mono);
+  }
+
+  /* Flashing Status Indicator */
+  .rec-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    width: fit-content;
+    margin: 0 auto;
+  }
+
+  .rec-indicator.active {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--ok);
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+
+  .rec-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--danger);
+  }
+
+  .rec-indicator.active .rec-dot {
+    background: var(--ok);
+    animation: flash 1s infinite alternate;
+  }
+
+  @keyframes flash {
+    from { opacity: 0.3; }
+    to { opacity: 1; }
+  }
+
+  /* ── Action Buttons ── */
+  .actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .btn-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border-radius: 30px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .btn-calibrate {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    color: white;
+    grid-column: span 2;
+    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .btn-calibrate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 229, 255, 0.4);
+  }
+
+  .btn-start {
+    background: var(--ok);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  }
+
+  .btn-start:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+  }
+
+  .btn-stop {
+    background: var(--danger);
+    color: white;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+  }
+
+  .btn-stop:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+  }
+
+  .btn-action:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* ── Alert Success Message Banner ── */
+  .status-alert-box {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    text-align: center;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  /* ── Active Sensors Node Badges ── */
+  .sensor-indicator-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .sensor-dot-badge {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed var(--border);
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .sensor-dot-badge.online {
+    background: rgba(16, 185, 129, 0.04);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    color: var(--text-bright);
+    box-shadow: 0 3px 8px rgba(16, 185, 129, 0.05);
+  }
+
+  .sensor-dot-badge .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: all 0.3s ease;
+  }
+
+  .sensor-dot-badge.online .dot {
+    background: var(--ok);
+    box-shadow: 0 0 6px var(--ok);
+    animation: badgePulse 1.5s infinite;
+  }
+
+  @keyframes badgePulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ── Post-Session Actions Card ── */
+  .post-session-card {
+    background: rgba(16, 185, 129, 0.05);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 24px;
+    display: none;
+    animation: slideDown 0.4s ease-out;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .post-session-card h3 {
+    margin-top: 0;
+    color: var(--ok);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .post-btns {
+    display: flex;
+    gap: 12px;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-post {
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-bright);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .btn-post:hover {
+    background: var(--surface);
+    border-color: var(--accent);
+  }
+
+  .btn-post.primary {
+    background: linear-gradient(135deg, var(--ok), #069669);
+    border: none;
+    color: white;
+  }
+
+  .btn-post.primary:hover {
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  /* ── Telemetry Section (Spine & 3-Angle Elbows) ── */
+  .telemetry-header-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 1.5rem;
+  }
+
+  .telemetry-subtitle {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+
+  .telemetry-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 1024px) {
+    .telemetry-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .telemetry-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .joint-group {
+    background: rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  body.light-mode .joint-group {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .joint-group-title {
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent2);
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .joint-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    transition: all 0.25s ease;
+  }
+
+  body.light-mode .joint-card {
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .joint-card:hover {
+    border-color: rgba(6, 182, 212, 0.25);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.04);
+  }
+
+  .joint-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  .joint-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .joint-val-container {
+    font-family: var(--mono);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-bright);
+  }
+
+  .joint-unit {
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin-left: 1px;
+  }
+
+  .rom-bar-container {
+    width: 100%;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 6px;
+    position: relative;
+  }
+
+  body.light-mode .rom-bar-container {
+    background: rgba(0, 0, 0, 0.08);
+  }
+
+  .rom-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.15s ease-out, background 0.25s ease;
+  }
+
+  /* ── Interactive Calibration Overlay ── */
+  .calibration-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 7, 18, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+
+  .calibration-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .overlay-content {
+    text-align: center;
+    background: rgba(17, 24, 39, 0.95);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    border-radius: 24px;
+    padding: 40px 50px;
+    max-width: 460px;
+    width: 90%;
+    box-shadow: 0 0 50px rgba(0, 229, 255, 0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+
+  body.light-mode .overlay-content {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(6, 182, 212, 0.3);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.15);
+  }
+
+  .radar-spinner {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px dashed rgba(6, 182, 212, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+
+  .radar-sweep {
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: var(--accent);
+    animation: rotateRadar 1.5s linear infinite;
+  }
+
+  @keyframes rotateRadar {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .target-icon {
+    font-size: 2.2rem;
+    color: var(--accent);
+    animation: pulseScale 1s infinite alternate;
+  }
+
+  @keyframes pulseScale {
+    0% { transform: scale(0.9); opacity: 0.7; }
+    100% { transform: scale(1.1); opacity: 1; }
+  }
+
+  .overlay-content h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-bright);
+  }
+
+  .overlay-content p {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  .overlay-progress-bar {
+    width: 100%;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 10px 0;
+  }
+
+  body.light-mode .overlay-progress-bar {
+    background: rgba(0, 0, 0, 0.08);
+  }
+
+  .overlay-progress-fill {
+    width: 0%;
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.15s linear, background 0.3s ease;
+  }
+
+  .overlay-countdown-num {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: var(--accent2);
+    font-family: var(--mono);
+    line-height: 1;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Main Content Area -->
+<div class="calib-wrapper">
+  <!-- Header with Title & Metadata Info -->
+  <div class="calib-header">
+    <h1 class="calib-title">
+      <i class="fas fa-sliders-h"></i> 
+      <span>Sensor Calibration & Telemetry Control</span>
+    </h1>
+    <div class="calib-meta">
+      <span class="meta-badge">
+        <i class="fas fa-user-shield"></i> 
+        <span>{{ session.get('user_role', 'patient')|capitalize }} Profile</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Post-Session Saved Actions Card (Pops up when session completes) -->
+  <div id="postSessionCard" class="post-session-card">
+    <h3><i class="fas fa-check-circle"></i> Session Successfully Saved!</h3>
+    <p style="margin: 0; font-size: 0.9rem; color: var(--text);">You can now download the raw CSV session logs or generate the comprehensive medical PDF report immediately.</p>
+    <div class="post-btns">
+      <a id="downloadCsvBtn" href="#" class="btn-post"><i class="fas fa-file-csv"></i> Download CSV logs</a>
+      <button id="generatePdfBtn" class="btn-post primary"><i class="fas fa-file-pdf"></i> Generate PDF Report</button>
+    </div>
+  </div>
+
+  <!-- Top Layout Grid: Guidance on Left, Control cockpit on Right -->
+  <div class="calib-top-grid">
+    <!-- Left Column: Instructions & Setup Guidelines -->
+    <div class="calib-card">
+      <h2><i class="fas fa-book-medical"></i> Setup & Alignment Guide</h2>
+      
+      <!-- Segmented View Controller Tabs -->
+      <div class="guidelines-tabs">
+        <button id="tab-doctor" class="guideline-tab active">
+          <i class="fas fa-user-md"></i> Clinician Protocol
+        </button>
+        <button id="tab-patient" class="guideline-tab">
+          <i class="fas fa-child"></i> Patient Setup
+        </button>
+      </div>
+
+      <!-- Doctor Guidelines -->
+      <div id="doctorGuidelines">
+        <div class="steps-list">
+          <div class="step-item">
+            <span class="step-number">1</span>
+            <h3>Position the Patient</h3>
+            <p>Ensure the patient stands in the standard upright posture. Feet shoulder-width apart, spine aligned, arms hanging naturally at sides, gaze forward. This sets the 0° neutral reference.</p>
+            <div class="stance-scanner-frame">
+              <div class="scanner-corner tl"></div>
+              <div class="scanner-corner tr"></div>
+              <div class="scanner-corner bl"></div>
+              <div class="scanner-corner br"></div>
+              <div class="laser-scanner-line"></div>
+              <img src="{{ url_for('static', filename='images/calibration_stance.png') }}" alt="Neutral Stance" class="stance-img" />
+              <div class="scanner-label">NEUTRAL SCAN ALIGNMENT [0° REF]</div>
+            </div>
+          </div>
+          <div class="step-item">
+            <span class="step-number">2</span>
+            <h3>Verify Anatomical Placement</h3>
+            <p>Affix the wireless sensors securely to these clinical landmarks:</p>
+            <ul>
+              <li><strong>Trunk</strong>: Upper thoracic spine (near T1).</li>
+              <li><strong>Upper Arm (L/R)</strong>: Lateral aspect of the humerus.</li>
+              <li><strong>Forearm (L/R)</strong>: Dorsal aspect of the radius.</li>
+              <li><strong>Wrist/Hand (L/R)</strong>: Dorsal aspect of the metacarpus.</li>
+              <li><strong>Neck</strong>: Cervical spine area (C3-C5).</li>
+              <li><strong>Knee/Thigh (L/R)</strong>: Lateral aspect of the femur.</li>
+            </ul>
+          </div>
+          <div class="step-item">
+            <span class="step-number">3</span>
+            <h3>Lock Calibration Baseline</h3>
+            <p>Confirm the patient is motionless in the neutral pose, then trigger <strong>Capture Neutral Pose</strong>. This stores reference orientations to compute anatomical angles.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patient Guidelines -->
+      <div id="patientGuidelines" style="display: none;">
+        <div class="steps-list">
+          <div class="step-item">
+            <span class="step-number">1</span>
+            <h3>Stand Up Straight</h3>
+            <p>Stand up tall and relaxed. Look straight ahead, keep your feet shoulder-width apart, and let your arms hang loosely at your sides.</p>
+            <div class="stance-scanner-frame">
+              <div class="scanner-corner tl"></div>
+              <div class="scanner-corner tr"></div>
+              <div class="scanner-corner bl"></div>
+              <div class="scanner-corner br"></div>
+              <div class="laser-scanner-line"></div>
+              <img src="{{ url_for('static', filename='images/calibration_stance.png') }}" alt="Standing Stance" class="stance-img" />
+              <div class="scanner-label">NEUTRAL SCAN ALIGNMENT [0° REF]</div>
+            </div>
+          </div>
+          <div class="step-item">
+            <span class="step-number">2</span>
+            <h3>Place Your Sensors</h3>
+            <p>Attach your sensors at the locations shown on your sensor guide. They should feel secure and not slide around.</p>
+          </div>
+          <div class="step-item">
+            <span class="step-number">3</span>
+            <h3>Press Calibrate & Start</h3>
+            <p>Hold still for a moment, click <strong>Capture Neutral Pose</strong>, and you're ready to start your session!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Control Console & Status HUD -->
+    <div class="calib-card">
+      <h2><i class="fas fa-terminal"></i> Recording Command Cockpit</h2>
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <!-- Console HUD Stats -->
+          <div class="control-hud">
+            <div class="hud-stat-box span-2">
+              <span class="hud-label">System Telemetry Status</span>
+              <span id="streamingStatusPill" class="rec-indicator">
+                <span class="rec-dot"></span>
+                <span id="streamingStatusText">STANDBY</span>
+              </span>
+            </div>
+            <div class="hud-stat-box">
+              <span class="hud-label">Recording Time</span>
+              <span id="sessionTimer" class="hud-val">00:00</span>
+            </div>
+            <div class="hud-stat-box">
+              <span class="hud-label">Data Packets</span>
+              <span id="sessionRows" class="hud-val">0</span>
+            </div>
+          </div>
+
+          <!-- Interactive Action Buttons -->
+          <div class="actions-grid">
+            <button id="calibrateBtn" class="btn-action btn-calibrate">
+              <i class="fas fa-crosshairs"></i> Capture Neutral Pose (Set 0° Baseline)
+            </button>
+            <button id="startStreamBtn" class="btn-action btn-start">
+              <i class="fas fa-play"></i> Start Recording
+            </button>
+            <button id="stopStreamBtn" class="btn-action btn-stop" disabled>
+              <i class="fas fa-stop"></i> Stop & Save Session
+            </button>
+          </div>
+
+          <!-- Status Alerts Banner -->
+          <div id="statusAlert" class="status-alert-box" style="display: none;"></div>
+        </div>
+
+        <!-- Sensor Node Map Badges -->
+        <div style="margin-top: 2rem;">
+          <h3 style="font-size:0.9rem; margin-bottom:10px; color:var(--text-bright); display:flex; align-items:center; gap:8px;">
+            <i class="fas fa-network-wired" style="color:var(--accent)"></i> Active Sensor Nodes
+          </h3>
+          <div class="sensor-indicator-row" id="sensorIndicatorRow">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Section: Diagnostic Orthopedic Assessment Grid (All Joint Metrics) -->
+  <div class="calib-card" style="margin-top: 24px;">
+    <div class="telemetry-header-section">
+      <h2 style="margin: 0; border: none; padding: 0;"><i class="fas fa-heartbeat"></i> Live Orthopedic Assessment Console</h2>
+      <p class="telemetry-subtitle">Displays real-time joint positions computed relative to the 0° calibration baseline.</p>
+    </div>
+    
+    <div class="telemetry-grid">
+      <!-- Spine & Neck Column -->
+      <div class="joint-group">
+        <div class="joint-group-title">
+          <i class="fas fa-male"></i> Spinal Column
+        </div>
+        
+        <!-- Neck Flexion -->
+        <div class="joint-card" id="lc-neck">
+          <div class="joint-meta">
+            <span class="joint-name">Neck Flexion</span>
+            <span class="joint-val-container"><span id="val-neck">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-neck" class="rom-bar-fill"></div>
+          </div>
+        </div>
+        
+        <!-- Neck Lateral Tilt -->
+        <div class="joint-card" id="lc-neck-roll">
+          <div class="joint-meta">
+            <span class="joint-name">Neck Lateral Tilt</span>
+            <span class="joint-val-container"><span id="val-neck-roll">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-neck-roll" class="rom-bar-fill"></div>
+          </div>
+        </div>
+        
+        <!-- Neck Rotation -->
+        <div class="joint-card" id="lc-neck-yaw">
+          <div class="joint-meta">
+            <span class="joint-name">Neck Rotation</span>
+            <span class="joint-val-container"><span id="val-neck-yaw">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-neck-yaw" class="rom-bar-fill"></div>
+          </div>
+        </div>
+        
+        <!-- Trunk Flexion -->
+        <div class="joint-card" id="lc-trunk">
+          <div class="joint-meta">
+            <span class="joint-name">Trunk Flexion</span>
+            <span class="joint-val-container"><span id="val-trunk">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-trunk" class="rom-bar-fill"></div>
+          </div>
+        </div>
+        
+        <!-- Trunk Lateral Tilt -->
+        <div class="joint-card" id="lc-trunk-roll">
+          <div class="joint-meta">
+            <span class="joint-name">Trunk Lateral Tilt</span>
+            <span class="joint-val-container"><span id="val-trunk-roll">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-trunk-roll" class="rom-bar-fill"></div>
+          </div>
+        </div>
+        
+        <!-- Trunk Rotation -->
+        <div class="joint-card" id="lc-trunk-yaw">
+          <div class="joint-meta">
+            <span class="joint-name">Trunk Rotation</span>
+            <span class="joint-val-container"><span id="val-trunk-yaw">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-trunk-yaw" class="rom-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Arm Column -->
+      <div class="joint-group">
+        <div class="joint-group-title">
+          <i class="fas fa-hand-holding-medical"></i> Right Upper Limb
+        </div>
+        
+        <!-- R Shoulder Flexion -->
+        <div class="joint-card" id="lc-r-shoulder">
+          <div class="joint-meta">
+            <span class="joint-name">Shoulder Flexion</span>
+            <span class="joint-val-container"><span id="val-r-shoulder">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-r-shoulder" class="rom-bar-fill"></div>
+          </div>
+        </div>
+        
+        <!-- R Shoulder Abduction -->
+        <div class="joint-card" id="lc-r-shoulder-abd">
+          <div class="joint-meta">
+            <span class="joint-name">Shoulder Abduction</span>
+            <span class="joint-val-container"><span id="val-r-shoulder-abd">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-r-shoulder-abd" class="rom-bar-fill"></div>
+          </div>
+        </div>
+
+        <!-- R Shoulder Rotation -->
+        <div class="joint-card" id="lc-r-shoulder-rot">
+          <div class="joint-meta">
+            <span class="joint-name">Shoulder Rotation</span>
+            <span class="joint-val-container"><span id="val-r-shoulder-rot">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-r-shoulder-rot" class="rom-bar-fill"></div>
+          </div>
+        </div>
+        
+        <!-- R Elbow Flexion -->
+        <div class="joint-card" id="lc-r-elbow">
+          <div class="joint-meta">
+            <span class="joint-name">Elbow Flexion</span>
+            <span class="joint-val-container"><span id="val-r-elbow">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-r-elbow" class="rom-bar-fill"></div>
+          </div>
+        </div>
+
+        <!-- R Elbow Lateral Deviation (Roll) -->
+        <div class="joint-card" id="lc-r-elbow-roll">
+          <div class="joint-meta">
+            <span class="joint-name">Elbow Deviation (Roll)</span>
+            <span class="joint-val-container"><span id="val-r-elbow-roll">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-r-elbow-roll" class="rom-bar-fill"></div>
+          </div>
+        </div>
+
+        <!-- R Elbow Axial Rotation (Yaw) -->
+        <div class="joint-card" id="lc-r-elbow-yaw">
+          <div class="joint-meta">
+            <span class="joint-name">Elbow Rotation (Yaw)</span>
+            <span class="joint-val-container"><span id="val-r-elbow-yaw">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-r-elbow-yaw" class="rom-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Left Arm Column -->
+      <div class="joint-group">
+        <div class="joint-group-title">
+          <i class="fas fa-hand-holding-medical"></i> Left Upper Limb
+        </div>
+        
+        <!-- L Shoulder Flexion -->
+        <div class="joint-card" id="lc-l-shoulder">
+          <div class="joint-meta">
+            <span class="joint-name">Shoulder Flexion</span>
+            <span class="joint-val-container"><span id="val-l-shoulder">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-l-shoulder" class="rom-bar-fill"></div>
+          </div>
+        </div>
+        
+        <!-- L Shoulder Abduction -->
+        <div class="joint-card" id="lc-l-shoulder-abd">
+          <div class="joint-meta">
+            <span class="joint-name">Shoulder Abduction</span>
+            <span class="joint-val-container"><span id="val-l-shoulder-abd">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-l-shoulder-abd" class="rom-bar-fill"></div>
+          </div>
+        </div>
+
+        <!-- L Shoulder Rotation -->
+        <div class="joint-card" id="lc-l-shoulder-rot">
+          <div class="joint-meta">
+            <span class="joint-name">Shoulder Rotation</span>
+            <span class="joint-val-container"><span id="val-l-shoulder-rot">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-l-shoulder-rot" class="rom-bar-fill"></div>
+          </div>
+        </div>
+        
+        <!-- L Elbow Flexion -->
+        <div class="joint-card" id="lc-l-elbow">
+          <div class="joint-meta">
+            <span class="joint-name">Elbow Flexion</span>
+            <span class="joint-val-container"><span id="val-l-elbow">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-l-elbow" class="rom-bar-fill"></div>
+          </div>
+        </div>
+
+        <!-- L Elbow Lateral Deviation (Roll) -->
+        <div class="joint-card" id="lc-l-elbow-roll">
+          <div class="joint-meta">
+            <span class="joint-name">Elbow Deviation (Roll)</span>
+            <span class="joint-val-container"><span id="val-l-elbow-roll">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-l-elbow-roll" class="rom-bar-fill"></div>
+          </div>
+        </div>
+
+        <!-- L Elbow Axial Rotation (Yaw) -->
+        <div class="joint-card" id="lc-l-elbow-yaw">
+          <div class="joint-meta">
+            <span class="joint-name">Elbow Rotation (Yaw)</span>
+            <span class="joint-val-container"><span id="val-l-elbow-yaw">0.0</span><span class="joint-unit">°</span></span>
+          </div>
+          <div class="rom-bar-container">
+            <div id="fill-l-elbow-yaw" class="rom-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Calibration Countdown & Scanning Interactive Overlay -->
+<div id="calibrationCountdownOverlay" class="calibration-overlay">
+  <div class="overlay-content">
+    <div class="radar-spinner">
+      <div class="radar-sweep"></div>
+      <i class="fas fa-crosshairs target-icon"></i>
+    </div>
+    <h2 id="overlayTitle">ACQUIRING BASELINE</h2>
+    <p id="overlaySub">Stand perfectly still in a neutral pose...</p>
+    <div class="overlay-progress-bar">
+      <div id="overlayProgressFill" class="overlay-progress-fill"></div>
+    </div>
+    <span id="overlayCountdown" class="overlay-countdown-num">3</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function() {
+    // ── Guidelines Tab Switching Logic ──
+    const tabDoctor = document.getElementById('tab-doctor');
+    const tabPatient = document.getElementById('tab-patient');
+    const doctorGuidelines = document.getElementById('doctorGuidelines');
+    const patientGuidelines = document.getElementById('patientGuidelines');
+
+    tabDoctor.addEventListener('click', () => {
+      tabDoctor.classList.add('active');
+      tabPatient.classList.remove('active');
+      doctorGuidelines.style.display = 'block';
+      patientGuidelines.style.display = 'none';
+    });
+
+    tabPatient.addEventListener('click', () => {
+      tabPatient.classList.add('active');
+      tabDoctor.classList.remove('active');
+      patientGuidelines.style.display = 'block';
+      doctorGuidelines.style.display = 'none';
+    });
+
+    // ── Session Telemetry & Controls Logic ──
+    const calibrateBtn = document.getElementById('calibrateBtn');
+    const startStreamBtn = document.getElementById('startStreamBtn');
+    const stopStreamBtn = document.getElementById('stopStreamBtn');
+    const sessionTimer = document.getElementById('sessionTimer');
+    const sessionRows = document.getElementById('sessionRows');
+    const statusAlert = document.getElementById('statusAlert');
+    const streamingStatusPill = document.getElementById('streamingStatusPill');
+    const streamingStatusText = document.getElementById('streamingStatusText');
+
+    const postSessionCard = document.getElementById('postSessionCard');
+    const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+    const generatePdfBtn = document.getElementById('generatePdfBtn');
+
+    let timerInterval = null;
+    let secondsElapsed = 0;
+    let dataRowsLogged = 0;
+    let currentLogFilename = "";
+
+    // Load initial streaming state
+    async function checkCurrentStatus() {
+      try {
+        const r = await fetch('/api/streaming/status');
+        if (r.ok) {
+          const d = await r.json();
+          if (d.active) {
+            setStreamingActive(true);
+            currentLogFilename = d.filename;
+          } else {
+            setStreamingActive(false);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not retrieve streaming status.", e);
+      }
+    }
+    checkCurrentStatus();
+
+    // Trigger Calibration with visual progress overlays
+    calibrateBtn.addEventListener('click', async () => {
+      const overlay = document.getElementById('calibrationCountdownOverlay');
+      const countEl = document.getElementById('overlayCountdown');
+      const progressFill = document.getElementById('overlayProgressFill');
+      const titleEl = document.getElementById('overlayTitle');
+      const subEl = document.getElementById('overlaySub');
+      
+      overlay.classList.add('active');
+      calibrateBtn.disabled = true;
+      
+      // Phase 1: Countdown 3, 2, 1
+      let countdown = 3;
+      countEl.textContent = countdown;
+      progressFill.style.width = '0%';
+      progressFill.style.background = 'var(--accent)';
+      titleEl.textContent = "STAND STILL";
+      subEl.textContent = "Preparing sensor baseline calibration...";
+      
+      const runCountdown = () => {
+        return new Promise((resolve) => {
+          const interval = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+              countEl.textContent = countdown;
+              progressFill.style.width = `${(3 - countdown) * 33}%`;
+            } else {
+              clearInterval(interval);
+              resolve();
+            }
+          }, 1000);
+        });
+      };
+      
+      await runCountdown();
+      
+      // Phase 2: Acquiring
+      countEl.textContent = "•••";
+      titleEl.textContent = "ACQUIRING BASELINE";
+      subEl.textContent = "Locking zero-angle baseline... hold perfectly still.";
+      progressFill.style.width = '90%';
+      
+      try {
+        const resp = await fetch('/api/calibrate', { method: 'POST' });
+        if (resp.ok) {
+          progressFill.style.width = '100%';
+          titleEl.textContent = "CALIBRATION LOCKED";
+          subEl.textContent = "Anatomical zero baseline has been successfully established.";
+          countEl.innerHTML = '<i class="fas fa-check-circle" style="color:var(--ok)"></i>';
+          
+          setTimeout(() => {
+            overlay.classList.remove('active');
+            showAlert("✅ Zero-angle baseline successfully locked!", "rgba(16, 185, 129, 0.15)", "var(--ok)");
+            calibrateBtn.disabled = false;
+          }, 1500);
+        } else {
+          const err = await resp.json();
+          progressFill.style.width = '100%';
+          progressFill.style.background = 'var(--danger)';
+          titleEl.textContent = "CALIBRATION FAILED";
+          subEl.textContent = err.error || "Server error";
+          countEl.innerHTML = '<i class="fas fa-times-circle" style="color:var(--danger)"></i>';
+          
+          setTimeout(() => {
+            overlay.classList.remove('active');
+            showAlert("❌ Calibration failed: " + (err.error || resp.status), "rgba(239, 68, 68, 0.15)", "var(--danger)");
+            calibrateBtn.disabled = false;
+          }, 2000);
+        }
+      } catch (e) {
+        progressFill.style.width = '100%';
+        progressFill.style.background = 'var(--danger)';
+        titleEl.textContent = "CONNECTION ERROR";
+        subEl.textContent = e.message;
+        countEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i>';
+        
+        setTimeout(() => {
+          overlay.classList.remove('active');
+          showAlert("❌ Network error during calibration: " + e.message, "rgba(239, 68, 68, 0.15)", "var(--danger)");
+          calibrateBtn.disabled = false;
+        }, 2000);
+      }
+    });
+
+    // Start Streaming
+    startStreamBtn.addEventListener('click', async () => {
+      startStreamBtn.disabled = true;
+      try {
+        const resp = await fetch('/api/streaming/start', { method: 'POST' });
+        if (resp.ok) {
+          const resData = await resp.json();
+          currentLogFilename = resData.filename;
+          setStreamingActive(true);
+          postSessionCard.style.display = 'none';
+          showAlert("🎬 Streaming session started & CSV recording active.", "rgba(16, 185, 129, 0.15)", "var(--ok)");
+        } else {
+          startStreamBtn.disabled = false;
+          showAlert("❌ Failed to start recording session.", "rgba(239, 68, 68, 0.15)", "var(--danger)");
+        }
+      } catch(e) {
+        startStreamBtn.disabled = false;
+        showAlert("❌ Connection error.", "rgba(239, 68, 68, 0.15)", "var(--danger)");
+      }
+    });
+
+    // Stop Streaming
+    stopStreamBtn.addEventListener('click', async () => {
+      stopStreamBtn.disabled = true;
+      try {
+        const resp = await fetch('/api/streaming/stop', { method: 'POST' });
+        if (resp.ok) {
+          setStreamingActive(false);
+          showAlert("💾 Session saved and closed.", "rgba(6, 182, 212, 0.15)", "var(--accent)");
+          
+          // Expose post-session options
+          if (currentLogFilename) {
+            downloadCsvBtn.href = `/api/csv/download/${currentLogFilename}`;
+          } else {
+            downloadCsvBtn.href = "#";
+          }
+          postSessionCard.style.display = 'block';
+        } else {
+          stopStreamBtn.disabled = false;
+          showAlert("❌ Failed to close session.", "rgba(239, 68, 68, 0.15)", "var(--danger)");
+        }
+      } catch(e) {
+        stopStreamBtn.disabled = false;
+        showAlert("❌ Connection error.", "rgba(239, 68, 68, 0.15)", "var(--danger)");
+      }
+    });
+
+    // Generate PDF Clinical Report
+    generatePdfBtn.addEventListener('click', async () => {
+      generatePdfBtn.disabled = true;
+      showAlert("Generating clinical report... please wait.", "rgba(139, 92, 246, 0.15)", "var(--accent-purple)");
+      try {
+        const resp = await fetch('/api/report/generate', { method: 'POST' });
+        if (resp.ok) {
+          const blob = await resp.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Ergo_Sensor_Clinical_Report_${new Date().toISOString().slice(0,10)}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          showAlert("✅ Report generated and downloaded!", "rgba(16, 185, 129, 0.15)", "var(--ok)");
+        } else {
+          showAlert("❌ Report generation failed.", "rgba(239, 68, 68, 0.15)", "var(--danger)");
+        }
+      } catch (e) {
+        showAlert("❌ Network error generating report.", "rgba(239, 68, 68, 0.15)", "var(--danger)");
+      } finally {
+        generatePdfBtn.disabled = false;
+      }
+    });
+
+    function showAlert(text, bg, color) {
+      statusAlert.textContent = text;
+      statusAlert.style.background = bg;
+      statusAlert.style.color = color;
+      statusAlert.style.border = `1px solid ${color}`;
+      statusAlert.style.display = 'block';
+    }
+
+    function setStreamingActive(active) {
+      if (active) {
+        streamingStatusPill.className = "rec-indicator active";
+        streamingStatusText.textContent = "RECORDING";
+        startStreamBtn.disabled = true;
+        stopStreamBtn.disabled = false;
+
+        // Reset & start timer
+        secondsElapsed = 0;
+        dataRowsLogged = 0;
+        sessionTimer.textContent = "00:00";
+        sessionRows.textContent = "0";
+        
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          secondsElapsed++;
+          const mm = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+          const ss = String(secondsElapsed % 60).padStart(2, '0');
+          sessionTimer.textContent = `${mm}:${ss}`;
+        }, 1000);
+      } else {
+        streamingStatusPill.className = "rec-indicator";
+        streamingStatusText.textContent = "STANDBY";
+        startStreamBtn.disabled = false;
+        stopStreamBtn.disabled = true;
+        clearInterval(timerInterval);
+      }
+    }
+
+    // ── WebSocket Telemetry & Visual Metres ──
+    const socket = io();
+    
+    // Joint UI elements mapping
+    const elements = {
+      'Neck': document.getElementById('val-neck'),
+      'Neck_Roll': document.getElementById('val-neck-roll'),
+      'Neck_Yaw': document.getElementById('val-neck-yaw'),
+      'Trunk_Pitch': document.getElementById('val-trunk'),
+      'Trunk_Roll': document.getElementById('val-trunk-roll'),
+      'Trunk_Yaw': document.getElementById('val-trunk-yaw'),
+      
+      'R_Shoulder': document.getElementById('val-r-shoulder'),
+      'R_Shoulder_Abduction': document.getElementById('val-r-shoulder-abd'),
+      'R_Shoulder_Rotation': document.getElementById('val-r-shoulder-rot'),
+      'L_Shoulder': document.getElementById('val-l-shoulder'),
+      'L_Shoulder_Abduction': document.getElementById('val-l-shoulder-abd'),
+      'L_Shoulder_Rotation': document.getElementById('val-l-shoulder-rot'),
+      
+      'R_Elbow': document.getElementById('val-r-elbow'),
+      'R_Elbow_Roll': document.getElementById('val-r-elbow-roll'),
+      'R_Elbow_Yaw': document.getElementById('val-r-elbow-yaw'),
+      'L_Elbow': document.getElementById('val-l-elbow'),
+      'L_Elbow_Roll': document.getElementById('val-l-elbow-roll'),
+      'L_Elbow_Yaw': document.getElementById('val-l-elbow-yaw')
+    };
+
+    const fills = {
+      'Neck': document.getElementById('fill-neck'),
+      'Neck_Roll': document.getElementById('fill-neck-roll'),
+      'Neck_Yaw': document.getElementById('fill-neck-yaw'),
+      'Trunk_Pitch': document.getElementById('fill-trunk'),
+      'Trunk_Roll': document.getElementById('fill-trunk-roll'),
+      'Trunk_Yaw': document.getElementById('fill-trunk-yaw'),
+      
+      'R_Shoulder': document.getElementById('fill-r-shoulder'),
+      'R_Shoulder_Abduction': document.getElementById('fill-r-shoulder-abd'),
+      'R_Shoulder_Rotation': document.getElementById('fill-r-shoulder-rot'),
+      'L_Shoulder': document.getElementById('fill-l-shoulder'),
+      'L_Shoulder_Abduction': document.getElementById('fill-l-shoulder-abd'),
+      'L_Shoulder_Rotation': document.getElementById('fill-l-shoulder-rot'),
+      
+      'R_Elbow': document.getElementById('fill-r-elbow'),
+      'R_Elbow_Roll': document.getElementById('fill-r-elbow-roll'),
+      'R_Elbow_Yaw': document.getElementById('fill-r-elbow-yaw'),
+      'L_Elbow': document.getElementById('fill-l-elbow'),
+      'L_Elbow_Roll': document.getElementById('fill-l-elbow-roll'),
+      'L_Elbow_Yaw': document.getElementById('fill-l-elbow-yaw')
+    };
+
+    const cards = {
+      'Neck': document.getElementById('lc-neck'),
+      'Neck_Roll': document.getElementById('lc-neck-roll'),
+      'Neck_Yaw': document.getElementById('lc-neck-yaw'),
+      'Trunk_Pitch': document.getElementById('lc-trunk'),
+      'Trunk_Roll': document.getElementById('lc-trunk-roll'),
+      'Trunk_Yaw': document.getElementById('lc-trunk-yaw'),
+      
+      'R_Shoulder': document.getElementById('lc-r-shoulder'),
+      'R_Shoulder_Abduction': document.getElementById('lc-r-shoulder-abd'),
+      'R_Shoulder_Rotation': document.getElementById('lc-r-shoulder-rot'),
+      'L_Shoulder': document.getElementById('lc-l-shoulder'),
+      'L_Shoulder_Abduction': document.getElementById('lc-l-shoulder-abd'),
+      'L_Shoulder_Rotation': document.getElementById('lc-l-shoulder-rot'),
+      
+      'R_Elbow': document.getElementById('lc-r-elbow'),
+      'R_Elbow_Roll': document.getElementById('lc-r-elbow-roll'),
+      'R_Elbow_Yaw': document.getElementById('lc-r-elbow-yaw'),
+      'L_Elbow': document.getElementById('lc-l-elbow'),
+      'L_Elbow_Roll': document.getElementById('lc-l-elbow-roll'),
+      'L_Elbow_Yaw': document.getElementById('lc-l-elbow-yaw')
+    };
+
+    socket.on('connect', () => {
+      console.log("WebSocket connected to calibration telemetry");
+    });
+
+    socket.on('angles', (data) => {
+      if (!data || !data.angles) return;
+      const angles = data.angles;
+      
+      // Update values using updateTelemetry helper
+      if (angles['Neck'] !== undefined) updateTelemetry('Neck', angles['Neck']);
+      if (angles['Neck_Roll'] !== undefined) updateTelemetry('Neck_Roll', angles['Neck_Roll']);
+      if (angles['Neck_Yaw'] !== undefined) updateTelemetry('Neck_Yaw', angles['Neck_Yaw']);
+      
+      if (angles['Trunk_Pitch'] !== undefined) updateTelemetry('Trunk_Pitch', angles['Trunk_Pitch']);
+      if (angles['Trunk_Roll'] !== undefined) updateTelemetry('Trunk_Roll', angles['Trunk_Roll']);
+      if (angles['Trunk_Yaw'] !== undefined) updateTelemetry('Trunk_Yaw', angles['Trunk_Yaw']);
+      
+      if (angles['R_Shoulder'] !== undefined) updateTelemetry('R_Shoulder', angles['R_Shoulder']);
+      if (angles['R_Shoulder_Abduction'] !== undefined) updateTelemetry('R_Shoulder_Abduction', angles['R_Shoulder_Abduction']);
+      if (angles['R_Shoulder_Rotation'] !== undefined) updateTelemetry('R_Shoulder_Rotation', angles['R_Shoulder_Rotation']);
+      
+      if (angles['L_Shoulder'] !== undefined) updateTelemetry('L_Shoulder', angles['L_Shoulder']);
+      if (angles['L_Shoulder_Abduction'] !== undefined) updateTelemetry('L_Shoulder_Abduction', angles['L_Shoulder_Abduction']);
+      if (angles['L_Shoulder_Rotation'] !== undefined) updateTelemetry('L_Shoulder_Rotation', angles['L_Shoulder_Rotation']);
+      
+      if (angles['R_Elbow'] !== undefined) updateTelemetry('R_Elbow', angles['R_Elbow']);
+      if (angles['R_Elbow_Roll'] !== undefined) updateTelemetry('R_Elbow_Roll', angles['R_Elbow_Roll']);
+      if (angles['R_Elbow_Yaw'] !== undefined) updateTelemetry('R_Elbow_Yaw', angles['R_Elbow_Yaw']);
+      
+      if (angles['L_Elbow'] !== undefined) updateTelemetry('L_Elbow', angles['L_Elbow']);
+      if (angles['L_Elbow_Roll'] !== undefined) updateTelemetry('L_Elbow_Roll', angles['L_Elbow_Roll']);
+      if (angles['L_Elbow_Yaw'] !== undefined) updateTelemetry('L_Elbow_Yaw', angles['L_Elbow_Yaw']);
+
+      // If active, increment rows count as packets arrive
+      if (streamingStatusText.textContent === "RECORDING") {
+        dataRowsLogged++;
+        sessionRows.textContent = dataRowsLogged;
+      }
+    });
+
+    function highlightCard(key) {
+      if (cards[key]) {
+        cards[key].classList.add('active');
+        setTimeout(() => {
+          cards[key].classList.remove('active');
+        }, 150);
+      }
+    }
+
+    function updateTelemetry(key, angleVal) {
+      const absVal = Math.abs(angleVal);
+      if (elements[key]) {
+        elements[key].textContent = absVal.toFixed(1);
+      }
+      
+      // Update ROM fill bar percentage & color
+      if (fills[key]) {
+        let maxRange = 90;
+        if (key.includes('Shoulder')) {
+          maxRange = 180;
+        } else if (key.includes('Elbow') && !key.includes('Roll') && !key.includes('Yaw')) {
+          maxRange = 150;
+        } else if (key === 'Neck') {
+          maxRange = 60;
+        } else if (key === 'Neck_Roll' || key === 'Trunk_Roll' || key === 'Trunk_Yaw') {
+          maxRange = 45;
+        } else if (key === 'Neck_Yaw') {
+          maxRange = 80;
+        } else if (key === 'Trunk_Pitch') {
+          maxRange = 90;
+        }
+        
+        const pct = Math.min(100, (absVal / maxRange) * 100);
+        fills[key].style.width = `${pct}%`;
+        
+        // Color coding based on orthopedic safety parameters
+        let color = 'var(--accent)';
+        if (key === 'Neck') {
+          if (absVal > 45) color = 'var(--danger)';
+          else if (absVal > 20) color = 'var(--warn)';
+          else color = 'var(--ok)';
+        } else if (key === 'Trunk_Pitch') {
+          if (absVal > 60) color = 'var(--danger)';
+          else if (absVal > 20) color = 'var(--warn)';
+          else color = 'var(--ok)';
+        } else if (key.includes('Shoulder') && !key.includes('Abduction') && !key.includes('Rotation')) {
+          if (absVal > 100) color = 'var(--danger)';
+          else if (absVal > 60) color = 'var(--warn)';
+          else color = 'var(--ok)';
+        } else if (key.includes('Elbow') && !key.includes('Roll') && !key.includes('Yaw')) {
+          if (absVal > 140) color = 'var(--danger)';
+          else if (absVal < 60 || absVal > 100) color = 'var(--warn)';
+          else color = 'var(--ok)';
+        } else {
+          if (absVal > 60) color = 'var(--danger)';
+          else if (absVal > 30) color = 'var(--warn)';
+          else color = 'var(--ok)';
+        }
+        fills[key].style.background = color;
+      }
+    }
+
+    // Periodic sensor status checker
+    async function updateSensorIndicators() {
+      try {
+        const resp = await fetch('/api/sensors');
+        if (resp.ok) {
+          const sensorsList = await resp.json();
+          const row = document.getElementById('sensorIndicatorRow');
+          row.innerHTML = "";
+          
+          sensorsList.forEach(s => {
+            const badge = document.createElement('div');
+            badge.className = `sensor-dot-badge ${s.online ? 'online' : ''}`;
+            
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            
+            const text = document.createElement('span');
+            let name = s.sensor_id.replace('_', ' ');
+            text.textContent = name;
+            
+            badge.appendChild(dot);
+            badge.appendChild(text);
+            row.appendChild(badge);
+          });
+        }
+      } catch (e) {
+        console.warn("Could not check sensor list status", e);
+      }
+    }
+
+    updateSensorIndicators();
+    setInterval(updateSensorIndicators, 3000);
+  })();
+</script>
+{% endblock %}

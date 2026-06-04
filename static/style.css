@@ -1140,6 +1140,47 @@ body.light-mode {
         linear-gradient(160deg, #f0f6ff 0%, #e8f0fb 40%, #ede9f6 70%, #e6f3fb 100%);
     background-attachment: fixed;
     color: #1e293b;
+
+    /* Theme variable overrides for Light Mode */
+    --bg:            #eef2f9;
+    --bg2:           #f1f5f9;
+    --surface:       rgba(255, 255, 255, 0.72);
+    --surface2:      rgba(241, 245, 249, 0.85);
+    --border:        rgba(0, 0, 0, 0.08);
+    --border-glow:   rgba(8, 145, 178, 0.25);
+    --accent:        #0891b2;
+    --accent2:       #6d28d9;
+    --accent3:       #0369a1;
+    --gradient:      linear-gradient(135deg, #0891b2 0%, #6d28d9 100%);
+    --gradient2:     linear-gradient(135deg, #0369a1 0%, #7c3aed 100%);
+    --warn:          #d97706;
+    --danger:        #dc2626;
+    --ok:            #059669;
+    --muted:         #64748b;
+    --text:          #1e293b;
+    --text-dim:      #475569;
+    --text-bright:   #0f172a;
+    --purple:        #7c3aed;
+    --card-bg:       rgba(255, 255, 255, 0.72);
+    --shadow-card:   0 15px 35px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.03);
+    --glow-cyan:     0 0 20px rgba(8, 145, 178, 0.1), 0 0 40px rgba(8, 145, 178, 0.04);
+    --glow-purple:   0 0 20px rgba(109, 40, 217, 0.12), 0 0 40px rgba(109, 40, 217, 0.05);
+}
+
+/* Global input overrides in light mode */
+body.light-mode input, 
+body.light-mode select, 
+body.light-mode textarea {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+    color: #1e293b !important;
+}
+body.light-mode input:focus, 
+body.light-mode select:focus, 
+body.light-mode textarea:focus {
+    background: #ffffff !important;
+    border-color: #0891b2 !important;
+    box-shadow: 0 0 10px rgba(8, 145, 178, 0.25) !important;
 }
 
 /* ── Light Mode Navbar — Premium frosted glass ── */
