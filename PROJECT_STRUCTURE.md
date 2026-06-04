@@ -1,76 +1,76 @@
-# Ergo Sensor v3.0 - Project Structure
+# Ergo Sensor v3.0 - Structure du projet
 
-This document outlines the global structure of the Ergo Sensor repository, explaining the purpose of each major component, directory, and critical file in the system.
+Ce document présente la structure globale du dépôt Ergo Sensor, expliquant le but de chaque composant majeur, répertoire et fichier critique du système.
 
-## Global Architecture Overview
-The Ergo Sensor system is designed as an edge-to-cloud IoT pipeline. It ingests high-frequency kinematic data from hardware sensors, processes it through clinical ergonomic frameworks (RULA/REBA) and a machine learning AI Engine, and visualizes the risk metrics in a real-time web dashboard. Finally, it generates automated clinical PDF reports.
+## Vue d'ensemble de l'architecture globale
+Le système Ergo Sensor est conçu comme un pipeline IoT de la périphérie vers le cloud. Il ingère des données cinématiques à haute fréquence provenant de capteurs matériels, les traite via des cadres ergonomiques cliniques (RULA/REBA) et un moteur d'IA d'apprentissage automatique, et visualise les mesures de risque dans un tableau de bord web en temps réel. Enfin, il génère des rapports PDF cliniques automatisés.
 
-## Directory Structure
+## Structure des répertoires
 
 ```text
 c:\MSD_System\
-├── .git/                      # Version control
-├── csv_data/                  # Local storage for recorded kinematic sessions
-├── dist/                      # Compiled frontend assets / production bundles
-├── Ergo_Sensor_Project_Report/# Academic/Project documentation assets
-├── logs/                      # System operation logs
-├── models/                    # Serialized AI models, Metadata, and Evaluation Plots
-├── PFE_LaTeX_Template/        # LaTeX source code for the final university report
-├── plots/                     # Static images served to the Web Dashboard
-├── reports/                   # Generated clinical PDF reports
-├── static/                    # Frontend static assets (CSS, JS, Fonts, Images)
-├── templates/                 # Frontend HTML templates (Jinja2)
-└── (Root Python Scripts)      # Core backend logic
+├── .git/                      # Contrôle de version
+├── csv_data/                  # Stockage local pour les sessions cinématiques enregistrées
+├── dist/                      # Actifs frontend compilés / bundles de production
+├── Ergo_Sensor_Project_Report/# Actifs de documentation académique/de projet
+├── logs/                      # Journaux de fonctionnement du système
+├── models/                    # Modèles d'IA sérialisés, métadonnées et tracés d'évaluation
+├── PFE_LaTeX_Template/        # Code source LaTeX pour le rapport universitaire final
+├── plots/                     # Images statiques servies au tableau de bord Web
+├── reports/                   # Rapports PDF cliniques générés
+├── static/                    # Actifs statiques frontend (CSS, JS, polices, images)
+├── templates/                 # Modèles HTML frontend (Jinja2)
+└── (Scripts Python racine)    # Logique backend principale
 ```
 
-## Core Modules & Files
+## Modules et fichiers de base
 
-### 1. Web Application & Routing
-These files handle the web server, HTTP routing, and real-time WebSocket communication.
-*   **`app.py`**: The main entry point for the Flask web application. Initializes the server, defines API routes (`/api/ai-metrics`), serves HTML pages, and manages the Socket.IO lifecycle.
-*   **`socket_manager.py`**: Handles incoming WebSocket connections and broadcasts data to connected web clients.
+### 1. Application Web et routage
+Ces fichiers gèrent le serveur web, le routage HTTP et la communication WebSocket en temps réel.
+*   **`app.py`** : Le point d'entrée principal de l'application web Flask. Initialise le serveur, définit les routes de l'API (`/api/ai-metrics`), sert les pages HTML et gère le cycle de vie de Socket.IO.
+*   **`socket_manager.py`** : Gère les connexions WebSocket entrantes et diffuse les données aux clients web connectés.
 
 ### 2. Frontend (UI/UX)
-Located in `templates/` and `static/`.
-*   **`templates/index.html`**: The main real-time dashboard displaying the 3D skeleton and live RULA/REBA scores.
-*   **`templates/ai.html`**: The AI Predictive Analytics dashboard displaying risk forecasts, anomaly detection, and comprehensive model evaluation plots.
-*   **`templates/reports.html`**: Interface for viewing and downloading generated PDF reports.
-*   **`templates/csv_view.html`**: Interface for browsing historical CSV session data.
-*   **`static/style.css`**: The master stylesheet defining the premium, dark-mode clinical aesthetic, animations, and responsive layouts.
+Situé dans `templates/` et `static/`.
+*   **`templates/index.html`** : Le tableau de bord principal en temps réel affichant le squelette 3D et les scores RULA/REBA en direct.
+*   **`templates/ai.html`** : Le tableau de bord d'analyse prédictive de l'IA affichant les prévisions de risque, la détection d'anomalies et les tracés d'évaluation complets du modèle.
+*   **`templates/reports.html`** : Interface pour visualiser et télécharger les rapports PDF générés.
+*   **`templates/csv_view.html`** : Interface pour parcourir l'historique des données de session CSV.
+*   **`static/style.css`** : La feuille de style principale définissant l'esthétique clinique haut de gamme en mode sombre, les animations et les mises en page réactives.
 
-### 3. Data Processing & Ergonomic Engines
-These scripts process raw incoming data and apply clinical formulas.
-*   **`data_processor.py`**: The central coordinator that receives raw sensor data, triggers angle calculations, and orchestrates the RULA/REBA scoring.
-*   **`angle_math.py`**: Contains the complex vector mathematics to convert raw sensor Quaternions/Euler angles into standard biomechanical joint angles (flexion, extension, etc.).
-*   **`rula_engine.py` / `reba_engine.py`**: Programmatic implementations of the Rapid Upper Limb Assessment and Rapid Entire Body Assessment clinical risk scoring frameworks.
-*   **`rula_ref.py` / `reba_ref.py`**: Reference tables and constants used by the ergonomic engines.
+### 3. Traitement des données et moteurs ergonomiques
+Ces scripts traitent les données entrantes brutes et appliquent les formules cliniques.
+*   **`data_processor.py`** : Le coordinateur central qui reçoit les données brutes des capteurs, déclenche les calculs d'angle et orchestre la notation RULA/REBA.
+*   **`angle_math.py`** : Contient les mathématiques vectorielles complexes pour convertir les quaternions/angles d'Euler bruts des capteurs en angles articulaires biomécaniques standard (flexion, extension, etc.).
+*   **`rula_engine.py` / `reba_engine.py`** : Implémentations programmatiques des cadres de notation des risques cliniques Rapid Upper Limb Assessment et Rapid Entire Body Assessment.
+*   **`rula_ref.py` / `reba_ref.py`** : Tables de référence et constantes utilisées par les moteurs ergonomiques.
 
-### 4. AI Engine v3.0-Production
-The predictive core of the system.
-*   **`ai_engine.py`**: The runtime inference engine. Loads the trained `.txt` and `.pkl` models and executes live predictions (Risk Score, Condition, Severity, Anomalies) on incoming data streams.
-*   **`feature_extractor.py`**: Prepares raw data for the AI. Generates the 75-feature vector by calculating 15-frame rolling means/standard deviations, lag features, and velocity/acceleration derivatives to provide temporal context to the models.
-*   **`retrain_v3.py`**: The highly optimized training pipeline. Handles data loading, Optuna hyperparameter tuning, TimeSeriesSplit cross-validation, LightGBM model training, SHAP feature importance analysis, and automatic plotting.
-*   **`retrain_scratch.py` / `retrain_improved.py`**: Legacy/experimental training scripts.
-*   **`generate_eval_plots.py`**: Standalone script to generate the 10-plot evaluation suite (ROC, PR, Confusion Matrices) without retraining models.
+### 4. Moteur d'IA v3.0-Production
+Le cœur prédictif du système.
+*   **`ai_engine.py`** : Le moteur d'inférence d'exécution. Charge les modèles `.txt` et `.pkl` entraînés et exécute les prédictions en direct (score de risque, condition, gravité, anomalies) sur les flux de données entrants.
+*   **`feature_extractor.py`** : Prépare les données brutes pour l'IA. Génère le vecteur de 75 caractéristiques en calculant les moyennes/écarts-types mobiles sur 15 trames, les caractéristiques de retard et les dérivées de vitesse/accélération pour fournir un contexte temporel aux modèles.
+*   **`retrain_v3.py`** : Le pipeline d'entraînement hautement optimisé. Gère le chargement des données, le réglage des hyperparamètres Optuna, la validation croisée TimeSeriesSplit, l'entraînement du modèle LightGBM, l'analyse de l'importance des caractéristiques SHAP et le tracé automatique.
+*   **`retrain_scratch.py` / `retrain_improved.py`** : Scripts d'entraînement hérités/expérimentaux.
+*   **`generate_eval_plots.py`** : Script autonome pour générer la suite d'évaluation à 10 tracés (ROC, PR, matrices de confusion) sans réentraîner les modèles.
 
-### 5. Reporting & Logging
-*   **`report_generator.py`**: Uses ReportLab to generate highly detailed, clinical-grade A4 PDF documents. It embeds charts, RULA/REBA summaries, and AI Insights.
-*   **`csv_logger.py`**: Handles safely writing live, high-frequency sensor streams to local CSV files in the `csv_data/` directory for permanent storage and later retraining.
+### 5. Rapports et journalisation
+*   **`report_generator.py`** : Utilise ReportLab pour générer des documents PDF A4 de qualité clinique très détaillés. Il intègre des graphiques, des résumés RULA/REBA et des informations d'IA.
+*   **`csv_logger.py`** : Gère l'écriture sécurisée des flux de capteurs à haute fréquence en direct dans des fichiers CSV locaux dans le répertoire `csv_data/` pour un stockage permanent et un réentraînement ultérieur.
 
-### 6. IoT & Database Integration
-*   **`firebase_listener.py`**: Connects to the Firebase Realtime Database. Listens for new kinematic data pushed by the ESP32 hardware and pipes it into the Python `data_processor.py`.
+### 6. Intégration IoT et base de données
+*   **`firebase_listener.py`** : Se connecte à la base de données Firebase Realtime Database. Écoute les nouvelles données cinématiques poussées par le matériel ESP32 et les achemine vers le `data_processor.py` Python.
 
-### 7. Configuration & Utilities
-*   **`config.py`**: Centralized configuration file storing database keys, model paths, and system parameters.
-*   **`requirements.txt`**: Defines the Python package dependencies required to run the backend.
-*   **`msd-monitor-system-firebase...json`**: The private service account key used to authenticate with Firebase.
-*   **`condition_mappings.json`**: Maps integer labels used by the AI classifier back to human-readable medical conditions (e.g., `0 -> normal`, `1 -> carpal_tunnel`).
+### 7. Configuration et utilitaires
+*   **`config.py`** : Fichier de configuration centralisé stockant les clés de base de données, les chemins des modèles et les paramètres du système.
+*   **`requirements.txt`** : Définit les dépendances du package Python requises pour exécuter le backend.
+*   **`msd-monitor-system-firebase...json`** : La clé privée du compte de service utilisée pour s'authentifier auprès de Firebase.
+*   **`condition_mappings.json`** : Mappe les étiquettes entières utilisées par le classificateur d'IA vers des conditions médicales lisibles par l'homme (ex: `0 -> normal`, `1 -> canal_carpien`).
 
-## The Data Flow
-1.  **Hardware:** IMU sensors send data to an ESP32, which pushes it to Firebase RTDB.
-2.  **Ingestion:** `firebase_listener.py` detects the new data and sends it to `data_processor.py`.
-3.  **Processing:** `angle_math.py` calculates joints, then `rula_engine.py` and `reba_engine.py` calculate immediate ergonomic risk.
-4.  **AI Inference:** The data is passed to `feature_extractor.py` to create the 75-feature window, which is then fed to `ai_engine.py` to predict long-term risk and anomalies.
-5.  **Broadcast:** The complete payload (angles, RULA/REBA, AI predictions) is broadcast via `socket_manager.py`.
-6.  **Visualization:** The web browser receives the payload and updates the 3D skeleton and charts in `index.html` and `ai.html`.
-7.  **Reporting (Optional):** When a session ends, `report_generator.py` analyzes the saved CSV and generates a PDF report.
+## Le flux de données
+1.  **Matériel** : Les capteurs IMU envoient des données à un ESP32, qui les pousse vers Firebase RTDB.
+2.  **Ingestion** : `firebase_listener.py` détecte les nouvelles données et les envoie à `data_processor.py`.
+3.  **Traitement** : `angle_math.py` calcule les articulations, puis `rula_engine.py` et `reba_engine.py` calculent le risque ergonomique immédiat.
+4.  **Inférence d'IA** : Les données sont transmises à `feature_extractor.py` pour créer la fenêtre de 75 caractéristiques, qui est ensuite fournie à `ai_engine.py` pour prédire le risque à long terme et les anomalies.
+5.  **Diffusion** : La charge utile complète (angles, RULA/REBA, prédictions d'IA) est diffusée via `socket_manager.py`.
+6.  **Visualisation** : Le navigateur web reçoit la charge utile et met à jour le squelette 3D et les graphiques dans `index.html` et `ai.html`.
+7.  **Rapports (Optionnel)** : Lorsqu'une session se termine, `report_generator.py` analyse le CSV enregistré et génère un rapport PDF.

@@ -1,61 +1,61 @@
-# Ergo Sensor v3.0 - Technology Stack
+# Ergo Sensor v3.0 - Pile Technologique
 
-This document outlines the core technologies, libraries, and frameworks used to build the Ergo Sensor AI pipeline and web application, detailing where each piece of technology is applied within the system.
+Ce document présente les technologies, bibliothèques et frameworks de base utilisés pour construire le pipeline d'IA et l'application web Ergo Sensor, en précisant où chaque élément technologique est appliqué au sein du système.
 
-## 1. Backend & Server Infrastructure
-The core system is built on a high-performance, asynchronous Python backend designed to handle real-time sensor streams.
+## 1. Backend et Infrastructure Serveur
+Le système central est construit sur un backend Python asynchrone haute performance conçu pour gérer les flux de capteurs en temps réel.
 
-*   **Python (3.9+)**: The primary programming language for the entire backend, data processing, and AI pipeline.
-*   **Flask**: The lightweight web framework used to serve the frontend dashboard, REST API endpoints, and handle routing (`app.py`).
-*   **Flask-SocketIO / eventlet / gevent**: Used for real-time, bi-directional communication between the Python backend and the frontend dashboard. This allows live streaming of 3D skeleton data and AI predictions without page refreshes.
-*   **Gunicorn**: The production WSGI HTTP server used to deploy the Flask application.
-*   **Firebase Admin SDK**: Used to establish a secure, real-time connection to the Firebase Realtime Database (`firebase_listener.py`) to receive live kinematic data from the IoT sensors.
+*   **Python (3.9+)** : Le langage de programmation principal pour l'ensemble du backend, du traitement des données et du pipeline d'IA.
+*   **Flask** : Le framework web léger utilisé pour servir le tableau de bord frontend, les points de terminaison de l'API REST et gérer le routage (`app.py`).
+*   **Flask-SocketIO / eventlet / gevent** : Utilisés pour la communication bidirectionnelle en temps réel entre le backend Python et le tableau de bord frontend. Cela permet la diffusion en direct des données du squelette 3D et des prédictions de l'IA sans rafraîchissement de la page.
+*   **Gunicorn** : Le serveur HTTP WSGI de production utilisé pour déployer l'application Flask.
+*   **SDK Admin Firebase** : Utilisé pour établir une connexion sécurisée en temps réel avec la base de données Firebase Realtime Database (`firebase_listener.py`) afin de recevoir les données cinématiques en direct des capteurs IoT.
 
-## 2. Artificial Intelligence & Machine Learning
-The "Ergo Sensor AI Engine v3.0-Production" is a multi-model ensemble built to predict musculoskeletal disorder (MSD) risks and detect postural anomalies.
+## 2. Intelligence Artificielle et Apprentissage Automatique
+Le "moteur d'IA Ergo Sensor v3.0-Production" est un ensemble multi-modèle conçu pour prédire les risques de troubles musculosquelettiques (TMS) et détecter les anomalies posturales.
 
-*   **LightGBM**: The core Gradient Boosting framework used for the primary predictive models due to its speed and high accuracy on tabular kinematic data.
-    *   *Regressor*: Predicts continuous 10-day risk scores.
-    *   *Condition Classifier*: Uses the GBDT/DART booster to classify 18 distinct medical pathologies (e.g., Carpal Tunnel, Lumbar Disc Herniation).
-    *   *Severity & Per-Joint Classifiers*: Used for granular anomaly detection per body part.
-*   **Scikit-Learn (sklearn)**: Provides the foundational machine learning utilities.
-    *   *TimeSeriesSplit*: Used for cross-validation during training to ensure temporal data leakage is prevented.
-    *   *Metrics*: Generates confusion matrices, ROC curves, and F1/Accuracy/RMSE scores.
-*   **Optuna**: A hyperparameter optimization (HPO) framework used in `retrain_v3.py` to automatically search for the most optimal parameters for the LightGBM models.
-*   **SHAP (SHapley Additive exPlanations)**: Used via the `TreeExplainer` to provide explainable AI. It calculates feature importance, revealing exactly *which* joints and movements are driving the AI's risk predictions.
-*   **Pandas & NumPy**: The backbone of data manipulation, used extensively in `feature_extractor.py` and `retrain_v3.py` for calculating rolling windows, lags, and acceleration derivatives from the raw time-series data.
+*   **LightGBM** : Le framework de Boosting de Gradient de base utilisé pour les principaux modèles prédictifs en raison de sa vitesse et de sa grande précision sur les données cinématiques tabulaires.
+    *   *Régresseur* : Prédit les scores de risque continus sur 10 jours.
+    *   *Classificateur de condition* : Utilise le booster GBDT/DART pour classer 18 pathologies médicales distinctes (ex: canal carpien, hernie discale lombaire).
+    *   *Classificateurs de gravité et par articulation* : Utilisés pour la détection granulaire d'anomalies par partie du corps.
+*   **Scikit-Learn (sklearn)** : Fournit les utilitaires de base de l'apprentissage automatique.
+    *   *TimeSeriesSplit* : Utilisé pour la validation croisée pendant l'entraînement afin de garantir l'absence de fuite de données temporelles.
+    *   *Mesures* : Génère des matrices de confusion, des courbes ROC et des scores F1/Précision/RMSE.
+*   **Optuna** : Un framework d'optimisation des hyperparamètres (HPO) utilisé dans `retrain_v3.py` pour rechercher automatiquement les paramètres les plus optimaux pour les modèles LightGBM.
+*   **SHAP (SHapley Additive exPlanations)** : Utilisé via le `TreeExplainer` pour fournir une IA explicable. Il calcule l'importance des caractéristiques, révélant exactement *quelles* articulations et quels mouvements stimulent les prédictions de risque de l'IA.
+*   **Pandas et NumPy** : La colonne vertébrale de la manipulation des données, utilisée de manière intensive dans `feature_extractor.py` et `retrain_v3.py` pour le calcul des fenêtres mobiles, des retards et des dérivées d'accélération à partir des données de séries temporelles brutes.
 
-## 3. Ergonomic & Biomechanical Processing
-Before data reaches the AI, it is processed through validated clinical ergonomic frameworks.
+## 3. Traitement Ergonomique et Biomécanique
+Avant que les données n'atteignent l'IA, elles sont traitées via des cadres ergonomiques cliniques validés.
 
-*   **Custom Python Math (`angle_math.py`)**: Uses vector mathematics and trigonometry to calculate 3D joint angles (flexion, extension, deviation) from raw IMU quaternion/Euler data.
-*   **RULA (Rapid Upper Limb Assessment)**: Implemented programmatically (`rula_engine.py`) to score upper body posture strain.
-*   **REBA (Rapid Entire Body Assessment)**: Implemented programmatically (`reba_engine.py`) to score full-body postural risk.
+*   **Mathématiques Python personnalisées (`angle_math.py`)** : Utilisent les mathématiques vectorielles et la trigonométrie pour calculer les angles articulaires 3D (flexion, extension, déviation) à partir des données quaternion/Euler IMU brutes.
+*   **RULA (Rapid Upper Limb Assessment)** : Implémenté par programme (`rula_engine.py`) pour noter la tension posturale du haut du corps.
+*   **REBA (Rapid Entire Body Assessment)** : Implémenté par programme (`reba_engine.py`) pour noter le risque postural du corps entier.
 
-## 4. Frontend & User Interface
-The dashboard is designed to be a "Zero-Dependency" modern web application, favoring vanilla web technologies over heavy frameworks to ensure maximum performance and minimal latency.
+## 4. Frontend et Interface Utilisateur
+Le tableau de bord est conçu pour être une application web moderne "sans dépendance", privilégiant les technologies web vanille aux frameworks lourds pour garantir des performances maximales et une latence minimale.
 
-*   **HTML5 / Jinja2**: Templates are served by Flask and populated with server-side variables before rendering.
-*   **Vanilla CSS3**: Used exclusively for styling. Features advanced CSS variables, glassmorphism (`backdrop-filter`), CSS Grid/Flexbox, and keyframe micro-animations to create a premium, dark-mode clinical interface (`static/style.css`, inline styles in `ai.html`).
-*   **Vanilla JavaScript (ES6)**: Handles client-side logic, WebSocket message ingestion, and DOM updates without the overhead of React or Vue.
-*   **Socket.IO Client**: Connects to the Flask-SocketIO server to receive live JSON payloads of sensor data and AI predictions.
-*   **Three.js / WebGL (via dependencies)**: Used to render the live 3D stick-figure skeleton on the main dashboard (`index.html`).
-*   **FontAwesome**: Provides the scalable vector icons used throughout the UI.
-*   **Google Fonts**: Uses 'Syne' and 'JetBrains Mono' for modern typography.
+*   **HTML5 / Jinja2** : Les modèles sont servis par Flask et remplis de variables côté serveur avant le rendu.
+*   **CSS3 Vanille** : Utilisé exclusivement pour le style. Comprend des variables CSS avancées, le glassmorphisme (`backdrop-filter`), CSS Grid/Flexbox et des micro-animations d'images clés pour créer une interface clinique de qualité supérieure en mode sombre (`static/style.css`, styles en ligne dans `ai.html`).
+*   **JavaScript Vanille (ES6)** : Gère la logique côté client, l'ingestion de messages WebSocket et les mises à jour du DOM sans la surcharge de React ou Vue.
+*   **Client Socket.IO** : Se connecte au serveur Flask-SocketIO pour recevoir des charges utiles JSON en direct des données des capteurs et des prédictions de l'IA.
+*   **Three.js / WebGL (via dépendances)** : Utilisé pour effectuer le rendu du squelette en bâtonnets 3D en direct sur le tableau de bord principal (`index.html`).
+*   **FontAwesome** : Fournit les icônes vectorielles évolutives utilisées dans toute l'interface utilisateur.
+*   **Google Fonts** : Utilise 'Syne' et 'JetBrains Mono' pour une typographie moderne.
 
-## 5. Medical Report Generation
-The system generates automated, clinical-grade PDF assessments.
+## 5. Génération de Rapports Médicaux
+Le système génère des évaluations PDF automatisées de qualité clinique.
 
-*   **ReportLab (Platypus)**: A robust Python library used in `report_generator.py` to programmatically build complex, multi-page PDF documents with styled tables, headers, footers, and text flow.
-*   **Matplotlib**: Used statelessly (`Agg` backend) to generate high-quality PNG charts (learning curves, joint angle trends, ROC curves) which are then embedded directly into the PDF reports and served to the AI dashboard (`generate_eval_plots.py`, `retrain_v3.py`).
+*   **ReportLab (Platypus)** : Une bibliothèque Python robuste utilisée dans `report_generator.py` pour construire par programme des documents PDF complexes de plusieurs pages avec des tableaux stylisés, des en-têtes, des pieds de page et un flux de texte.
+*   **Matplotlib** : Utilisé sans état (backend `Agg`) pour générer des graphiques PNG de haute qualité (courbes d'apprentissage, tendances d'angle articulaire, courbes ROC) qui sont ensuite intégrés directement dans les rapports PDF et servis au tableau de bord d'IA (`generate_eval_plots.py`, `retrain_v3.py`).
 
-## 6. Hardware & Edge Integration (Assumed Context)
-While this repository focuses on the software, the software is designed to interface with specific edge hardware.
+## 6. Intégration Matérielle et Périphérique (Contexte supposé)
+Bien que ce dépôt se concentre sur le logiciel, celui-ci est conçu pour s'interfacer avec un matériel périphérique spécifique.
 
-*   **ESP32 Microcontrollers**: Used to collect data from the physical sensors.
-*   **IMU Sensors (BNO085 / MPU6050)**: Provide the raw 9-DOF orientation data.
-*   **NVIDIA Jetson Orin / Raspberry Pi**: Edge devices where the Python processing pipeline can be deployed for on-premise computation.
+*   **Microcontrôleurs ESP32** : Utilisés pour collecter les données des capteurs physiques.
+*   **Capteurs IMU (BNO085 / MPU6050)** : Fournissent les données d'orientation 9-DOF brutes.
+*   **NVIDIA Jetson Orin / Raspberry Pi** : Appareils périphériques où le pipeline de traitement Python peut être déployé pour un calcul sur site.
 
-## 7. Cloud & Deployment
-*   **Render.com**: The PaaS (Platform as a Service) target for deploying the Flask web application.
-*   **Firebase Realtime Database (RTDB)**: Acts as the high-speed message broker between the physical IoT sensors and the deployed Python backend.
+## 7. Cloud et Déploiement
+*   **Render.com** : La cible PaaS (Platform as a Service) pour le déploiement de l'application web Flask.
+*   **Firebase Realtime Database (RTDB)** : Agit comme le courtier de messages haute vitesse entre les capteurs IoT physiques et le backend Python déployé.

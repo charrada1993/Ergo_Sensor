@@ -1,218 +1,218 @@
-# 🎓 Ergo Sensor — Final Project Comprehensive Q&A (Defense Guide)
+# 🎓 Ergo Sensor — Questions-réponses complètes du projet final (Guide de soutenance)
 
-This document contains a structured list of questions and expert-level answers designed to prepare you for your final project defense. It covers the medical background, hardware, software, real-time pipeline, mathematics, and artificial intelligence aspects of the **Ergo Sensor** project.
-
----
-
-## 📑 Table of Contents
-1. [General & Project Overview](#1-general--project-overview)
-2. [Clinical Background & Ergonomic Engines](#2-clinical-background--ergonomic-engines)
-3. [Hardware Infrastructure & IoT Data Flow](#3-hardware-infrastructure--iot-data-flow)
-4. [Signal Processing & Geometric Mathematics](#4-signal-processing--geometric-mathematics)
-5. [Backend Architecture & Concurrency](#5-backend-architecture--concurrency)
-6. [AI Engine v3.0-Production & Feature Engineering](#6-ai-engine-v30-production--feature-engineering)
-7. [Explainable AI (XAI) & Model Diagnostics](#7-explainable-ai-xai--model-diagnostics)
-8. [Frontend Visualization & 3D Digital Twin](#8-frontend-visualization--3d-digital-twin)
-9. [Deployment & Production Scaling](#9-deployment--production-scaling)
+Ce document contient une liste structurée de questions et de réponses de niveau expert conçues pour vous préparer à la soutenance de votre projet final. Il couvre les aspects du contexte médical, du matériel, du logiciel, du pipeline en temps réel, des mathématiques et de l'intelligence artificielle du projet **Ergo Sensor**.
 
 ---
 
-## 1. General & Project Overview
-
-### Q1: What is the primary objective of the Ergo Sensor project?
-**Answer:**
-The **Ergo Sensor** system is an end-to-end, IoT-driven biomechanical monitoring platform designed for real-time occupational health and safety. It continuously tracks worker posture using a distributed network of inertial sensors, computes ergonomic risk scores (RULA and REBA), and utilizes an ensemble of optimized Machine Learning models (LightGBM) to forecast cumulative risk, classify ergonomic severity, identify joint anomalies, and diagnose 18 distinct pathological musculoskeletal conditions.
-
-### Q2: How does the Ergo Sensor system improve upon traditional ergonomic audits?
-**Answer:**
-Traditional ergonomic assessments are:
-1. **Intermittent/Reactive:** Audits are done manually once every few months or only after a worker reports an injury.
-2. **Subjective:** Anthropometric measurements are taken visually or with hand goniometers, introducing observer bias.
-3. **Disruptive:** Evaluators must shadow workers on the floor, altering natural movement patterns.
-
-**Ergo Sensor** transforms this paradigm into a **continuous, objective, and proactive** system. By streaming joint orientations at 10Hz, it provides zero-latency biofeedback, eliminates human error through programmatic scoring, and leverages predictive AI to intervene *before* repetitive strain escalates into chronic Musculoskeletal Disorders (MSDs).
+## 📑 Table des matières
+1. [Vue d'ensemble générale et du projet](#1-vue-densemble-générale-et-du-projet)
+2. [Contexte clinique et moteurs ergonomiques](#2-contexte-clinique-et-moteurs-ergonomiques)
+3. [Infrastructure matérielle et flux de données IoT](#3-infrastructure-matérielle-et-flux-de-données-iot)
+4. [Traitement du signal et mathématiques géométriques](#4-traitement-du-signal-et-mathématiques-géométriques)
+5. [Architecture backend et concurrence](#5-architecture-backend-et-concurrence)
+6. [Moteur d'IA v3.0-Production et ingénierie des caractéristiques](#6-moteur-dia-v30-production-et-ingénierie-des-caractéristiques)
+7. [IA explicable (XAI) et diagnostic des modèles](#7-ia-explicable-xai-et-diagnostic-des-modèles)
+8. [Visualisation frontend et jumeau numérique 3D](#8-visualisation-frontend-et-jumeau-numérique-3d)
+9. [Déploiement et mise à l'échelle de la production](#9-déploiement-et-mise-à-léchelle-de-la-production)
 
 ---
 
-## 2. Clinical Background & Ergonomic Engines
+## 1. Vue d'ensemble générale et du projet
 
-### Q3: Explain RULA and REBA and how they are used within the system.
-**Answer:**
-*   **RULA (Rapid Upper Limb Assessment):** Developed by McAtamney and Corlett, RULA targets sedentary, upper-limb intensive tasks. It assesses the neck, trunk, upper arms, forearms, wrists, and wrist twist. The final RULA score ranges from **1 (acceptable)** to **7 (immediate change required)**.
-*   **REBA (Rapid Entire Body Assessment):** Developed by Hignett and McAtamney, REBA is optimized for dynamic, unpredictable, or unstable full-body tasks (e.g., healthcare, warehouse lifting). It incorporates lower-limb postures (legs and knees) and coupling quality. The final REBA score ranges from **1 (negligible risk)** to **15 (very high risk)**.
+### Q1 : Quel est l'objectif principal du projet Ergo Sensor ?
+**Réponse :**
+Le système **Ergo Sensor** est une plateforme de surveillance biomécanique de bout en bout, pilotée par l'IoT, conçue pour la santé et la sécurité au travail en temps réel. Il suit en continu la posture du travailleur à l'aide d'un réseau distribué de capteurs inertiels, calcule des scores de risque ergonomique (RULA et REBA) et utilise un ensemble de modèles d'apprentissage automatique optimisés (LightGBM) pour prévoir le risque cumulé, classer la gravité ergonomique, identifier les anomalies articulaires et diagnostiquer 18 conditions musculosquelettiques pathologiques distinctes.
 
-Both frameworks are implemented in Python in [rula_engine.py](file:///c:/MSD_System/rula_engine.py) and [reba_engine.py](file:///c:/MSD_System/reba_engine.py). They group body segments into Group A (upper limbs in RULA; trunk/neck/legs in REBA) and Group B (neck/trunk/legs in RULA; upper limbs/forearms/wrists in REBA), add force/load adjustments, and query pre-defined multidimensional lookup tables to yield final action levels.
+### Q2 : Comment le système Ergo Sensor améliore-t-il les audits ergonomiques traditionnels ?
+**Réponse :**
+Les évaluations ergonomiques traditionnelles sont :
+1. **Intermittentes/Réactives :** Les audits sont effectués manuellement une fois tous les quelques mois ou seulement après qu'un travailleur a signalé une blessure.
+2. **Subjectives :** Les mesures anthropométriques sont prises visuellement ou avec des goniomètres à main, introduisant un biais d'observateur.
+3. **Perturbatrices :** Les évaluateurs doivent suivre les travailleurs sur le terrain, modifiant les modèles de mouvement naturels.
 
-### Q4: What are Bilateral Ergonomic Engines, and why are they clinically significant?
-**Answer:**
-Most traditional paper-based ergonomic audits evaluate only the "most active" or "most loaded" side of the body. However, unilateral tracking hides muscular imbalances. 
-The [RULAEngine](file:///c:/MSD_System/rula_engine.py#L11) and [REBAEngine](file:///c:/MSD_System/reba_engine.py#L11) compute risk levels for **both the left and right sides of the body simultaneously**. Clinically, this identifies asymmetrical loading (e.g., a worker favoring their left arm due to fatigue or pain on the right side), which is a major precursor to chronic joint wear and spinal misalignment.
+**Ergo Sensor** transforme ce paradigme en un système **continu, objectif et proactif**. En diffusant les orientations articulaires à 10 Hz, il fournit un biofeedback à latence nulle, élimine l'erreur humaine grâce à une notation programmatique et exploite l'IA prédictive pour intervenir *avant* que les tensions répétitives ne dégénèrent en troubles musculosquelettiques (TMS) chroniques.
 
 ---
 
-## 3. Hardware Infrastructure & IoT Data Flow
+## 2. Contexte clinique et moteurs ergonomiques
 
-### Q5: Describe the end-to-end data pipeline from physical movement to real-time UI.
-**Answer:**
-The data flow consists of 7 steps:
-1.  **Sensing:** Inertial Measurement Units (IMUs) track 3-axis acceleration and angular rate.
-2.  **Edge Compute:** An ESP32 microcontroller samples the sensors at 10Hz (every 100ms) and computes raw orientation.
-3.  **Ingestion:** The ESP32 transmits JSON-formatted orientation data via Wi-Fi/HTTPS to a Firebase Realtime Database.
-4.  **Backend Listening:** A background thread in the Flask backend ([firebase_listener.py](file:///c:/MSD_System/firebase_listener.py)) subscribes to Firebase events and pipes incoming packets into [DataProcessor](file:///c:/MSD_System/data_processor.py#L13).
-5.  **Biomechanical Processing:** [angle_math.py](file:///c:/MSD_System/angle_math.py) extracts joint angles, and RULA/REBA engines calculate instantaneous risk scores.
-6.  **AI Inference:** The computed angles are passed to [FeatureExtractor](file:///c:/MSD_System/feature_extractor.py#L29) to generate the 75-feature vector, which is fed into the LightGBM models in [AIModels](file:///c:/MSD_System/ai_engine.py#L18) for real-time predictions.
-7.  **Broadcast & Render:** The backend transmits the processed metrics to the frontend browser via WebSockets ([socket_manager.py](file:///c:/MSD_System/socket_manager.py)). The frontend updates the live charts and rigs the 3D stick-figure avatar.
+### Q3 : Expliquez RULA et REBA et comment ils sont utilisés au sein du système.
+**Réponse :**
+*   **RULA (Rapid Upper Limb Assessment) :** Développé par McAtamney et Corlett, RULA cible les tâches sédentaires et intensives pour les membres supérieurs. Il évalue le cou, le tronc, le haut des bras, les avant-bras, les poignets et la torsion du poignet. Le score RULA final varie de **1 (acceptable)** à **7 (changement immédiat requis)**.
+*   **REBA (Rapid Entire Body Assessment) :** Développé par Hignett et McAtamney, REBA est optimisé pour les tâches dynamiques, imprévisibles ou instables sur tout le corps (ex: soins de santé, levage en entrepôt). Il intègre les postures des membres inférieurs (jambes et genoux) et la qualité du couplage. Le score REBA final varie de **1 (risque négligeable)** à **15 (risque très élevé)**.
+
+Les deux cadres sont implémentés en Python dans [rula_engine.py](file:///c:/MSD_System/rula_engine.py) et [reba_engine.py](file:///c:/MSD_System/reba_engine.py). Ils regroupent les segments corporels en Groupe A (membres supérieurs dans RULA ; tronc/cou/jambes dans REBA) et Groupe B (cou/tronc/jambes dans RULA ; membres supérieurs/avant-bras/poignets dans REBA), ajoutent des ajustements de force/charge et interrogent des tables de recherche multidimensionnelles prédéfinies pour produire les niveaux d'action finaux.
+
+### Q4 : Que sont les moteurs ergonomiques bilatéraux et pourquoi sont-ils cliniquement significatifs ?
+**Réponse :**
+La plupart des audits ergonomiques traditionnels sur papier n'évaluent que le côté "le plus actif" ou "le plus chargé" du corps. Cependant, le suivi unilatéral cache des déséquilibres musculaires. 
+Le [RULAEngine](file:///c:/MSD_System/rula_engine.py#L11) et le [REBAEngine](file:///c:/MSD_System/reba_engine.py#L11) calculent les niveaux de risque pour **les côtés gauche et droit du corps simultanément**. Cliniquement, cela permet d'identifier une charge asymétrique (ex: un travailleur favorisant son bras gauche en raison de la fatigue ou de la douleur du côté droit), ce qui est un précurseur majeur de l'usure articulaire chronique et du désalignement de la colonne vertébrale.
+
+---
+
+## 3. Infrastructure matérielle et flux de données IoT
+
+### Q5 : Décrivez le pipeline de données de bout en bout, du mouvement physique à l'interface utilisateur en temps réel.
+**Réponse :**
+Le flux de données se compose de 7 étapes :
+1.  **Détection :** Les unités de mesure inertielle (IMU) suivent l'accélération sur 3 axes et la vitesse angulaire.
+2.  **Calcul à la périphérie :** Un microcontrôleur ESP32 échantillonne les capteurs à 10 Hz (toutes les 100 ms) et calcule l'orientation brute.
+3.  **Ingestion :** L'ESP32 transmet les données d'orientation au format JSON via Wi-Fi/HTTPS à une base de données Firebase Realtime Database.
+4.  **Écoute backend :** Un thread d'arrière-plan dans le backend Flask ([firebase_listener.py](file:///c:/MSD_System/firebase_listener.py)) s'abonne aux événements Firebase et achemine les paquets entrants vers [DataProcessor](file:///c:/MSD_System/data_processor.py#L13).
+5.  **Traitement biomécanique :** [angle_math.py](file:///c:/MSD_System/angle_math.py) extrait les angles articulaires, et les moteurs RULA/REBA calculent les scores de risque instantanés.
+6.  **Inférence d'IA :** Les angles calculés sont transmis à [FeatureExtractor](file:///c:/MSD_System/feature_extractor.py#L29) pour générer le vecteur de 75 caractéristiques, qui est injecté dans les modèles LightGBM dans [AIModels](file:///c:/MSD_System/ai_engine.py#L18) pour des prédictions en temps réel.
+7.  **Diffusion et rendu :** Le backend transmet les mesures traitées au navigateur frontend via des WebSockets ([socket_manager.py](file:///c:/MSD_System/socket_manager.py)). Le frontend met à jour les graphiques en direct et grée l'avatar en bâtonnets 3D.
 
 ```mermaid
 graph TD;
-    IMU[IMU Sensors] -->|I2C| ESP32[ESP32 Microcontroller]
+    IMU[Capteurs IMU] -->|I2C| ESP32[Microcontrôleur ESP32]
     ESP32 -->|JSON / HTTPS| Firebase[(Firebase RTDB)]
-    Firebase -->|SSE Stream| FB_Listener[firebase_listener.py]
+    Firebase -->|Flux SSE| FB_Listener[firebase_listener.py]
     FB_Listener --> DataProc[data_processor.py]
     DataProc --> Math[angle_math.py]
     Math --> Ergo[rula_engine.py / reba_engine.py]
     DataProc --> FeatExt[feature_extractor.py]
-    FeatExt -->|75-Feature Vector| AIEngine[ai_engine.py / LightGBM]
+    FeatExt -->|Vecteur de 75 caractéristiques| AIEngine[ai_engine.py / LightGBM]
     AIEngine --> Socket[socket_manager.py]
-    Socket -->|WebSockets| Browser[Web Dashboard & 3D Twin]
+    Socket -->|WebSockets| Browser[Tableau de bord Web et Jumeau 3D]
 ```
 
-### Q6: What is the hardware placement strategy for a comprehensive biomechanical audit?
-**Answer:**
-For a full kinematic assessment, up to 12 sensors are distributed as follows:
-*   **Axial (Core):** Head/Neck (placed at C7) and Upper Back (placed at T12/trunk).
-*   **Bilateral Upper Limbs:** Biceps, Forearms, and Hands (for shoulder, elbow, and wrist angles).
-*   **Bilateral Lower Limbs:** Thighs and Shanks (for hip, knee, and ankle angles).
+### Q6 : Quelle est la stratégie de placement du matériel pour un audit biomécanique complet ?
+**Réponse :**
+Pour une évaluation cinématique complète, jusqu'à 12 capteurs sont répartis comme suit :
+*   **Axial (Noyau) :** Tête/Cou (placé en C7) et Haut du dos (placé en T12/tronc).
+*   **Membres supérieurs bilatéraux :** Biceps, avant-bras et mains (pour les angles de l'épaule, du coude et du poignet).
+*   **Membres inférieurs bilatéraux :** Cuisses et jambes (pour les angles de la hanche, du genou et de la cheville).
 
 ---
 
-## 4. Signal Processing & Geometric Mathematics
+## 4. Traitement du signal et mathématiques géométriques
 
-### Q7: How does the system handle sensor calibration? Reference `angle_math.py`.
-**Answer:**
-To account for individual variation in sensor mounting, the system implements a calibration phase:
-1.  The worker stands in an upright, neutral reference posture (**"All Angle Position 0"**).
-2.  The UI triggers the `/api/calibrate` API. The current raw Euler angles (Roll, Pitch, Yaw) for all sensors are saved as references using [set_reference](file:///c:/MSD_System/angle_math.py#L6).
-3.  During active operation, the helper [get](file:///c:/MSD_System/angle_math.py#L51) subtracts these reference values from the incoming raw telemetry:
-    $$\theta_{\text{calibrated}} = \theta_{\text{raw}} - \theta_{\text{reference}}$$
-4.  All subsequent kinematic joint angles are computed differentially relative to this calibrated zero posture, ensuring patient-specific coordinate alignment.
+### Q7 : Comment le système gère-t-il l'étalonnage des capteurs ? Référence `angle_math.py`.
+**Réponse :**
+Pour tenir compte de la variation individuelle du montage des capteurs, le système met en œuvre une phase d'étalonnage :
+1.  Le travailleur se tient dans une posture de référence neutre et droite (**"All Angle Position 0"**).
+2.  L'interface utilisateur déclenche l'API `/api/calibrate`. Les angles d'Euler bruts actuels (Roulis, Tangage, Lacet) pour tous les capteurs sont enregistrés comme références à l'aide de [set_reference](file:///c:/MSD_System/angle_math.py#L6).
+3.  Pendant le fonctionnement actif, l'assistant [get](file:///c:/MSD_System/angle_math.py#L51) soustrait ces valeurs de référence de la télémétrie brute entrante :
+    $$\theta_{\text{étalonné}} = \theta_{\text{brut}} - \theta_{\text{référence}}$$
+4.  Tous les angles articulaires cinématiques ultérieurs sont calculés de manière différentielle par rapport à cette posture zéro étalonnée, assurant un alignement des coordonnées spécifique au patient.
 
-### Q8: Explain the math behind computing elbow and neck flexion.
-**Answer:**
-In [angle_math.py](file:///c:/MSD_System/angle_math.py):
-*   **Neck Flexion (Pitch Diff):** Neck pitch is computed relative to trunk pitch:
-    $$\text{Neck Flexion} = \text{Neck Pitch}_{\text{calibrated}} - \text{Trunk Pitch}_{\text{calibrated}}$$
-*   **Elbow Flexion (Internal Angle):** The elbow flexion is computed as the absolute pitch difference between the forearm and biceps sensors:
-    $$\text{Elbow Flexion} = |\text{Forearm Pitch}_{\text{calibrated}} - \text{Biceps Pitch}_{\text{calibrated}}|$$
-    This design isolates the hinge joint rotation of the elbow, making it invariant to absolute body heading.
-
----
-
-## 5. Backend Architecture & Concurrency
-
-### Q9: What is the purpose of Flask-SocketIO and Gevent in this application?
-**Answer:**
-Handling high-frequency, real-time sensor streams requires a non-blocking server architecture:
-*   **Flask-SocketIO:** Provides low-latency, full-duplex WebSocket connections. This allows the server to broadcast joint angles and predictions to the browser every 100ms.
-*   **Gevent (coroutine-based greenlets):** Replaces standard synchronous OS threads with lightweight cooperative tasks. It enables the Flask application to run the Web server, listen to Firebase database streams, write telemetry logs to disk, and run machine learning inferences concurrently without blocking the main event loop.
-
-### Q10: How does the backend prevent database bottlenecking during high-frequency streaming?
-**Answer:**
-Streaming sensor data at 10Hz can overwhelm standard database engines. The system resolves this via two strategies:
-1.  **Firebase Realtime Database:** Utilizes direct WebSockets/Server-Sent Events (SSE) to push raw data packets asynchronously rather than polling.
-2.  **Thread-Safe Local Logging:** In [csv_logger.py](file:///c:/MSD_System/csv_logger.py), incoming telemetry frames are stored in an in-memory queue. A dedicated background thread periodically flushes the queued data to a CSV session log, preventing disk I/O operations from stalling the real-time inference loop.
+### Q8 : Expliquez les mathématiques derrière le calcul de la flexion du cou et du coude.
+**Réponse :**
+Dans [angle_math.py](file:///c:/MSD_System/angle_math.py) :
+*   **Flexion du cou (différence de tangage) :** Le tangage du cou est calculé par rapport au tangage du tronc :
+    $$\text{Flexion du cou} = \text{Tangage du cou}_{\text{étalonné}} - \text{Tangage du tronc}_{\text{étalonné}}$$
+*   **Flexion du coude (angle interne) :** La flexion du coude est calculée comme la différence de tangage absolue entre les capteurs de l'avant-bras et du biceps :
+    $$\text{Flexion du coude} = |\text{Tangage de l'avant-bras}_{\text{étalonné}} - \text{Tangage du biceps}_{\text{étalonné}}|$$
+    Cette conception isole la rotation de l'articulation charnière du coude, la rendant invariante par rapport au cap absolu du corps.
 
 ---
 
-## 6. AI Engine v3.0-Production & Feature Engineering
+## 5. Architecture backend et concurrence
 
-### Q11: Explain the shift from the 38-feature vector to the 75-feature vector in version 3.0-Production.
-**Answer:**
-Early versions of the system analyzed static snapshots of posture, leading to a high rate of false positives since humans naturally transition through high-risk angles briefly. 
-Version 3.0-Production adds **temporal features** in [engineer_features](file:///c:/MSD_System/retrain_v3.py#L62), expanding the feature space from 38 to 75 dimensions:
-1.  **Base Biomechanics (38):** Raw angles, velocities, frequencies, and durations.
-2.  **Rolling Means (12):** 15-frame average of core joints to capture sustained/static postures.
-3.  **Rolling Standard Deviations (12):** 15-frame variance to track tremors, jitters, or micro-vibrations.
-4.  **Lag Features (12):** The joint angle 15 frames (~1.5 seconds) ago, giving the model temporal context.
-5.  **Bilateral Asymmetry (5):** Absolute delta between left and right limb joints.
-6.  **Composite Load (2):** Mathematically weighted load scores representing upper-body and lower-body strain.
-7.  **High-Risk Posture Flags (3):** Hard-coded binary flags for extreme hyperflexion.
-8.  **Accelerations (5):** Double-derivatives of angles to capture rapid, jerky movements.
-9.  **Energy Proxies (7):** Product of velocity and durations, serving as proxies for kinetic expenditure.
+### Q9 : Quel est le but de Flask-SocketIO et Gevent dans cette application ?
+**Réponse :**
+La gestion de flux de capteurs en temps réel à haute fréquence nécessite une architecture de serveur non bloquante :
+*   **Flask-SocketIO :** Fournit des connexions WebSocket duplex intégral à faible latence. Cela permet au serveur de diffuser les angles articulaires et les prédictions au navigateur toutes les 100 ms.
+*   **Gevent (greenlets basés sur les coroutines) :** Remplace les threads standard du système d'exploitation synchrone par des tâches coopératives légères. Il permet à l'application Flask d'exécuter le serveur Web, d'écouter les flux de la base de données Firebase, d'écrire les journaux de télémétrie sur le disque et d'exécuter des inférences d'apprentissage automatique de manière simultanée sans bloquer la boucle d'événements principale.
 
-### Q12: Why are LightGBM models chosen for the AI Engine over Deep Neural Networks?
-**Answer:**
-1.  **Tabular Efficiency:** LightGBM (Light Gradient Boosting Machine) is state-of-the-art for tabular data, outperforming deep neural networks on feature-based classification.
-2.  **Low Latency:** Inferences run in <5ms, which is critical for a real-time 10Hz streaming pipeline.
-3.  **Explainability:** Tree-based models allow native computing of feature importances and integrate seamlessly with SHAP TreeExplainer.
-4.  **Lightweight Footprint:** The compiled model files (`.txt` and `.pkl`) are only a few hundred kilobytes, enabling deployment on resource-constrained edge servers.
+### Q10 : Comment le backend empêche-t-il l'engorgement de la base de données pendant la diffusion à haute fréquence ?
+**Réponse :**
+La diffusion de données de capteurs à 10 Hz peut submerger les moteurs de base de données standard. Le système résout cela via deux stratégies :
+1.  **Firebase Realtime Database :** Utilise des WebSockets/Server-Sent Events (SSE) directs pour pousser les paquets de données brutes de manière asynchrone plutôt que par interrogation.
+2.  **Journalisation locale sécurisée pour les threads :** Dans [csv_logger.py](file:///c:/MSD_System/csv_logger.py), les trames de télémétrie entrantes sont stockées dans une file d'attente en mémoire. Un thread d'arrière-plan dédié vide périodiquement les données en file d'attente vers un journal de session CSV, empêchant les opérations d'E/S disque de bloquer la boucle d'inférence en temps réel.
 
-### Q13: What are the three primary AI models operating in the system?
-**Answer:**
-| Model | Target | Core Metric (v3.0-Production) |
+---
+
+## 6. Moteur d'IA v3.0-Production et ingénierie des caractéristiques
+
+### Q11 : Expliquez le passage du vecteur de 38 caractéristiques au vecteur de 75 caractéristiques dans la version 3.0-Production.
+**Réponse :**
+Les premières versions du système analysaient des instantanés statiques de posture, ce qui entraînait un taux élevé de faux positifs puisque les humains passent naturellement par des angles à haut risque brièvement. 
+La version 3.0-Production ajoute des **caractéristiques temporelles** dans [engineer_features](file:///c:/MSD_System/retrain_v3.py#L62), étendant l'espace des caractéristiques de 38 à 75 dimensions :
+1.  **Biomécanique de base (38) :** Angles bruts, vitesses, fréquences et durées.
+2.  **Moyennes mobiles (12) :** Moyenne sur 15 trames des articulations centrales pour capturer les postures soutenues/statiques.
+3.  **Écarts-types mobiles (12) :** Variance sur 15 trames pour suivre les tremblements, les secousses ou les micro-vibrations.
+4.  **Caractéristiques de retard (12) :** L'angle de l'articulation il y a 15 trames (~1,5 seconde), donnant au modèle un contexte temporel.
+5.  **Asymétrie bilatérale (5) :** Delta absolu entre les articulations des membres gauche et droit.
+6.  **Charge composite (2) :** Scores de charge pondérés mathématiquement représentant la tension du haut et du bas du corps.
+7.  **Drapeaux de posture à haut risque (3) :** Drapeaux binaires codés en dur pour l'hyperflexion extrême.
+8.  **Accélérations (5) :** Doubles dérivées des angles pour capturer les mouvements rapides et saccadés.
+9.  **Proxys d'énergie (7) :** Produit de la vitesse et des durées, servant de proxys pour la dépense cinétique.
+
+### Q12 : Pourquoi les modèles LightGBM sont-ils choisis pour le moteur d'IA plutôt que les réseaux neuronaux profonds ?
+**Réponse :**
+1.  **Efficacité tabulaire :** LightGBM (Light Gradient Boosting Machine) est à la pointe de la technologie pour les données tabulaires, surpassant les réseaux neuronaux profonds sur la classification basée sur les caractéristiques.
+2.  **Faible latence :** Les inférences s'exécutent en <5 ms, ce qui est crucial pour un pipeline de streaming en temps réel à 10 Hz.
+3.  **Expliquabilité :** Les modèles basés sur les arbres permettent de calculer nativement l'importance des caractéristiques et s'intègrent parfaitement à SHAP TreeExplainer.
+4.  **Empreinte légère :** Les fichiers de modèles compilés (`.txt` et `.pkl`) ne pèsent que quelques centaines de kilo-octets, ce qui permet un déploiement sur des serveurs périphériques aux ressources limitées.
+
+### Q13 : Quels sont les trois principaux modèles d'IA fonctionnant dans le système ?
+**Réponse :**
+| Modèle | Cible | Mesure de base (v3.0-Production) |
 |---|---|---|
-| **LightGBM Regressor** | Predicts 10-day cumulative injury probability `[0.0 – 1.0]` | $R^2 = 0.9981$, $MAE = 0.0056$ |
-| **LightGBM Condition Classifier** | Classifies 18 distinct medical pathologies (e.g., Carpal Tunnel, Lumbar Herniation) | Accuracy = $99.60\%$, F1 Macro = $0.9667$ |
-| **LightGBM Severity Classifier** | Classifies ergonomic risk severity level (`low`, `medium`, `high`) | Accuracy = $96.95\%$, F1 Macro = $0.9411$ |
+| **Régresseur LightGBM** | Prédit la probabilité de blessure cumulée sur 10 jours `[0,0 – 1,0]` | $R^2 = 0,9981$, $MAE = 0,0056$ |
+| **Classificateur de condition LightGBM** | Classe 18 pathologies médicales distinctes (ex: canal carpien, hernie lombaire) | Précision = $99,60\%$, F1 Macro = $0,9667$ |
+| **Classificateur de gravité LightGBM** | Classe le niveau de gravité du risque ergonomique (`faible`, `moyen`, `élevé`) | Précision = $96,95\%$, F1 Macro = $0,9411$ |
 
-### Q14: How does the system handle class imbalance for the 18 pathological conditions?
-**Answer:**
-With 18 conditions, clinical datasets are naturally skewed (e.g., far more "Normal" or "Mild Strain" samples than rare pathological conditions). The training pipeline resolves this by:
-1.  Applying `class_weight='balanced'` in LightGBM, which automatically scales the gradient penalty inversely proportional to class frequencies.
-2.  Using **F1-Macro** as the primary optimization metric in Optuna rather than raw Accuracy, ensuring that minority classes are classified accurately.
+### Q14 : Comment le système gère-t-il le déséquilibre des classes pour les 18 conditions pathologiques ?
+**Réponse :**
+Avec 18 conditions, les ensembles de données cliniques sont naturellement asymétriques (ex: beaucoup plus d'échantillons "Normaux" ou "Tension légère" que de conditions pathologiques rares). Le pipeline d'entraînement résout cela par :
+1.  L'application de `class_weight='balanced'` dans LightGBM, qui met automatiquement à l'échelle la pénalité de gradient inversement proportionnelle aux fréquences des classes.
+2.  L'utilisation de **F1-Macro** comme mesure d'optimisation principale dans Optuna plutôt que la précision brute, garantissant que les classes minoritaires sont classées avec précision.
 
-### Q15: Why is standard K-Fold Cross-Validation dangerous for this dataset, and how is it resolved?
-**Answer:**
-Standard K-Fold cross-validation randomly shuffles data. In a time-series telemetry stream, consecutive frames (frame $t$ and frame $t+1$) are highly correlated. If you randomly split them, the model will "memorize" the neighbor frames during training and achieve artificially inflated validation scores (temporal data leakage).
-To prevent this, the training pipeline in [retrain_v3.py](file:///c:/MSD_System/retrain_v3.py) uses `TimeSeriesSplit` (3-fold). It splits the data chronologically, simulating real-world production where the model is evaluated on future, unseen sessions.
+### Q15 : Pourquoi la validation croisée K-Fold standard est-elle dangereuse pour cet ensemble de données, et comment cela est-il résolu ?
+**Réponse :**
+La validation croisée K-Fold standard mélange les données de manière aléatoire. Dans un flux de télémétrie de séries temporelles, les trames consécutives (trame $t$ et trame $t+1$) sont fortement corrélées. Si vous les divisez de manière aléatoire, le modèle "mémorisera" les trames voisines pendant l'entraînement et obtiendra des scores de validation artificiellement gonflés (fuite de données temporelles).
+Pour éviter cela, le pipeline d'entraînement dans [retrain_v3.py](file:///c:/MSD_System/retrain_v3.py) utilise `TimeSeriesSplit` (3 plis). Il divise les données chronologiquement, simulant la production réelle où le modèle est évalué sur des sessions futures et invisibles.
 
 ---
 
-## 7. Explainable AI (XAI) & Model Diagnostics
+## 7. IA explicable (XAI) et diagnostic des modèles
 
-### Q16: What is SHAP, and how is it integrated into the clinical workflow?
-**Answer:**
-**SHAP (SHapley Additive exPlanations)** is a game-theoretic approach to explain individual machine learning predictions. 
-The system runs a **SHAP TreeExplainer** on the LightGBM models. For every high-risk alert or condition classified, SHAP calculates the exact contribution (in log-odds or probability) of each of the 75 features. 
+### Q16 : Qu'est-ce que SHAP et comment est-il intégré au flux de travail clinique ?
+**Réponse :**
+**SHAP (SHapley Additive exPlanations)** est une approche basée sur la théorie des jeux pour expliquer les prédictions individuelles d'apprentissage automatique. 
+Le système exécute un **SHAP TreeExplainer** sur les modèles LightGBM. Pour chaque alerte à haut risque ou condition classée, SHAP calcule la contribution exacte (en log-odds ou probabilité) de chacune des 75 caractéristiques. 
 
-**Clinical Benefit:** Instead of being a "black box," the dashboard tells the clinician *why* the AI flagged a high risk:
-> *"The 10-day risk is 85% primarily driven by Trunk_Roll_Mean (+12%) and R_Shoulder_Lag15 (+8%), rather than the Neck angle."*
+**Bénéfice clinique :** Au lieu d'être une "boîte noire", le tableau de bord indique au clinicien *pourquoi* l'IA a signalé un risque élevé :
+> *"Le risque sur 10 jours est de 85%, principalement dû à la rotation moyenne du tronc (+12%) et au retard de l'épaule droite (+8%), plutôt qu'à l'angle du cou."*
 
 ```text
-[Low Risk] ◄─────────────────── [Base Value: 0.15] ───────────────────► [High Risk (0.85)]
+[Risque faible] ◄─────────────────── [Valeur de base : 0,15] ───────────────────► [Risque élevé (0,85)]
                                       │
-                   -2% Neck Flexion ──┼── +12% Trunk Roll Mean
-                 -1% Elbow Flexion ──┼── +8% R_Shoulder Lag15
+                   -2% Flexion du cou ──┼── +12% Rotation moyenne du tronc
+                 -1% Flexion du coude ──┼── +8% Retard épaule D
 ```
 
-### Q17: What diagnostic metrics are generated automatically by the evaluation suite?
-**Answer:**
-The `generate_eval_plots.py` and `retrain_v3.py` scripts generate a 10-plot diagnostic suite saved to `models/` and `plots/`, including:
-1.  **Predicted vs. Actual Scatter & Residual Plots:** For evaluating regression drift.
-2.  **Multiclass Confusion Matrices:** To identify which of the 18 conditions are confused.
-3.  **One-vs-Rest ROC (Receiver Operating Characteristic) and Precision-Recall Curves:** To measure sensitivity thresholds.
-4.  **Learning Curves:** To monitor training convergence and detect overfitting.
+### Q17 : Quelles mesures de diagnostic sont générées automatiquement par la suite d'évaluation ?
+**Réponse :**
+Les scripts `generate_eval_plots.py` et `retrain_v3.py` génèrent une suite de diagnostic de 10 tracés enregistrés dans `models/` et `plots/`, comprenant :
+1.  **Tracés de dispersion et de résidus prédits vs réels :** Pour évaluer la dérive de la régression.
+2.  **Matrices de confusion multiclasses :** Pour identifier lesquelles des 18 conditions sont confondues.
+3.  **Courbes ROC (Receiver Operating Characteristic) et Précision-Rappel One-vs-Rest :** Pour mesurer les seuils de sensibilité.
+4.  **Courbes d'apprentissage :** Pour surveiller la convergence de l'entraînement et détecter le surapprentissage.
 
 ---
 
-## 8. Frontend Visualization & 3D Digital Twin
+## 8. Visualisation frontend et jumeau numérique 3D
 
-### Q18: How does the 3D Digital Twin work in the web dashboard?
-**Answer:**
-The 3D Digital Twin is rendered in the browser using **Three.js** (WebGL). 
-1.  A 3D humanoid stick-figure model is constructed as a hierarchical tree of joint nodes (e.g., Neck is a child of Upper Back; Right Shoulder is a child of Spine, etc.).
-2.  When Socket.IO receives the 10Hz payload containing Euler angles, a Javascript event handler intercepts the message.
-3.  The script maps the pitch, roll, and yaw angles to the local rotation matrices of the corresponding 3D skeleton joints:
+### Q18 : Comment le jumeau numérique 3D fonctionne-t-il dans le tableau de bord web ?
+**Réponse :**
+Le jumeau numérique 3D est rendu dans le navigateur à l'aide de **Three.js** (WebGL). 
+1.  Un modèle humanoïde en bâtonnets 3D est construit comme un arbre hiérarchique de nœuds articulaires (ex: le cou est un enfant du haut du dos ; l'épaule droite est un enfant de la colonne vertébrale, etc.).
+2.  Lorsque Socket.IO reçoit la charge utile de 10 Hz contenant les angles d'Euler, un gestionnaire d'événements Javascript intercepte le message.
+3.  Le script mappe les angles de tangage, de roulis et de lacet aux matrices de rotation locales des articulations du squelette 3D correspondantes :
     ```javascript
-    neckJoint.rotation.x = payload.angles.Neck * (Math.PI / 180); // Pitch
-    neckJoint.rotation.z = payload.angles.Neck_Roll * (Math.PI / 180); // Roll
+    neckJoint.rotation.x = payload.angles.Neck * (Math.PI / 180); // Tangage
+    neckJoint.rotation.z = payload.angles.Neck_Roll * (Math.PI / 180); // Roulis
     ```
-4.  Three.js re-renders the scene at 60 FPS, displaying a smooth, real-time mirror of the worker's physical movements.
+4.  Three.js effectue un nouveau rendu de la scène à 60 FPS, affichant un miroir fluide et en temps réel des mouvements physiques du travailleur.
 
-### Q19: How is the Calibration page's Light/Dark mode implemented?
-**Answer:**
-The UI features a persistent dark-mode clinical aesthetic with a light-mode fallback. 
-1.  **CSS Variables:** Core colors are defined in `static/style.css` using custom properties:
+### Q19 : Comment le mode Clair/Sombre de la page d'étalonnage est-il implémenté ?
+**Réponse :**
+L'interface utilisateur présente une esthétique clinique persistante en mode sombre avec un repli en mode clair. 
+1.  **Variables CSS :** Les couleurs de base sont définies dans `static/style.css` à l'aide de propriétés personnalisées :
     ```css
     :root {
         --bg-color: #0b0f19;
@@ -225,37 +225,37 @@ The UI features a persistent dark-mode clinical aesthetic with a light-mode fall
         --text-color: #111827;
     }
     ```
-2.  **State Management:** When the user toggles the switch, Javascript applies the `data-theme="light"` attribute to the `<html>` tag and saves the preference to `localStorage`.
-3.  **Charts Integration:** The theme change triggers a re-render of Chart.js elements, swapping gridline and label colors to maintain clinical readability in both environments.
+2.  **Gestion de l'état :** Lorsque l'utilisateur bascule l'interrupteur, Javascript applique l'attribut `data-theme="light"` à la balise `<html>` et enregistre la préférence dans `localStorage`.
+3.  **Intégration des graphiques :** Le changement de thème déclenche un nouveau rendu des éléments Chart.js, échangeant les couleurs des lignes de grille et des étiquettes pour maintenir la lisibilité clinique dans les deux environnements.
 
 ---
 
-## 9. Deployment & Production Scaling
+## 9. Déploiement et mise à l'échelle de la production
 
-### Q20: How is the application configured for production deployment on Render.com?
-**Answer:**
-1.  **WSGI HTTP Server:** Standard Flask development servers are single-threaded and block on long requests. In production, we run **Gunicorn** with a gevent-compatible worker class:
+### Q20 : Comment l'application est-elle configurée pour le déploiement en production sur Render.com ?
+**Réponse :**
+1.  **Serveur HTTP WSGI :** Les serveurs de développement Flask standard sont monothread et bloquent sur les requêtes longues. En production, nous exécutons **Gunicorn** avec une classe de worker compatible gevent :
     ```bash
     gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 app:app
     ```
-2.  **Environment Variables:** Sensitive credentials and configurations are injected via environment variables:
-    *   `FIREBASE_CREDS_JSON`: The raw JSON string of the Firebase service account key.
-    *   `PYTHON_VERSION`: Set to `3.11.0` to pin dependencies.
-3.  **Port Allocation:** Gunicorn dynamically binds to the port provided by the `PORT` environment variable.
+2.  **Variables d'environnement :** Les identifiants et configurations sensibles sont injectés via des variables d'environnement :
+    *   `FIREBASE_CREDS_JSON` : La chaîne JSON brute de la clé de compte de service Firebase.
+    *   `PYTHON_VERSION` : Définie sur `3.11.0` pour épingler les dépendances.
+3.  **Allocation de port :** Gunicorn se lie dynamiquement au port fourni par la variable d'environnement `PORT`.
 
-### Q21: What are the primary troubleshooting steps if the Firebase connection fails?
-**Answer:**
-1.  **Check Service Account Key:** Ensure the environment variable `FIREBASE_CREDS_JSON` is a valid JSON object starting with `{` and contains the private key credentials.
-2.  **Validate DB URL:** Ensure `Config.FIREBASE_DATABASE_URL` matches the Firebase project instance (typically ending in `.firebaseio.com`).
-3.  **Network Access:** Verify that the server's outgoing port `443` is open to establish secure SSE/WebSocket connections to Firebase servers.
-4.  **Local Mode Fallback:** If Firebase is unavailable, the system fallback allows receiving data via the REST API endpoint `/api/data`.
+### Q21 : Quelles sont les principales étapes de dépannage si la connexion Firebase échoue ?
+**Réponse :**
+1.  **Vérifier la clé du compte de service :** Assurez-vous que la variable d'environnement `FIREBASE_CREDS_JSON` est un objet JSON valide commençant par `{` et contient les identifiants de clé privée.
+2.  **Valider l'URL de la base de données :** Assurez-vous que `Config.FIREBASE_DATABASE_URL` correspond à l'instance du projet Firebase (se terminant généralement par `.firebaseio.com`).
+3.  **Accès réseau :** Vérifiez que le port sortant `443` du serveur est ouvert pour établir des connexions SSE/WebSocket sécurisées avec les serveurs Firebase.
+4.  **Repli en mode local :** Si Firebase est indisponible, le repli du système permet de recevoir des données via le point de terminaison de l'API REST `/api/data`.
 
 ---
 
-## 💡 Defense Presentation Strategy
-*   **Slide 1: The Problem:** Focus on MSDs being the #1 cause of occupational disability, costing businesses billions annually.
-*   **Slide 2: The Solution:** Show the ESP32 + IMU hardware network.
-*   **Slide 3: Ergonomic Engine:** Explain how RULA/REBA are automated. Mention the *Bilateral* computation.
-*   **Slide 4: The AI Core:** Detail the 75-feature vector. Emphasize that time-series lags and rolling averages prevent false-positive alerts.
-*   **Slide 5: Explainability:** Show a SHAP plot. Explain that clinicians need to trust *why* the AI makes a prediction.
-*   **Slide 6: System Demo:** Showcase the 3D Digital Twin and the automated PDF reports.
+## 💡 Stratégie de présentation de la soutenance
+*   **Diapositive 1 : Le problème :** Concentrez-vous sur le fait que les TMS sont la première cause d'incapacité professionnelle, coûtant des milliards aux entreprises chaque année.
+*   **Diapositive 2 : La solution :** Montrez le réseau matériel ESP32 + IMU.
+*   **Diapositive 3 : Moteur ergonomique :** Expliquez comment RULA/REBA sont automatisés. Mentionnez le calcul *bilatéral*.
+*   **Diapositive 4 : Le noyau d'IA :** Détaillez le vecteur de 75 caractéristiques. Soulignez que les retards de séries temporelles et les moyennes mobiles empêchent les alertes de faux positifs.
+*   **Diapositive 5 : Expliquabilité :** Montrez un graphique SHAP. Expliquez que les cliniciens doivent comprendre *pourquoi* l'IA fait une prédiction.
+*   **Diapositive 6 : Démonstration du système :** Présentez le jumeau numérique 3D et les rapports PDF automatisés.

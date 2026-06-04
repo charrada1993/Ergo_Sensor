@@ -1,117 +1,117 @@
-# 🤖 Ergo Sensor — AI Engine Performance Report
-**Version:** 3.0-Production | **Date:** 2026-05-13 | **Dataset:** 20 000 samples · 18 conditions · 12 joints
+# 🤖 Ergo Sensor — Rapport de performance du moteur d'IA
+**Version :** 3.0-Production | **Date :** 13-05-2026 | **Ensemble de données :** 20 000 échantillons · 18 conditions · 12 articulations
 
 ---
 
-## 📋 Executive Summary
+## 📋 Résumé analytique
 
-The Ergo Sensor AI Engine **v3.0-Production** introduces **Time-Series Feature Engineering**, **Optuna Hyperparameter Optimization**, **TimeSeriesSplit Cross-Validation**, and **SHAP Explainability**. These additions transformed the system from an overfitted 59-feature model into a robust, temporally valid 75-feature production pipeline.
+Le moteur d'IA Ergo Sensor **v3.0-Production** introduit l'**ingénierie des caractéristiques de séries temporelles**, l'**optimisation des hyperparamètres Optuna**, la **validation croisée TimeSeriesSplit** et l'**expliquabilité SHAP**. Ces ajouts ont transformé le système d'un modèle à 59 caractéristiques surajusté en un pipeline de production robuste à 75 caractéristiques valide temporellement.
 
-| Highlight | Value |
+| Point fort | Valeur |
 |-----------|-------|
-| Total features used | **75** (38 base + 37 engineered) |
-| Feature Types | Angles, Rolling Stats (mean/std), Lags, Accelerations |
-| Cross-Validation | `TimeSeriesSplit` (3-fold) to prevent temporal leakage |
-| Hyperparameter Tuning | **Optuna** (10 trials per model) |
-| Explainability | **SHAP TreeExplainer** (Classifier & Regressor) |
-| Conditions classified | 18 musculoskeletal pathologies |
-| Anomaly models operational | **5 / 5** ✅ (avg F1 = 0.9906) |
+| Total des caractéristiques utilisées | **75** (38 de base + 37 élaborées) |
+| Types de caractéristiques | Angles, statistiques mobiles (moyenne/écart-type), retards, accélérations |
+| Validation croisée | `TimeSeriesSplit` (3 plis) pour éviter la fuite temporelle |
+| Réglage des hyperparamètres | **Optuna** (10 essais par modèle) |
+| Expliquabilité | **SHAP TreeExplainer** (classificateur et régresseur) |
+| Conditions classées | 18 pathologies musculosquelettiques |
+| Modèles d'anomalies opérationnels | **5 / 5** ✅ (F1 moyen = 0,9906) |
 
 ---
 
-## 🧪 Model 1 — LightGBM Risk Score Regressor
+## 🧪 Modèle 1 — Régresseur de score de risque LightGBM
 
-> Predicts 10-day musculoskeletal injury probability `[0.0 – 1.0]`
+> Prédit la probabilité de blessure musculosquelettique sur 10 jours `[0,0 – 1,0]`
 
-### Final Metrics
-| Metric | v2.1 | v3.0 | **v3.0-Production** | Δ vs v3.0 |
+### Mesures finales
+| Mesure | v2.1 | v3.0 | **v3.0-Production** | Δ vs v3.0 |
 |--------|------|------|----------|-----------|
-| MAE    | 0.007880 | 0.007506 | **0.005600** | -25.3% ✅ |
-| RMSE   | 0.010926 | 0.010656 | **0.007900** | -25.8% ✅ |
-| R²     | 0.996386 | 0.996561 | **0.998106** | +0.15% ✅ |
+| MAE    | 0,007880 | 0,007506 | **0,005600** | -25,3% ✅ |
+| RMSE   | 0,010926 | 0,010656 | **0,007900** | -25,8% ✅ |
+| R²     | 0,996386 | 0,996561 | **0,998106** | +0,15% ✅ |
 
-📉 **Convergence:** Optuna found highly constrained parameters preventing memorization, while the 75 features allowed the model to map time-series dynamics flawlessly.
+📉 **Convergence :** Optuna a trouvé des paramètres hautement contraints empêchant la mémorisation, tandis que les 75 caractéristiques ont permis au modèle de cartographier parfaitement la dynamique des séries temporelles.
 
 ---
 
-## 🏷️ Model 2 — LightGBM Condition Classifier (18 classes)
+## 🏷️ Modèle 2 — Classificateur de condition LightGBM (18 classes)
 
-> Identifies the dominant musculoskeletal condition from 18 pathological categories. Uses `class_weight='balanced'` and `TimeSeriesSplit` CV to prevent minority class neglect and time-leakage.
+> Identifie la condition musculosquelettique dominante parmi 18 catégories pathologiques. Utilise `class_weight='balanced'` et `TimeSeriesSplit` CV pour éviter la négligence des classes minoritaires et la fuite temporelle.
 
-### Final Metrics
-| Metric    | v2.1   | v3.0   | **v3.0-Production** | Δ vs v3.0 |
+### Mesures finales
+| Mesure    | v2.1   | v3.0   | **v3.0-Production** | Δ vs v3.0 |
 |-----------|--------|--------|------------|-----------|
-| Accuracy  | 99.40% | 99.52% | **99.60%** | +0.08% ✅ |
-| Precision | 0.9378 | 0.9948 | **0.9950** | +0.02% ✅ |
-| Recall    | 0.9078 | 0.9505 | **0.9513** | +0.08% ✅ |
-| F1 Macro  | 0.9180 | 0.9661 | **0.9667** | +0.06% ✅ |
+| Précision | 99,40% | 99,52% | **99,60%** | +0,08% ✅ |
+| Précision | 0,9378 | 0,9948 | **0,9950** | +0,02% ✅ |
+| Rappel    | 0,9078 | 0,9505 | **0,9513** | +0,08% ✅ |
+| F1 Macro  | 0,9180 | 0,9661 | **0,9667** | +0,06% ✅ |
 
 ---
 
-## 📊 Model 3 — LightGBM Severity Classifier (3 classes)
+## 📊 Modèle 3 — Classificateur de gravité LightGBM (3 classes)
 
-> Classifies ergonomic severity: `low` / `medium` / `high`
+> Classe la gravité ergonomique : `faible` / `moyenne` / `élevée`
 
-### Final Metrics
-| Metric   | v2.1   | v3.0   | **v3.0-Production** | Δ vs v3.0 |
+### Mesures finales
+| Mesure   | v2.1   | v3.0   | **v3.0-Production** | Δ vs v3.0 |
 |----------|--------|--------|------------|-----------|
-| Accuracy | 96.93% | 98.05% | **96.95%** | -1.10% * |
-| F1 Macro | 0.9271 | 0.9598 | **0.9411** | -1.87% * |
+| Précision | 96,93% | 98,05% | **96,95%** | -1,10% * |
+| F1 Macro | 0,9271 | 0,9598 | **0,9411** | -1,87% * |
 
-*\* Note: The slight drop in Severity metrics vs v3.0 is a direct result of enforcing `TimeSeriesSplit` CV. The v3.0 model was suffering from temporal data leakage. The v3.0-Production metric is the true, robust generalization capability.*
+*\* Remarque : La légère baisse des mesures de gravité par rapport à la v3.0 est le résultat direct de l'application de TimeSeriesSplit CV. Le modèle v3.0 souffrait d'une fuite de données temporelles. La mesure v3.0-Production est la véritable capacité de généralisation robuste.*
 
 ---
 
-## 🦾 Model 4 — Per-Joint Anomaly Classifiers (5 × Binary)
+## 🦾 Modèle 4 — Classificateurs d'anomalies par articulation (5 × binaires)
 
-> Detects 5 specific biomechanical anomalies from angle thresholds.
+> Détecte 5 anomalies biomécaniques spécifiques à partir de seuils d'angle.
 
-| Model | Accuracy | F1 Score |
+| Modèle | Précision | Score F1 |
 |-------|---------:|---------:|
-| `anomaly_neck_hyperflex`   | 99.85% | 0.9846 |
-| `anomaly_shoulder_overext` | 99.82% | 0.9826 |
-| `anomaly_wrist_strain`     | 99.92% | 0.9926 |
-| `anomaly_trunk_torsion`    | 100.00%| **1.0000** |
-| `anomaly_elbow_hyperext`   | 99.92% | 0.9932 |
-| **Average** | **99.90%** | **0.9906** |
+| `anomaly_neck_hyperflex`   | 99,85% | 0,9846 |
+| `anomaly_shoulder_overext` | 99,82% | 0,9826 |
+| `anomaly_wrist_strain`     | 99,92% | 0,9926 |
+| `anomaly_trunk_torsion`    | 100,00%| **1,0000** |
+| `anomaly_elbow_hyperext`   | 99,92% | 0,9932 |
+| **Moyenne** | **99,90%** | **0,9906** |
 
 ---
 
-## 🔧 Feature Engineering (+37 features)
+## 🔧 Ingénierie des caractéristiques (+37 caractéristiques)
 
-v3.0-Production expands from **38 → 75 features**, transforming static snapshots into a dynamic time-series pipeline:
+v3.0-Production passe de **38 → 75 caractéristiques**, transformant les instantanés statiques en un pipeline de séries temporelles dynamique :
 
-| Feature Group | Features | Description |
+| Groupe de caractéristiques | Caractéristiques | Description |
 |---------------|---------------|-------------|
-| **Base Biomechanics** | 38 | Raw angles (flexion, deviation, etc.) |
-| **Rolling Means** | 12 | 15-frame average of core joints |
-| **Rolling StdDevs** | 12 | 15-frame variance (movement jitter) |
-| **Lags (t-15)** | 12 | The joint angle 1.5 seconds ago |
-| **Accelerations** | 1 | Aggregate velocity derivative (`joint_accel`) |
+| **Biomécanique de base** | 38 | Angles bruts (flexion, déviation, etc.) |
+| **Moyennes mobiles** | 12 | Moyenne sur 15 trames des articulations centrales |
+| **Écarts-types mobiles** | 12 | Variance sur 15 trames (gigue de mouvement) |
+| **Retards (t-15)** | 12 | L'angle de l'articulation il y a 1,5 seconde |
+| **Accélérations** | 1 | Dérivée de la vitesse agrégée (`joint_accel`) |
 
 ---
 
-## 📊 Automated Evaluation Suite & SHAP
+## 📊 Suite d'évaluation automatisée et SHAP
 
-The pipeline now natively generates 10 diagnostic plots (saved to `models/` and `plots/`) evaluating every aspect of the engine:
-1. `eval_model1_regressor.png`: Predicted vs Actual & Residuals
-2. `eval_model2_learning.png`: Classifier LogLoss convergence
-3. `eval_model2_confusion.png`: 18-class confusion matrix
-4. `eval_model2_roc.png`: One-vs-Rest ROC curves
-5. `eval_model2_pr.png`: Precision-Recall curves
-6. `eval_model3_severity.png`: Severity metrics & confusion
-7. `eval_model4_bars.png`: F1 & Accuracy by joint
-8. `eval_model4_learning.png`: Anomaly learning curves
-9. `eval_model4_roc.png`: Anomaly ROC curves
+Le pipeline génère désormais nativement 10 tracés de diagnostic (enregistrés dans `models/` et `plots/`) évaluant chaque aspect du moteur :
+1. `eval_model1_regressor.png` : Prédit vs Réel et Résidus
+2. `eval_model2_learning.png` : Convergence LogLoss du classificateur
+3. `eval_model2_confusion.png` : Matrice de confusion à 18 classes
+4. `eval_model2_roc.png` : Courbes ROC One-vs-Rest
+5. `eval_model2_pr.png` : Courbes Précision-Rappel
+6. `eval_model3_severity.png` : Mesures de gravité et matrice de confusion
+7. `eval_model4_bars.png` : F1 et Précision par articulation
+8. `eval_model4_learning.png` : Courbes d'apprentissage d'anomalie
+9. `eval_model4_roc.png` : Courbes ROC d'anomalie
 
-**Explainability:** `shap_regressor.png` and `shap_classifier.png` visually isolate exactly which of the 75 features are driving risk and pathology classifications.
-
----
-
-## 🗂️ Saved Model Files
-
-All models, scalers, and artifacts are stored in `models/`. Metadata linking UI to the models is in `model_metadata.json`.
+**Expliquabilité :** `shap_regressor.png` et `shap_classifier.png` isolent visuellement laquelle des 75 caractéristiques stimule les classifications de risque et de pathologie.
 
 ---
 
-*Generated automatically by `retrain_v3.py` · Ergo Sensor AI Engine v3.0-Production*
+## 🗂️ Fichiers de modèles enregistrés
+
+Tous les modèles, scalers et artefacts sont stockés dans `models/`. Les métadonnées reliant l'interface utilisateur aux modèles se trouvent dans `model_metadata.json`.
+
+---
+
+*Généré automatiquement par `retrain_v3.py` · Moteur d'IA Ergo Sensor v3.0-Production*
