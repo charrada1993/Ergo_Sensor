@@ -36,18 +36,21 @@
                 <li><a href="{{ url_for('rula_page') }}" class="{% if request.path == '/rula' %}active{% endif %}"><i class="fas fa-clipboard-list"></i> RULA</a></li>
                 <li><a href="{{ url_for('reba_page') }}" class="{% if request.path == '/reba' %}active{% endif %}"><i class="fas fa-child"></i> REBA</a></li>
                 {% endif %}
-                {% if session.get('user_role') %}
-                <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                {% else %}
-                <li><a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-                {% endif %}
             </ul>
-            {% endif %}
 
-            <!-- Theme toggle button -->
-            <button id="theme-toggle" class="theme-toggle" aria-label="Switch to light/dark mode">
-                <i class="fas fa-moon"></i>
-            </button>
+            <div class="nav-actions">
+                {% if session.get('user_role') %}
+                <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a>
+                {% endif %}
+                
+                <!-- Theme toggle button -->
+                <button id="theme-toggle" class="theme-toggle" aria-label="Switch to light/dark mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+            {% endif %}
         </nav>
 
         <!-- Mobile Header (Visible only on mobile) -->

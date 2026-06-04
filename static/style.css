@@ -117,11 +117,59 @@ body {
     margin: 0;
     padding: 0;
     flex: 1;
-    overflow: hidden;
+    overflow-x: auto;
+    scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
+
+.nav-links::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Chrome/Safari */
 }
 
 .nav-links li {
     flex-shrink: 0;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: 20px;
+    flex-shrink: 0;
+}
+
+.logout-btn, .login-btn {
+    color: #ff4d6d;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 77, 109, 0.1);
+    border: 1px solid rgba(255, 77, 109, 0.2);
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 77, 109, 0.2);
+    border-color: rgba(255, 77, 109, 0.4);
+    box-shadow: 0 0 15px rgba(255, 77, 109, 0.2);
+    color: #fff;
+}
+
+.login-btn {
+    color: #00e5ff;
+    background: rgba(0, 229, 255, 0.1);
+    border-color: rgba(0, 229, 255, 0.2);
+}
+
+.login-btn:hover {
+    background: rgba(0, 229, 255, 0.2);
+    border-color: rgba(0, 229, 255, 0.4);
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+    color: #fff;
 }
 
 .nav-links a {
