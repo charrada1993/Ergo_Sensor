@@ -126,10 +126,24 @@ function initTrendCharts() {
                 maintainAspectRatio: false,
                 animation:           false,
                 scales: {
-                    y: { min: -180, max: 180, ticks: { stepSize: 45 }, title: { display: true, text: 'Degrees' } },
+                    y: { 
+                        min: -180, 
+                        max: 180, 
+                        ticks: { 
+                            stepSize: 45,
+                            font: { size: window.innerWidth < 768 ? 7 : 9 }
+                        }, 
+                        title: { display: window.innerWidth > 768, text: 'Degrees' } 
+                    },
                     x: { type: 'linear', ticks: { display: false } },
                 },
-                plugins: { legend: { display: true, position: 'top', labels: { font: { size: window.innerWidth < 768 ? 6 : 8 } } } },
+                plugins: { 
+                    legend: { 
+                        display: window.innerWidth > 768, 
+                        position: 'top', 
+                        labels: { font: { size: 8 } } 
+                    } 
+                },
             },
         });
     }
