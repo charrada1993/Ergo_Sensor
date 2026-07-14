@@ -1,0 +1,748 @@
+{% extends "base.html" %}
+{% block title %}IMU Posture Assessment{% endblock %}
+{% block content %}
+<style>
+  /* ────────── Layout ────────── */
+  .imu-layout {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 30px;
+    align-items: start;
+    margin-top: 20px;
+  }
+  @media (max-width: 1000px) {
+    .imu-layout { grid-template-columns: 1fr; }
+  }
+
+  .sensor-placement {
+    margin-bottom: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ────────── Detail rows ────────── */
+  .imu-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 11px 16px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+  }
+  .detail-item:hover {
+    background: rgba(255,255,255,0.06);
+    transform: translateX(4px);
+  }
+  .detail-item span:first-child {
+    font-family: 'Outfit', sans-serif;
+    color: #8890aa;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.75rem;
+  }
+  .detail-item span:last-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: #fff;
+    font-size: 1rem;
+  }
+  .detail-item.highlight {
+    background: rgba(124,58,237,0.07);
+    border: 1px solid rgba(124,58,237,0.25);
+  }
+  .detail-item.highlight span:last-child { color: #a78bfa; }
+
+  .detail-item.important {
+    background: linear-gradient(90deg, rgba(16,185,129,0.12) 0%, transparent 100%);
+    border-left: 4px solid #10b981;
+    border-radius: 8px 12px 12px 8px;
+    padding: 14px 16px;
+  }
+  .detail-item.important span:last-child {
+    color: #10b981;
+    font-size: 1.1rem;
+  }
+
+  .angle-sub {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 16px 3px 32px;
+    font-size: 0.72rem;
+    color: #5a6280;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ────────── Big score badge ────────── */
+  .final-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 20px;
+    background: radial-gradient(circle at center, rgba(124,58,237,0.18) 0%, transparent 70%);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    margin: -25px -25px 18px -25px;
+    position: relative;
+    overflow: hidden;
+  }
+  .final-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .final-num {
+    font-size: 5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    text-shadow: 0 0 30px rgba(124,58,237,0.55);
+    margin-bottom: 10px;
+    transition: color 0.6s ease;
+  }
+
+  .action-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #a78bfa;
+    background: rgba(124,58,237,0.12);
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(124,58,237,0.3);
+  }
+
+  /* ────────── Sub-scores grid ────────── */
+  .sub-scores-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+    margin-bottom: 4px;
+  }
+  @media (max-width: 900px) {
+    .sub-scores-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .sub-score-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 12px 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .sub-score-card:hover {
+    background: rgba(124,58,237,0.08);
+    border-color: rgba(124,58,237,0.22);
+    transform: translateY(-2px);
+  }
+  .sub-score-label {
+    font-size: 0.6rem;
+    font-family: 'Outfit', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #8890aa;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .sub-score-value {
+    font-size: 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+  .sub-score-max { font-size: 0.6rem; color: #5a6280; font-family: 'JetBrains Mono', monospace; }
+
+  .sub-score-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 99px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .sub-score-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #7c3aed, #a78bfa);
+    transition: width 0.6s ease;
+    width: 0%;
+  }
+
+  /* ────────── Section heading ────────── */
+  .section-heading {
+    font-size: 0.65rem;
+    font-family: 'Outfit', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #5a6280;
+    font-weight: 700;
+    margin: 14px 0 6px 0;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  /* ────────── Charts ────────── */
+  .chart-card {
+    padding: 20px;
+    background: rgba(18,20,35,0.4);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.05);
+    margin-top: 26px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+  }
+  .chart-card h4 {
+    margin: 0 0 14px 0;
+    color: #8890aa;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 26px;
+  }
+  @media (max-width: 900px) { .charts-row { grid-template-columns: 1fr; } }
+
+  /* ────────── Page header ────────── */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 10px;
+  }
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-left: none;
+    padding-left: 0;
+  }
+  .page-title i {
+    -webkit-text-fill-color: initial;
+    color: #a78bfa;
+    filter: drop-shadow(0 0 10px rgba(124,58,237,0.45));
+  }
+  .page-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+  .meta-badge {
+    background: rgba(16,22,42,0.8);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: #f8fafc;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .meta-badge.imu-count {
+    border-color: rgba(124,58,237,0.35);
+    background: rgba(124,58,237,0.1);
+    color: #a78bfa;
+  }
+
+  /* ────────── Calibration banner ────────── */
+  .calib-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 18px;
+    border-radius: 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    border: 1px solid rgba(124,58,237,0.2);
+    background: rgba(124,58,237,0.06);
+    color: #a78bfa;
+    line-height: 1.5;
+  }
+  .calib-banner i { font-size: 1rem; margin-top: 2px; flex-shrink: 0; }
+
+  /* ────────── Interpretation table ────────── */
+  .interp-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+    font-size: 0.76rem;
+  }
+  .interp-table th {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #8890aa;
+    font-size: 0.65rem;
+    padding: 5px 10px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .interp-table td {
+    padding: 6px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .interp-table tr:last-child td { border-bottom: none; }
+  .interp-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .interp-table tr.active-row td { background: rgba(124,58,237,0.08); border-radius: 6px; }
+
+  /* ────────── Light Mode Overrides for IMU Posture ────────── */
+  body.light-mode .detail-item {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.05);
+  }
+  body.light-mode .detail-item span:first-child {
+    color: #475569;
+  }
+  body.light-mode .detail-item span:last-child {
+    color: #1e293b;
+  }
+  body.light-mode .detail-item.highlight {
+    background: rgba(124, 58, 237, 0.05);
+    border-color: rgba(124, 58, 237, 0.2);
+  }
+  body.light-mode .detail-item.highlight span:last-child {
+    color: #7c3aed;
+  }
+  body.light-mode .sub-score-card {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.06);
+  }
+  body.light-mode .sub-score-card:hover {
+    background: rgba(124, 58, 237, 0.05);
+    border-color: rgba(124, 58, 237, 0.15);
+  }
+  body.light-mode .sub-score-label {
+    color: #475569;
+  }
+  body.light-mode .sub-score-value {
+    color: #1e293b;
+  }
+  body.light-mode .sub-score-bar {
+    background: rgba(0, 0, 0, 0.08);
+  }
+  body.light-mode .chart-card {
+    background: rgba(255, 255, 255, 0.72);
+    border-color: rgba(0, 0, 0, 0.07);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+  }
+  body.light-mode .chart-card h4 {
+    color: #475569;
+  }
+  body.light-mode .section-heading {
+    color: #64748b;
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+  }
+  body.light-mode .interp-table th {
+    color: #475569;
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+  }
+  body.light-mode .interp-table td {
+    border-bottom-color: rgba(0, 0, 0, 0.04);
+  }
+  body.light-mode .interp-table tr.active-row td {
+    background: rgba(124, 58, 237, 0.06);
+  }
+  body.light-mode .calib-banner {
+    background: rgba(124, 58, 237, 0.05);
+    border-color: rgba(124, 58, 237, 0.18);
+    color: #6d28d9;
+  }
+  body.light-mode .final-num {
+    color: #1e293b;
+  }
+</style>
+
+<!-- ══════════════════════ PAGE HEADER ══════════════════════ -->
+<div class="page-header">
+  <h1 class="page-title">
+    <i class="fas fa-wave-square"></i>
+    <span>IMU Posture &amp; Lombo-Pelvi-Fémoral</span>
+  </h1>
+  <div class="page-meta">
+    <span class="meta-badge imu-count">
+      <i class="fas fa-microchip"></i>
+      <span>12 IMU Sensors</span>
+    </span>
+    <span class="meta-badge">
+      <i class="fas fa-user-md"></i>
+      <span>{{ session.get('user_role', 'doctor')|capitalize }} Mode</span>
+    </span>
+    <span class="meta-badge" id="calib-badge" style="border-color:rgba(251,191,36,0.3);background:rgba(251,191,36,0.06);color:#fbbf24;">
+      <i class="fas fa-circle-notch fa-spin"></i>
+      <span>Not calibrated</span>
+    </span>
+  </div>
+</div>
+
+<!-- ══════════════════════ CALIBRATION BANNER ══════════════════════ -->
+<div class="calib-banner">
+  <i class="fas fa-ruler-combined"></i>
+  <span id="calib-status-text">
+    <strong>Calibration required.</strong> Please adopt the anatomical reference posture:
+    standing · looking straight ahead · arms at your sides · knees extended · feet 10 cm apart.
+    Calibration will begin automatically once all 12 sensors are connected (60 seconds).
+  </span>
+</div>
+
+<!-- ══════════════════════ MAIN 2-COL LAYOUT ══════════════════════ -->
+<div class="imu-layout">
+
+  <!-- ── LEFT: Sensor Map ── -->
+  <div class="card sensor-placement">
+    <h3 style="margin-bottom:4px;color:#fff;">12 IMU Sensor Map</h3>
+    <p class="sensor-note">
+      Spine: C1 · C7 · T5 · T12 · L3 · S1 &nbsp;|&nbsp;
+      Right Lower Limb: Thigh · Shank · Foot &nbsp;|&nbsp;
+      Left Lower Limb: Thigh · Shank · Foot
+    </p>
+
+    <div class="sensor-map" style="margin:auto;flex:1;display:flex;align-items:center;justify-content:center;">
+      <div class="body-figure-wrap">
+        <div class="body-figure-img"></div>
+
+        <!-- ══ RACHIS ══ -->
+        <!-- C1 — cervical supérieur -->
+        <div class="sensor-pin" style="top:10%;left:50%;flex-direction:column-reverse;align-items:center;gap:4px;">
+          <div class="sensor-card">
+            <div class="sensor-name">C1</div>
+            <div class="sensor-status" id="status-NECK">...</div>
+          </div>
+          <div class="pin-line" style="width:1.5px;height:16px;background:linear-gradient(180deg,rgba(167,139,250,0.15),rgba(167,139,250,0.9));"></div>
+          <div class="pin-dot"></div>
+        </div>
+
+        <!-- C7 — cervical inférieur / haut du dos -->
+        <div class="sensor-pin pin-right" style="top:22%;left:57%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">C7</div>
+            <div class="sensor-status" id="status-UPPER_BACK">...</div>
+          </div>
+        </div>
+
+        <!-- T5 — mi-thorax -->
+        <div class="sensor-pin pin-left" style="top:30%;left:40%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">T5</div>
+            <div class="sensor-status" id="status-R_BICEPS">...</div>
+          </div>
+        </div>
+
+        <!-- T12 — jonction thoraco-lombaire -->
+        <div class="sensor-pin pin-right" style="top:38%;left:60%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">T12</div>
+            <div class="sensor-status" id="status-R_FOREARM">...</div>
+          </div>
+        </div>
+
+        <!-- L3 — lombaire -->
+        <div class="sensor-pin pin-left" style="top:45%;left:40%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">L3</div>
+            <div class="sensor-status" id="status-R_HAND">...</div>
+          </div>
+        </div>
+
+        <!-- S1 — sacrum / bassin -->
+        <div class="sensor-pin pin-right" style="top:52%;left:60%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">S1</div>
+            <div class="sensor-status" id="status-R_THIGH">...</div>
+          </div>
+        </div>
+
+        <!-- ══ MEMBRE INFÉRIEUR DROIT ══ -->
+        <!-- Cuisse droite -->
+        <div class="sensor-pin pin-right" style="top:61%;left:65%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">R Thigh</div>
+            <div class="sensor-status" id="status-R_SHANK">...</div>
+          </div>
+        </div>
+
+        <!-- Jambe droite -->
+        <div class="sensor-pin pin-right" style="top:76%;left:63%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">R Shank</div>
+            <div class="sensor-status" id="status-L_BICEPS">...</div>
+          </div>
+        </div>
+
+        <!-- Pied droit (talon) -->
+        <div class="sensor-pin pin-right" style="top:89%;left:61%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">R Foot</div>
+            <div class="sensor-status" id="status-L_FOREARM">...</div>
+          </div>
+        </div>
+
+        <!-- ══ MEMBRE INFÉRIEUR GAUCHE ══ -->
+        <!-- Cuisse gauche -->
+        <div class="sensor-pin pin-left" style="top:61%;left:35%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">L Thigh</div>
+            <div class="sensor-status" id="status-L_HAND">...</div>
+          </div>
+        </div>
+
+        <!-- Jambe gauche -->
+        <div class="sensor-pin pin-left" style="top:76%;left:37%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">L Shank</div>
+            <div class="sensor-status" id="status-L_THIGH">...</div>
+          </div>
+        </div>
+
+        <!-- Pied gauche (talon) -->
+        <div class="sensor-pin pin-left" style="top:89%;left:39%;">
+          <div class="pin-dot"></div>
+          <div class="pin-line"></div>
+          <div class="sensor-card">
+            <div class="sensor-name">L Foot</div>
+            <div class="sensor-status" id="status-L_SHANK">...</div>
+          </div>
+        </div>
+
+      </div><!-- /body-figure-wrap -->
+    </div><!-- /sensor-map -->
+  </div><!-- /sensor-placement -->
+
+  <!-- ── RIGHT: Biomechanical Score Panel ── -->
+  <div class="card imu-card" style="padding:25px;">
+
+    <!-- Global score -->
+    <div class="final-badge">
+      <span class="final-num" id="imu-final">-</span>
+      <span class="action-label" id="imu-action">Waiting…</span>
+    </div>
+
+    <!-- 5 Sub-scores -->
+    <div class="sub-scores-grid">
+      <div class="sub-score-card">
+        <div class="sub-score-label">Spine</div>
+        <div class="sub-score-value" id="score-rachis">-</div>
+        <div class="sub-score-max">/ 30</div>
+        <div class="sub-score-bar"><div class="sub-score-fill" id="bar-rachis"></div></div>
+      </div>
+      <div class="sub-score-card">
+        <div class="sub-score-label">Symmetry</div>
+        <div class="sub-score-value" id="score-symetrie">-</div>
+        <div class="sub-score-max">/ 20</div>
+        <div class="sub-score-bar"><div class="sub-score-fill" id="bar-symetrie"></div></div>
+      </div>
+      <div class="sub-score-card">
+        <div class="sub-score-label">Stability</div>
+        <div class="sub-score-value" id="score-stabilite">-</div>
+        <div class="sub-score-max">/ 20</div>
+        <div class="sub-score-bar"><div class="sub-score-fill" id="bar-stabilite"></div></div>
+      </div>
+      <div class="sub-score-card">
+        <div class="sub-score-label">Gait</div>
+        <div class="sub-score-value" id="score-marche">-</div>
+        <div class="sub-score-max">/ 15</div>
+        <div class="sub-score-bar"><div class="sub-score-fill" id="bar-marche"></div></div>
+      </div>
+      <div class="sub-score-card">
+        <div class="sub-score-label">Mobility</div>
+        <div class="sub-score-value" id="score-mobilite">-</div>
+        <div class="sub-score-max">/ 15</div>
+        <div class="sub-score-bar"><div class="sub-score-fill" id="bar-mobilite"></div></div>
+      </div>
+    </div>
+
+    <!-- ── Spine Parameters ── -->
+    <p class="section-heading"><i class="fas fa-spine" style="margin-right:5px;"></i>Spine Parameters</p>
+    <div class="imu-details">
+      <div class="detail-item">
+        <span>Cervical Angle (C1–C7)</span>
+        <span id="imu-cervical">-</span>
+      </div>
+      <div class="detail-item">
+        <span>Thoracic Angle (T5–T12)</span>
+        <span id="imu-thoracique">-</span>
+      </div>
+      <div class="detail-item">
+        <span>Lumbar Angle (L3–S1)</span>
+        <span id="imu-lombaire">-</span>
+      </div>
+      <div class="detail-item">
+        <span>Trunk Inclination (C1–S1)</span>
+        <span id="imu-tronc">-</span>
+      </div>
+    </div>
+
+    <!-- ── Pelvis Parameters ── -->
+    <p class="section-heading"><i class="fas fa-circle-half-stroke" style="margin-right:5px;"></i>Pelvis Parameters</p>
+    <div class="imu-details">
+      <div class="detail-item">
+        <span>Pelvic Tilt (anteversion/retroversion)</span>
+        <span id="imu-pelvic-tilt">-</span>
+      </div>
+      <div class="detail-item">
+        <span>Pelvic Obliquity (lateral tilt)</span>
+        <span id="imu-pelvic-obliquity">-</span>
+      </div>
+      <div class="detail-item">
+        <span>Pelvic Rotation (transverse)</span>
+        <span id="imu-pelvic-rotation">-</span>
+      </div>
+    </div>
+
+    <!-- ── Lower Limbs Symmetry ── -->
+    <p class="section-heading"><i class="fas fa-arrows-left-right" style="margin-right:5px;"></i>Lower Limbs Symmetry</p>
+    <div class="imu-details">
+      <div class="detail-item">
+        <span>SI Hip R/L</span>
+        <span id="imu-si-hanche">-</span>
+      </div>
+      <div class="detail-item">
+        <span>SI Knee R/L</span>
+        <span id="imu-si-genou">-</span>
+      </div>
+      <div class="detail-item">
+        <span>SI Ankle R/L</span>
+        <span id="imu-si-cheville">-</span>
+      </div>
+    </div>
+
+    <!-- ── Locomotor Parameters ── -->
+    <p class="section-heading"><i class="fas fa-person-walking" style="margin-right:5px;"></i>Locomotor Parameters</p>
+    <div class="imu-details">
+      <div class="detail-item">
+        <span>Gait Speed</span>
+        <span id="imu-vitesse">-</span>
+      </div>
+      <div class="detail-item">
+        <span>Cadence (steps/min)</span>
+        <span id="imu-cadence">-</span>
+      </div>
+      <div class="detail-item">
+        <span>Step Length</span>
+        <span id="imu-pas">-</span>
+      </div>
+    </div>
+
+    <!-- Final score + interp -->
+    <div class="imu-details" style="margin-top:10px;">
+      <div class="detail-item highlight">
+        <span>Global Biomechanical Score</span>
+        <span id="imu-final2">-</span>
+      </div>
+      <div class="detail-item important">
+        <span>Clinical Interpretation</span>
+        <span id="imu-interpretation">-</span>
+      </div>
+    </div>
+
+    <!-- Interpretation table -->
+    <table class="interp-table">
+      <thead>
+        <tr><th>Score</th><th>Clinical Interpretation</th></tr>
+      </thead>
+      <tbody id="interp-tbody">
+        <tr id="interp-90"><td><span class="interp-dot" style="background:#10b981;"></span>90 – 100</td><td style="color:#10b981;">Excellent</td></tr>
+        <tr id="interp-80"><td><span class="interp-dot" style="background:#34d399;"></span>80 – 89</td><td style="color:#34d399;">Very Good</td></tr>
+        <tr id="interp-70"><td><span class="interp-dot" style="background:#a78bfa;"></span>70 – 79</td><td style="color:#a78bfa;">Normal</td></tr>
+        <tr id="interp-60"><td><span class="interp-dot" style="background:#fbbf24;"></span>60 – 69</td><td style="color:#fbbf24;">Mild Alteration</td></tr>
+        <tr id="interp-50"><td><span class="interp-dot" style="background:#f97316;"></span>50 – 59</td><td style="color:#f97316;">Moderate Alteration</td></tr>
+        <tr id="interp-0"><td><span class="interp-dot" style="background:#ef4444;"></span>&lt; 50</td><td style="color:#ef4444;">Significant Alteration</td></tr>
+      </tbody>
+    </table>
+
+  </div><!-- /imu-card -->
+</div><!-- /imu-layout -->
+
+<!-- ══════════════════════ CHARTS ROW ══════════════════════ -->
+<div class="charts-row">
+  <!-- Chart 1 — Global score trend -->
+  <div class="chart-card">
+    <h4><i class="fas fa-chart-line"></i>&nbsp; Global Biomechanical Score (real-time)</h4>
+    <div style="position:relative;height:240px;width:100%;">
+      <canvas id="trend-imu-global"></canvas>
+    </div>
+  </div>
+
+  <!-- Chart 2 — Radar sub-scores -->
+  <div class="chart-card">
+    <h4><i class="fas fa-chart-radar"></i>&nbsp; Detailed Sub-scores</h4>
+    <div style="position:relative;height:240px;width:100%;">
+      <canvas id="trend-imu-subscores"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Chart 3 — Spinal angles -->
+<div class="chart-card">
+  <h4><i class="fas fa-chart-area"></i>&nbsp; Real-time Spine Angles (Cervical · Thoracic · Lumbar)</h4>
+  <div style="position:relative;height:240px;width:100%;">
+    <canvas id="trend-imu-rachis"></canvas>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='imu_posture.js') }}"></script>
+{% endblock %}

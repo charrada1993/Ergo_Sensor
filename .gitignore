@@ -73,5 +73,5 @@ logs/
 reports/
 csv_data/
 .env
-.venv
+.venv_ergo/
 

@@ -88,13 +88,23 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         role = request.form.get('role')
+        assessment_method = request.form.get('assessment_method', 'rula')
 
         if role == 'doctor' and email == 'doctor@exemple.com' and password == 'doctor123':
             session['user_role'] = 'doctor'
-            return redirect(url_for('index'))
+            session['assessment_method'] = assessment_method
+            if assessment_method == 'rula':
+                return redirect(url_for('rula_page'))
+            elif assessment_method == 'reba':
+                return redirect(url_for('reba_page'))
+            elif assessment_method == 'imu_posture':
+                return redirect(url_for('imu_posture_page'))
+            else:
+                return redirect(url_for('rula_page'))
 
         elif role == 'patient' and email == 'patient@exemple.com' and password == 'patient123':
             session['user_role'] = 'patient'
+            session['assessment_method'] = assessment_method
             return redirect(url_for('index'))
 
         else:
@@ -206,6 +216,12 @@ def rula_page():
 @login_required(role='doctor')
 def reba_page():
     return render_template('reba.html')
+
+
+@app.route('/imu-posture')
+@login_required(role='doctor')
+def imu_posture_page():
+    return render_template('imu_posture.html')
 
 
 @app.route('/history')
@@ -668,6 +684,5 @@ if __name__ == '__main__':
         host="0.0.0.0",
         port=int(os.environ.get("PORT", 5000)),
         debug=False,
-        use_reloader=False,
-        allow_unsafe_werkzeug=True
+        use_reloader=False
     )
